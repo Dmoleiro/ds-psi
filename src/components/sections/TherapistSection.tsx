@@ -1,32 +1,32 @@
 import { images, therapist } from '../../content/site.pt'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
+import { PortraitPhoto } from '../ui/PortraitPhoto'
 import { Section } from '../layout/Section'
 import styles from './TherapistSection.module.css'
 
 export function TherapistSection() {
   return (
     <Section
-      id="terapeuta"
+      id="diretora-clinica"
       variant="cream"
-      title="A Terapeuta"
+      title="Diretora Clínica"
       subtitle="Conheça a formação e experiência de Daniela Santos."
     >
       <div className={styles.profile}>
-        <div className={styles.photoFrame}>
-          <img
-            src={images.therapistPortrait.src}
-            alt={images.therapistPortrait.alt}
-            className={styles.photo}
-            width={478}
-            height={478}
-          />
-        </div>
+        <PortraitPhoto
+          src={images.therapistPortrait.src}
+          alt={images.therapistPortrait.alt}
+          align={images.therapistPortrait.align}
+          frameClassName={styles.photoFrame}
+          width={478}
+          height={478}
+        />
 
         <div className={styles.profileInfo}>
           <h3 className={styles.name}>{therapist.name}</h3>
           <p className={styles.role}>{therapist.role}</p>
-          <p className={styles.credentials}>{therapist.credentials}</p>
+          <p className={styles.credentials}>{therapist.subtitle} — {therapist.credentials}</p>
           <Badge variant="accent">{`OPP n.º ${therapist.oppNumber}`}</Badge>
         </div>
       </div>

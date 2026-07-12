@@ -70,6 +70,7 @@ export const images = {
   therapistPortrait: {
     src: publicAsset('images/therapist-daniela-santos.png'),
     alt: 'Daniela Santos — Psicóloga Educacional',
+    align: { scale: 1, x: -8, y: 0 },
   },
   logo: publicAsset('logo.png'),
   gallery: [
@@ -116,7 +117,8 @@ export const navigation: NavItem[] = [
   { id: 'inicio', label: 'Início' },
   { id: 'clinica', label: 'A Clínica' },
   { id: 'servicos', label: 'Serviços' },
-  { id: 'terapeuta', label: 'A Terapeuta' },
+  { id: 'diretora-clinica', label: 'Diretora Clínica' },
+  { id: 'equipa', label: 'Equipa' },
   { id: 'contacto', label: 'Contacto' },
   { id: 'formularios-picca', label: 'Formulários PICCA', path: '/formularios-picca' },
 ]
@@ -186,7 +188,8 @@ export const services: Service[] = [
 
 export const therapist = {
   name: 'Daniela Santos',
-  role: 'Psicóloga Educacional',
+  role: 'Diretora Clínica',
+  subtitle: 'Psicóloga Educacional',
   credentials: 'Mestre em Psicologia Educacional — ISPA-IU',
   oppNumber: '022377',
   introduction: {

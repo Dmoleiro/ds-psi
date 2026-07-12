@@ -14,6 +14,7 @@ describe('site content', () => {
 
   it('includes therapist timeline entries', () => {
     expect(therapist.timeline.length).toBeGreaterThan(5)
+    expect(therapist.role).toBe('Diretora Clínica')
     expect(therapist.oppNumber).toBe('022377')
   })
 

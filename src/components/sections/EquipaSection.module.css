@@ -1,0 +1,183 @@
+.members {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4xl);
+}
+
+.member {
+  scroll-margin-top: calc(var(--header-height) + var(--space-md));
+}
+
+.memberHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+  text-align: center;
+}
+
+.photoFrame {
+  width: 10rem;
+  height: 10rem;
+  border: 3px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  background: var(--color-bg-card);
+}
+
+.memberName {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0 0 var(--space-xs);
+}
+
+.memberRole {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-sm);
+}
+
+.tagline {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin: 0 0 var(--space-md);
+}
+
+.intro {
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 40rem;
+}
+
+.block {
+  margin-bottom: var(--space-xl);
+}
+
+.blockTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0;
+  padding-left: var(--space-lg);
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.list li {
+  list-style: disc;
+}
+
+.audiences {
+  margin-bottom: var(--space-xl);
+}
+
+.audienceGrid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.audienceCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.audienceTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.practiceGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.practiceCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.practiceTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-ink);
+}
+
+.practiceDescription {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+}
+
+.approachList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  list-style: none;
+}
+
+.approachList li {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.closing {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-style: italic;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 768px) {
+  .memberHeader {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .photoFrame {
+    width: 11rem;
+    height: 11rem;
+  }
+
+  .audienceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .practiceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .audienceGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .practiceGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -16,7 +16,8 @@ describe('App', () => {
     expect(screen.getByRole('heading', { level: 1, name: /Daniela Santos Psicologia/i })).toBeInTheDocument()
     expect(document.getElementById('clinica')).toBeInTheDocument()
     expect(document.getElementById('servicos')).toBeInTheDocument()
-    expect(document.getElementById('terapeuta')).toBeInTheDocument()
+    expect(document.getElementById('diretora-clinica')).toBeInTheDocument()
+    expect(document.getElementById('equipa')).toBeInTheDocument()
     expect(document.getElementById('contacto')).toBeInTheDocument()
     expect(document.getElementById('formularios')).not.toBeInTheDocument()
   })
@@ -111,6 +112,25 @@ describe('Header', () => {
 
     expect(screen.getByRole('button', { name: /fechar menu/i })).toHaveAttribute('aria-expanded', 'true')
     expect(document.getElementById('mobile-nav')).toBeVisible()
+  })
+})
+
+describe('Equipa section', () => {
+  beforeEach(() => {
+    clearCookieConsent()
+    window.history.pushState({}, '', '/')
+  })
+
+  it('renders the team members', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getAllByRole('link', { name: /^equipa$/i, hidden: true })[0])
+
+    expect(document.getElementById('equipa')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: /Carolina Carmo/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: /Tânia Sanches/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: /Vera Cordeiro/i })).toBeInTheDocument()
   })
 })
 

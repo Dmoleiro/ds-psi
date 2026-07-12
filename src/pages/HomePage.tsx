@@ -4,6 +4,7 @@ import { HeroSection } from '../components/sections/HeroSection'
 import { ClinicSection } from '../components/sections/ClinicSection'
 import { ServicesSection } from '../components/sections/ServicesSection'
 import { TherapistSection } from '../components/sections/TherapistSection'
+import { EquipaSection } from '../components/sections/EquipaSection'
 import { ContactSection } from '../components/sections/ContactSection'
 
 function ScrollToHash() {
@@ -14,7 +15,7 @@ function ScrollToHash() {
 
     const id = hash.replace('#', '')
     const element = document.getElementById(id)
-    if (element) {
+    if (element && typeof element.scrollIntoView === 'function') {
       element.scrollIntoView()
     }
   }, [hash])
@@ -30,6 +31,7 @@ export function HomePage() {
       <ClinicSection />
       <ServicesSection />
       <TherapistSection />
+      <EquipaSection />
       <ContactSection />
     </>
   )

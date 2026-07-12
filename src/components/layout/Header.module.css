@@ -190,6 +190,8 @@
   .navLink {
     padding: var(--space-sm) var(--space-md);
     font-size: 0.875rem;
+    text-align: center;
+    line-height: 1.25;
   }
 
   .cta {
