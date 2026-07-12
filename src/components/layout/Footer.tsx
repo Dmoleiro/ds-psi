@@ -12,7 +12,22 @@ export function Footer() {
       <Container>
         <div className={styles.grid}>
           <div className={styles.brand}>
-            <img src={images.logo} alt="" width={56} height={56} className={styles.logo} />
+            <div className={styles.brandMark} aria-hidden="true">
+              <img
+                src={images.logoIcon}
+                alt=""
+                className={styles.logoIcon}
+                width={56}
+                height={56}
+              />
+              <img
+                src={images.logoText}
+                alt=""
+                className={styles.logoText}
+                width={180}
+                height={52}
+              />
+            </div>
             <p className={styles.name}>{site.name}</p>
             <p className={styles.tagline}>{site.tagline}</p>
           </div>

@@ -73,6 +73,8 @@ export const images = {
     align: { scale: 1, x: -8, y: 0 },
   },
   logo: publicAsset('logo.png'),
+  logoIcon: publicAsset('logo-icon.png'),
+  logoText: publicAsset('logo-text.png'),
   gallery: [
     {
       id: 'entrada',

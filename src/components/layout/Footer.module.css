@@ -15,9 +15,32 @@
   max-width: 18rem;
 }
 
-.logo {
+.brandMark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   margin-bottom: var(--space-md);
-  border-radius: var(--radius-sm);
+}
+
+.logoIcon {
+  flex-shrink: 0;
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: contain;
+  background: transparent;
+}
+
+.logoText {
+  flex-shrink: 1;
+  display: block;
+  width: auto;
+  height: 3rem;
+  max-width: 11rem;
+  object-fit: contain;
+  object-position: left center;
+  background: transparent;
+  filter: brightness(0) invert(1);
 }
 
 .name {

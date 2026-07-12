@@ -60,12 +60,21 @@ export function Header() {
         className={`${styles.header} ${scrolled ? styles.scrolled : ''} ${menuOpen ? styles.menuOpen : ''}`}
       >
         <div className={styles.inner}>
-          <Link to="/" className={styles.brand} onClick={closeMenu}>
-            <img src={images.logo} alt="" className={styles.logo} width={48} height={48} />
-            <span className={styles.brandText}>
-              <span className={styles.brandName}>{site.name}</span>
-              <span className={styles.brandTagline}>{site.tagline}</span>
-            </span>
+          <Link to="/" className={styles.brand} onClick={closeMenu} aria-label={site.name}>
+            <img
+              src={images.logoIcon}
+              alt=""
+              className={styles.logoIcon}
+              width={52}
+              height={52}
+            />
+            <img
+              src={images.logoText}
+              alt=""
+              className={styles.logoText}
+              width={160}
+              height={48}
+            />
           </Link>
 
           <button
