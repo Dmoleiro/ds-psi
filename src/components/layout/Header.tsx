@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { navigation, site } from '../../content/site.pt'
+import { navigation, site, images } from '../../content/site.pt'
 import styles from './Header.module.css'
 
 function useIsDesktop() {
@@ -45,7 +45,7 @@ export function Header() {
       >
         <div className={styles.inner}>
           <a href="#inicio" className={styles.brand} onClick={closeMenu}>
-            <img src="/logo.png" alt="" className={styles.logo} width={48} height={48} />
+            <img src={images.logo} alt="" className={styles.logo} width={48} height={48} />
             <span className={styles.brandText}>
               <span className={styles.brandName}>{site.name}</span>
               <span className={styles.brandTagline}>{site.tagline}</span>

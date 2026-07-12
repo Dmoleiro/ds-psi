@@ -1,4 +1,4 @@
-import { legal, site } from '../../content/site.pt'
+import { legal, site, images } from '../../content/site.pt'
 import { Container } from './Container'
 import styles from './Footer.module.css'
 
@@ -10,7 +10,7 @@ export function Footer() {
       <Container>
         <div className={styles.grid}>
           <div className={styles.brand}>
-            <img src="/logo.png" alt="" width={56} height={56} className={styles.logo} />
+            <img src={images.logo} alt="" width={56} height={56} className={styles.logo} />
             <p className={styles.name}>{site.name}</p>
             <p className={styles.tagline}>{site.tagline}</p>
           </div>

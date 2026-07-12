@@ -1,3 +1,5 @@
+import { publicAsset } from '../lib/publicAsset'
+
 export interface NavItem {
   id: string
   label: string
@@ -48,47 +50,48 @@ export const site = {
 
 export const images = {
   heroExterior: {
-    src: '/images/hero-exterior.png',
+    src: publicAsset('images/hero-exterior.png'),
     alt: 'Exterior da clínica — montra com o logótipo e o nome Psicóloga Daniela Santos',
   },
   therapistPortrait: {
-    src: '/images/therapist-daniela-santos.png',
+    src: publicAsset('images/therapist-daniela-santos.png'),
     alt: 'Daniela Santos — Psicóloga Educacional',
   },
+  logo: publicAsset('logo.png'),
   gallery: [
     {
       id: 'entrada',
-      src: '/images/clinic-entrada.png',
+      src: publicAsset('images/clinic-entrada.png'),
       alt: 'Entrada da clínica — porta de vidro com informações de contacto e marcação',
       caption: 'Entrada',
     },
     {
       id: 'sala-espera',
-      src: '/images/clinic-sala-espera.png',
+      src: publicAsset('images/clinic-sala-espera.png'),
       alt: 'Sala de espera da clínica — espaço acolhedor com zona para crianças e livros infantis',
       caption: 'Sala de espera',
     },
     {
       id: 'sala-consulta',
-      src: '/images/clinic-sala-consulta.png',
+      src: publicAsset('images/clinic-sala-consulta.png'),
       alt: 'Sala de consulta — ambiente calmo com poltrona verde e decoração cuidada',
       caption: 'Sala de consulta',
     },
     {
       id: 'sala-consulta-infantil',
-      src: '/images/clinic-sala-consulta-infantil.png',
+      src: publicAsset('images/clinic-sala-consulta-infantil.png'),
       alt: 'Sala de consulta para crianças — espaço com brinquedos, livros e mobiliário infantil',
       caption: 'Sala de consulta infantil',
     },
     {
       id: 'consultorio',
-      src: '/images/clinic-consultorio.png',
+      src: publicAsset('images/clinic-consultorio.png'),
       alt: 'Consultório — secretária, zona de trabalho e canto de brincar para crianças e jovens',
       caption: 'Consultório',
     },
     {
       id: 'divisoria',
-      src: '/images/clinic-interior-divisoria.png',
+      src: publicAsset('images/clinic-interior-divisoria.png'),
       alt: 'Interior da clínica — divisória em madeira com planta decorativa',
       caption: 'Espaço interior',
     },
