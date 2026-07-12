@@ -1,0 +1,46 @@
+.intro {
+  max-width: 42rem;
+  margin-inline: auto;
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.lead {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-lg);
+}
+
+.paragraph {
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-md);
+}
+
+.values {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.valueCard {
+  text-align: center;
+}
+
+.valueTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.valueDescription {
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .values {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

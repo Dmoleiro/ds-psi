@@ -1,0 +1,64 @@
+.grid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.icon {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: var(--space-sm);
+  color: var(--color-ink);
+}
+
+.description {
+  font-size: 0.9375rem;
+  color: var(--color-ink-muted);
+  margin: 0;
+  flex: 1;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .card:last-child:nth-child(odd) {
+    grid-column: span 1;
+  }
+}
+
+/* Last item (5 services) spans full width on tablet */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .card:last-child {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    justify-self: center;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card:last-child {
+    grid-column: 2 / 3;
+    justify-self: center;
+    max-width: 100%;
+  }
+}

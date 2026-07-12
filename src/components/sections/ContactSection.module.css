@@ -1,0 +1,145 @@
+.grid {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.infoCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.infoTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.infoText {
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.contactMethods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.contactLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-bg-warm);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--transition-fast);
+}
+
+.contactLink:hover {
+  background: var(--color-brain);
+  color: inherit;
+}
+
+.contactLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-soft);
+}
+
+.contactValue {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
+}
+
+.address {
+  font-style: normal;
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+  margin-bottom: var(--space-sm);
+}
+
+.mapWrapper {
+  display: block;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  min-height: 18rem;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow var(--transition-base);
+}
+
+.mapWrapper:hover {
+  box-shadow: var(--shadow-lg);
+  color: inherit;
+}
+
+.mapPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  width: 100%;
+  height: 100%;
+  min-height: 18rem;
+  padding: var(--space-xl);
+  background: linear-gradient(145deg, var(--color-brain), var(--color-bg-warm));
+  text-align: center;
+}
+
+.mapIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.mapText {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.mapAddress {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  max-width: 20rem;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .mapWrapper {
+    min-height: 28rem;
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-lg));
+  }
+
+  .mapPlaceholder {
+    min-height: 28rem;
+  }
+}
