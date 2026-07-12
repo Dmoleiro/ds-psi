@@ -62,19 +62,26 @@ export function ContactSection() {
           </Card>
         </div>
 
-        <a
-          href={site.mapUrl}
-          className={styles.mapWrapper}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Ver localização da clínica no Google Maps"
-        >
-          <div className={styles.mapPlaceholder}>
-            <span className={styles.mapIcon} aria-hidden="true">📍</span>
-            <span className={styles.mapText}>Ver localização no Google Maps</span>
-            <span className={styles.mapAddress}>{site.address.full}</span>
+        <div className={styles.mapColumn}>
+          <div className={styles.mapWrapper}>
+            <iframe
+              title="Mapa — Clínica Psicologia Daniela Santos, Azambuja"
+              src={site.mapEmbedUrl}
+              className={styles.map}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
           </div>
-        </a>
+          <a
+            href={site.mapUrl}
+            className={styles.mapLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Abrir no Google Maps
+          </a>
+        </div>
       </div>
     </Section>
   )

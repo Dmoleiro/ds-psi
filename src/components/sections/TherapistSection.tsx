@@ -1,4 +1,4 @@
-import { therapist } from '../../content/site.pt'
+import { images, therapist } from '../../content/site.pt'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
 import { Section } from '../layout/Section'
@@ -13,9 +13,14 @@ export function TherapistSection() {
       subtitle="Conheça a formação e experiência de Daniela Santos."
     >
       <div className={styles.profile}>
-        <div className={styles.photoPlaceholder} aria-hidden="true">
-          <img src="/logo.png" alt="" className={styles.photoLogo} />
-          <span>Fotografia em breve</span>
+        <div className={styles.photoFrame}>
+          <img
+            src={images.therapistPortrait.src}
+            alt={images.therapistPortrait.alt}
+            className={styles.photo}
+            width={320}
+            height={320}
+          />
         </div>
 
         <div className={styles.profileInfo}>

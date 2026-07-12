@@ -1,4 +1,4 @@
-import { site } from '../../content/site.pt'
+import { images, site } from '../../content/site.pt'
 import { Button } from '../ui/Button'
 import { Container } from '../layout/Container'
 import styles from './HeroSection.module.css'
@@ -29,15 +29,18 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className={styles.visual} aria-hidden="true">
+        <div className={styles.visual}>
           <div className={styles.imageFrame}>
-            <div className={styles.placeholder}>
-              <img src="/logo.png" alt="" className={styles.placeholderLogo} />
-              <span>Fotografia da clínica em breve</span>
-            </div>
+            <img
+              src={images.heroExterior.src}
+              alt={images.heroExterior.alt}
+              className={styles.heroImage}
+              width={880}
+              height={1100}
+            />
           </div>
-          <div className={styles.blob1} />
-          <div className={styles.blob2} />
+          <div className={styles.blob1} aria-hidden="true" />
+          <div className={styles.blob2} aria-hidden="true" />
         </div>
       </Container>
     </section>

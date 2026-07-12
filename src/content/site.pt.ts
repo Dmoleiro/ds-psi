@@ -41,7 +41,58 @@ export const site = {
     city: 'Azambuja',
     full: 'Rua dos Forcados Amadores de Azambuja, Loja 4, 2050-385 Azambuja',
   },
-  mapUrl: 'https://maps.app.goo.gl/f3TfVDB3rPLBrcEX6',
+  mapUrl: 'https://maps.app.goo.gl/QoZ453RGLNoBCLUm7',
+  mapEmbedUrl:
+    'https://maps.google.com/maps?q=39.0706193,-8.8751663&hl=pt&z=17&output=embed',
+} as const
+
+export const images = {
+  heroExterior: {
+    src: '/images/hero-exterior.png',
+    alt: 'Exterior da clínica — montra com o logótipo e o nome Psicóloga Daniela Santos',
+  },
+  therapistPortrait: {
+    src: '/images/therapist-daniela-santos.png',
+    alt: 'Daniela Santos — Psicóloga Educacional',
+  },
+  gallery: [
+    {
+      id: 'entrada',
+      src: '/images/clinic-entrada.png',
+      alt: 'Entrada da clínica — porta de vidro com informações de contacto e marcação',
+      caption: 'Entrada',
+    },
+    {
+      id: 'sala-espera',
+      src: '/images/clinic-sala-espera.png',
+      alt: 'Sala de espera da clínica — espaço acolhedor com zona para crianças e livros infantis',
+      caption: 'Sala de espera',
+    },
+    {
+      id: 'sala-consulta',
+      src: '/images/clinic-sala-consulta.png',
+      alt: 'Sala de consulta — ambiente calmo com poltrona verde e decoração cuidada',
+      caption: 'Sala de consulta',
+    },
+    {
+      id: 'sala-consulta-infantil',
+      src: '/images/clinic-sala-consulta-infantil.png',
+      alt: 'Sala de consulta para crianças — espaço com brinquedos, livros e mobiliário infantil',
+      caption: 'Sala de consulta infantil',
+    },
+    {
+      id: 'consultorio',
+      src: '/images/clinic-consultorio.png',
+      alt: 'Consultório — secretária, zona de trabalho e canto de brincar para crianças e jovens',
+      caption: 'Consultório',
+    },
+    {
+      id: 'divisoria',
+      src: '/images/clinic-interior-divisoria.png',
+      alt: 'Interior da clínica — divisória em madeira com planta decorativa',
+      caption: 'Espaço interior',
+    },
+  ],
 } as const
 
 export const navigation: NavItem[] = [

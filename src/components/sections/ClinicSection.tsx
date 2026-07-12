@@ -1,4 +1,4 @@
-import { clinic } from '../../content/site.pt'
+import { clinic, images } from '../../content/site.pt'
 import { Card } from '../ui/Card'
 import { Section } from '../layout/Section'
 import styles from './ClinicSection.module.css'
@@ -14,6 +14,17 @@ export function ClinicSection() {
           </p>
         ))}
       </div>
+
+      {images.gallery.length > 0 && (
+        <div className={styles.gallery}>
+          {images.gallery.map((photo) => (
+            <figure key={photo.id} className={styles.galleryItem}>
+              <img src={photo.src} alt={photo.alt} className={styles.galleryImage} loading="lazy" />
+              {photo.caption && <figcaption className={styles.galleryCaption}>{photo.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
 
       <div className={styles.values}>
         {clinic.values.map((value) => (
