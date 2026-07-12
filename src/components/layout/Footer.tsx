@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { legal, site, images } from '../../content/site.pt'
 import { Container } from './Container'
+import { SocialLinks } from './SocialLinks'
 import styles from './Footer.module.css'
 
 export function Footer() {
@@ -24,6 +25,7 @@ export function Footer() {
               </li>
               <li>{site.address.full}</li>
             </ul>
+            <SocialLinks />
           </div>
 
           <div>

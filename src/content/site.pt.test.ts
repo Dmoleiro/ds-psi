@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { legal, services, site, therapist } from '../content/site.pt'
+import { legal, services, site, social, therapist } from '../content/site.pt'
 
 describe('site content', () => {
   it('has required contact information', () => {
@@ -26,5 +26,11 @@ describe('site content', () => {
 
   it('includes the cookie policy label', () => {
     expect(legal.cookies.label).toBe('Política de Cookies')
+  })
+
+  it('includes social and complaints book links', () => {
+    expect(social.instagram.href).toBe('https://www.instagram.com/danielasantos.psicologia')
+    expect(social.facebook.href).toBe('https://www.facebook.com/daniela.santos.963434')
+    expect(social.complaintsBook.href).toBe('https://www.livroreclamacoes.pt/inicio')
   })
 })

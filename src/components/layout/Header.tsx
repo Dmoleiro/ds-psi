@@ -39,6 +39,21 @@ export function Header() {
 
   const closeMenu = () => setMenuOpen(false)
 
+  const renderNavLink = (item: (typeof navigation)[number]) =>
+    item.path ? (
+      <Link to={item.path} className={styles.navLink} onClick={closeMenu}>
+        {item.label}
+      </Link>
+    ) : (
+      <Link
+        to={{ pathname: '/', hash: `#${item.id}` }}
+        className={styles.navLink}
+        onClick={closeMenu}
+      >
+        {item.label}
+      </Link>
+    )
+
   return (
     <>
       <header
@@ -74,15 +89,7 @@ export function Header() {
           >
             <ul className={styles.navList}>
               {navigation.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    to={{ pathname: '/', hash: `#${item.id}` }}
-                    className={styles.navLink}
-                    onClick={closeMenu}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
+                <li key={item.id}>{renderNavLink(item)}</li>
               ))}
             </ul>
             <a href={`mailto:${site.email}`} className={styles.cta}>
@@ -102,15 +109,7 @@ export function Header() {
           >
             <ul className={styles.navList}>
               {navigation.map((item) => (
-                <li key={item.id}>
-                  <Link
-                    to={{ pathname: '/', hash: `#${item.id}` }}
-                    className={styles.navLink}
-                    onClick={closeMenu}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
+                <li key={item.id}>{renderNavLink(item)}</li>
               ))}
             </ul>
             <a href={`mailto:${site.email}`} className={styles.cta} onClick={closeMenu}>

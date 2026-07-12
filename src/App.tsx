@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
+import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
 import { HomePage } from './pages/HomePage'
 import './styles/global.css'
 
@@ -27,6 +28,14 @@ export function App() {
           element={
             <SiteLayout>
               <CookiesPolicyPage />
+            </SiteLayout>
+          }
+        />
+        <Route
+          path="/formularios-picca"
+          element={
+            <SiteLayout>
+              <FormulariosPiccaPage />
             </SiteLayout>
           }
         />

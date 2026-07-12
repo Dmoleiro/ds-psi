@@ -3,6 +3,7 @@ import { publicAsset } from '../lib/publicAsset'
 export interface NavItem {
   id: string
   label: string
+  path?: string
 }
 
 export interface Service {
@@ -43,6 +44,22 @@ export const site = {
   mapUrl: 'https://maps.app.goo.gl/QoZ453RGLNoBCLUm7',
   mapEmbedUrl:
     'https://maps.google.com/maps?q=39.0706193,-8.8751663&hl=pt&z=17&output=embed',
+} as const
+
+export const social = {
+  instagram: {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/danielasantos.psicologia',
+  },
+  facebook: {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/daniela.santos.963434',
+  },
+  complaintsBook: {
+    label: 'Livro de Reclamações',
+    href: 'https://www.livroreclamacoes.pt/inicio',
+    icon: publicAsset('images/livro-reclamacoes.png'),
+  },
 } as const
 
 export const images = {
@@ -101,7 +118,7 @@ export const navigation: NavItem[] = [
   { id: 'servicos', label: 'Serviços' },
   { id: 'terapeuta', label: 'A Terapeuta' },
   { id: 'contacto', label: 'Contacto' },
-  { id: 'formularios', label: 'Formulários' },
+  { id: 'formularios-picca', label: 'Formulários PICCA', path: '/formularios-picca' },
 ]
 
 export const clinic = {
@@ -282,24 +299,29 @@ export const therapist = {
   ] satisfies TimelineEntry[],
 }
 
-export const formsStub: FormStub[] = [
-  {
-    id: 'intake',
-    title: 'Formulário de Admissão',
-    description:
-      'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
-  },
-  {
-    id: 'consent',
-    title: 'Consentimento Informado',
-    description: 'Documento de consentimento para acompanhamento psicológico.',
-  },
-  {
-    id: 'history',
-    title: 'Historial Clínico',
-    description: 'Questionário sobre historial de desenvolvimento e saúde.',
-  },
-]
+export const piccaFormsPage = {
+  title: 'Formulários PICCA',
+  intro:
+    'Área reservada para pacientes com acesso autorizado. Em breve, cada paciente receberá um link único para aceder aos formulários de admissão.',
+  forms: [
+    {
+      id: 'intake',
+      title: 'Formulário de Admissão',
+      description:
+        'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
+    },
+    {
+      id: 'consent',
+      title: 'Consentimento Informado',
+      description: 'Documento de consentimento para acompanhamento psicológico.',
+    },
+    {
+      id: 'history',
+      title: 'Historial Clínico',
+      description: 'Questionário sobre historial de desenvolvimento e saúde.',
+    },
+  ] satisfies FormStub[],
+} as const
 
 export const legal = {
   dataProtection: {

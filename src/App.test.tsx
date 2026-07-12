@@ -7,6 +7,7 @@ import { clearCookieConsent } from './hooks/useCookieConsent'
 describe('App', () => {
   beforeEach(() => {
     clearCookieConsent()
+    window.history.pushState({}, '', '/')
   })
 
   it('renders the clinic name and main sections', () => {
@@ -17,7 +18,7 @@ describe('App', () => {
     expect(document.getElementById('servicos')).toBeInTheDocument()
     expect(document.getElementById('terapeuta')).toBeInTheDocument()
     expect(document.getElementById('contacto')).toBeInTheDocument()
-    expect(document.getElementById('formularios')).toBeInTheDocument()
+    expect(document.getElementById('formularios')).not.toBeInTheDocument()
   })
 
   it('renders all services', () => {
@@ -37,11 +38,35 @@ describe('App', () => {
     expect(screen.queryByText(/WhatsApp/i)).not.toBeInTheDocument()
   })
 
-  it('shows forms as coming soon', () => {
+  it('shows social and complaints book links in the footer', () => {
     render(<App />)
 
+    const footer = screen.getByRole('contentinfo')
+    expect(footer.querySelector('a[aria-label="Instagram"]')).toHaveAttribute(
+      'href',
+      'https://www.instagram.com/danielasantos.psicologia',
+    )
+    expect(footer.querySelector('a[aria-label="Facebook"]')).toHaveAttribute(
+      'href',
+      'https://www.facebook.com/daniela.santos.963434',
+    )
+    expect(footer.querySelector('a[aria-label="Livro de Reclamações"]')).toHaveAttribute(
+      'href',
+      'https://www.livroreclamacoes.pt/inicio',
+    )
+  })
+
+  it('shows PICCA forms as coming soon on the dedicated page', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const piccaLinks = screen.getAllByRole('link', { name: /formulários picca/i, hidden: true })
+    await user.click(piccaLinks[0])
+
+    expect(screen.getByRole('heading', { level: 1, name: /Formulários PICCA/i })).toBeInTheDocument()
     expect(screen.getAllByText('Em breve').length).toBeGreaterThan(0)
     expect(screen.getByText('Formulário de Admissão')).toBeInTheDocument()
+    expect(screen.queryByText(/funcionalidades planeadas/i)).not.toBeInTheDocument()
   })
 
   it('shows the cookie banner until consent is given', async () => {
@@ -74,6 +99,7 @@ describe('App', () => {
 describe('Header', () => {
   beforeEach(() => {
     clearCookieConsent()
+    window.history.pushState({}, '', '/')
   })
 
   it('toggles mobile navigation menu', async () => {
@@ -91,6 +117,7 @@ describe('Header', () => {
 describe('Cookies policy page', () => {
   beforeEach(() => {
     clearCookieConsent()
+    window.history.pushState({}, '', '/')
   })
 
   it('renders the cookie policy content', async () => {
