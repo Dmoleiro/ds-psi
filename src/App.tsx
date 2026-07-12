@@ -1,26 +1,36 @@
-import { Header } from './components/layout/Header'
-import { Footer } from './components/layout/Footer'
-import { HeroSection } from './components/sections/HeroSection'
-import { ClinicSection } from './components/sections/ClinicSection'
-import { ServicesSection } from './components/sections/ServicesSection'
-import { TherapistSection } from './components/sections/TherapistSection'
-import { ContactSection } from './components/sections/ContactSection'
-import { FormsSection } from './components/sections/FormsSection'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { SiteLayout } from './components/layout/SiteLayout'
+import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
+import { HomePage } from './pages/HomePage'
 import './styles/global.css'
+
+function getBasename(): string {
+  const base = import.meta.env.BASE_URL
+  if (!base || base === '/') return '/'
+  return base.endsWith('/') ? base.slice(0, -1) : base
+}
 
 export function App() {
   return (
-    <>
-      <Header />
-      <main>
-        <HeroSection />
-        <ClinicSection />
-        <ServicesSection />
-        <TherapistSection />
-        <ContactSection />
-        <FormsSection />
-      </main>
-      <Footer />
-    </>
+    <BrowserRouter basename={getBasename()}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <SiteLayout>
+              <HomePage />
+            </SiteLayout>
+          }
+        />
+        <Route
+          path="/politica-cookies"
+          element={
+            <SiteLayout>
+              <CookiesPolicyPage />
+            </SiteLayout>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   )
 }

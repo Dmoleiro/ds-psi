@@ -1,0 +1,136 @@
+.page {
+  padding-block: var(--space-2xl) var(--space-4xl);
+}
+
+.back {
+  margin-bottom: var(--space-xl);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.back a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.back a:hover {
+  text-decoration: underline;
+}
+
+.header {
+  max-width: 42rem;
+  margin-bottom: var(--space-2xl);
+}
+
+.title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: var(--space-sm);
+}
+
+.updated {
+  font-size: 0.875rem;
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-lg);
+}
+
+.intro {
+  font-size: 1.0625rem;
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  max-width: 48rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-md);
+  color: var(--color-ink);
+}
+
+.paragraph {
+  color: var(--color-ink-muted);
+  line-height: 1.7;
+  margin-bottom: var(--space-md);
+}
+
+.list {
+  margin: 0 0 var(--space-md);
+  padding-left: var(--space-lg);
+  color: var(--color-ink-muted);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.list li {
+  list-style: disc;
+}
+
+.card {
+  margin-top: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--color-bg-warm);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+  color: var(--color-primary);
+}
+
+.dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.dl dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+  margin-bottom: var(--space-xs);
+}
+
+.dl dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+}
+
+.dl a {
+  word-break: break-all;
+}
+
+.related {
+  margin-top: var(--space-3xl);
+  padding: var(--space-xl);
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-lg);
+  max-width: 48rem;
+}
+
+.relatedTitle {
+  font-size: 1rem;
+  margin-bottom: var(--space-sm);
+  color: var(--color-accent);
+}
+
+.related p {
+  margin: 0;
+}
+
+.related a {
+  font-weight: 600;
+}

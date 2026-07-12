@@ -34,9 +34,6 @@ export const site = {
   subtitle:
     'Acompanhamento psicológico para crianças, jovens e adultos — com foco no desenvolvimento, na educação e no bem-estar emocional.',
   email: 'danielasantos.consultas@gmail.com',
-  phone: '966419142',
-  phoneDisplay: '966 419 142',
-  whatsappUrl: 'https://wa.me/351966419142',
   address: {
     street: 'Rua dos Forcados Amadores de Azambuja, Loja 4',
     postalCode: '2050-385',
@@ -305,7 +302,12 @@ export const formsStub: FormStub[] = [
 ]
 
 export const legal = {
-  privacyPolicy: 'Política de Privacidade (em breve)',
-  cookies: 'Política de Cookies (em breve)',
+  dataProtection: {
+    label: 'Consentimento informado e proteção de dados',
+    href: publicAsset('docs/consentimento-e-protecao-dados-2026.pdf'),
+  },
+  cookies: {
+    label: 'Política de Cookies',
+  },
   oppDisclaimer: 'Membro da Ordem dos Psicólogos Portugueses — Cédula n.º 022377',
 } as const

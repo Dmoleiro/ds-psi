@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { legal, site, images } from '../../content/site.pt'
 import { Container } from './Container'
 import styles from './Footer.module.css'
@@ -21,9 +22,6 @@ export function Footer() {
               <li>
                 <a href={`mailto:${site.email}`}>{site.email}</a>
               </li>
-              <li>
-                <a href={`tel:+351${site.phone}`}>{site.phoneDisplay}</a>
-              </li>
               <li>{site.address.full}</li>
             </ul>
           </div>
@@ -32,10 +30,16 @@ export function Footer() {
             <h3 className={styles.heading}>Informação</h3>
             <ul className={styles.links}>
               <li>
-                <span className={styles.stub}>{legal.privacyPolicy}</span>
+                <a
+                  href={legal.dataProtection.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {legal.dataProtection.label}
+                </a>
               </li>
               <li>
-                <span className={styles.stub}>{legal.cookies}</span>
+                <Link to="/politica-cookies">{legal.cookies.label}</Link>
               </li>
               <li>{legal.oppDisclaimer}</li>
             </ul>

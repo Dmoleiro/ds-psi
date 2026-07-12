@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { navigation, site, images } from '../../content/site.pt'
 import styles from './Header.module.css'
 
@@ -44,13 +45,13 @@ export function Header() {
         className={`${styles.header} ${scrolled ? styles.scrolled : ''} ${menuOpen ? styles.menuOpen : ''}`}
       >
         <div className={styles.inner}>
-          <a href="#inicio" className={styles.brand} onClick={closeMenu}>
+          <Link to="/" className={styles.brand} onClick={closeMenu}>
             <img src={images.logo} alt="" className={styles.logo} width={48} height={48} />
             <span className={styles.brandText}>
               <span className={styles.brandName}>{site.name}</span>
               <span className={styles.brandTagline}>{site.tagline}</span>
             </span>
-          </a>
+          </Link>
 
           <button
             type="button"
@@ -74,9 +75,13 @@ export function Header() {
             <ul className={styles.navList}>
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className={styles.navLink}>
+                  <Link
+                    to={{ pathname: '/', hash: `#${item.id}` }}
+                    className={styles.navLink}
+                    onClick={closeMenu}
+                  >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -98,9 +103,13 @@ export function Header() {
             <ul className={styles.navList}>
               {navigation.map((item) => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className={styles.navLink} onClick={closeMenu}>
+                  <Link
+                    to={{ pathname: '/', hash: `#${item.id}` }}
+                    className={styles.navLink}
+                    onClick={closeMenu}
+                  >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

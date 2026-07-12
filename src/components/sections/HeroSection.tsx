@@ -20,11 +20,8 @@ export function HeroSection() {
           </div>
 
           <div className={styles.quickContact}>
-            <a href={`tel:+351${site.phone}`} className={styles.contactItem}>
-              <span aria-hidden="true">📞</span> {site.phoneDisplay}
-            </a>
-            <a href={site.whatsappUrl} className={styles.contactItem} target="_blank" rel="noopener noreferrer">
-              <span aria-hidden="true">💬</span> WhatsApp
+            <a href={`mailto:${site.email}`} className={styles.contactItem}>
+              <span aria-hidden="true">✉️</span> {site.email}
             </a>
           </div>
         </div>
