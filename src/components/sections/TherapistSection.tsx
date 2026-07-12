@@ -18,8 +18,8 @@ export function TherapistSection() {
             src={images.therapistPortrait.src}
             alt={images.therapistPortrait.alt}
             className={styles.photo}
-            width={320}
-            height={320}
+            width={478}
+            height={478}
           />
         </div>
 

@@ -19,11 +19,12 @@
 }
 
 .photo {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
-  display: block;
+  transform: scale(1) translate3d(-8%, -1%, 0);
+  transform-origin: center center;
 }
 
 .name {
