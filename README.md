@@ -60,3 +60,8 @@ Then publish the `dist/` folder with any static host. For Namecheap later, build
 - Patient forms with secure, therapist-specific access links
 - Backoffice for patient profile management
 - Privacy policy and cookie policy pages
+
+
+## Dev
+
+- dmoleiro
