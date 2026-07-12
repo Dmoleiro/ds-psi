@@ -27,15 +27,26 @@ npm test
 
 ## Deploy to GitHub Pages
 
-1. Set the base path if deploying to a project subdirectory:
+The repo includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that deploys on every push to `master`.
+
+### One-time setup on GitHub
+
+1. Open **https://github.com/Dmoleiro/ds-psi/settings/pages**
+2. Under **Build and deployment → Source**, choose **GitHub Actions** (not “Deploy from a branch”)
+3. Push to `master` (or re-run the workflow from the **Actions** tab)
+
+After the workflow succeeds, the site will be at:
+
+**https://dmoleiro.github.io/ds-psi/**
+
+### Manual deploy (optional)
 
 ```bash
+npm install
 VITE_BASE_PATH=/ds-psi/ npm run build
 ```
 
-2. Deploy the `dist/` folder to GitHub Pages.
-
-For a custom domain on Namecheap, build with the default base (`/`) and upload `dist/` contents to your hosting.
+Then publish the `dist/` folder with any static host. For Namecheap later, build with `VITE_BASE_PATH=/` (or omit it) if the site lives at the domain root.
 
 ## Project structure
 
