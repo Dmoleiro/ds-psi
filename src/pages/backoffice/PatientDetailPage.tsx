@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
+import { AttendanceCalendar } from '../../components/backoffice/AttendanceCalendar'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 type SessionRow = {
@@ -108,6 +109,12 @@ export function PatientDetailPage() {
           <p>{patient.internalNotes}</p>
         </Card>
       )}
+
+      <Card as="section" className={styles.sectionSpaced} id="presencas">
+        <h2>Presenças</h2>
+        <p className={styles.muted}>Calendário mensal — marque consultas como por pagar, pagas ou falta.</p>
+        {token && <AttendanceCalendar patientId={patient.id} token={token} />}
+      </Card>
 
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link de formulários</h2>

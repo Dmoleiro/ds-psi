@@ -25,6 +25,12 @@ enum FormStatus {
   submitted
 }
 
+enum AttendanceStatus {
+  present_unpaid
+  present_paid
+  absent
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -37,6 +43,7 @@ model User {
 
   patients       Patient[]
   intakeSessions IntakeSession[]
+  attendanceRecords AttendanceRecord[]
 
   @@map("users")
 }
@@ -54,9 +61,28 @@ model Patient {
 
   therapist      User            @relation(fields: [therapistId], references: [id])
   intakeSessions IntakeSession[]
+  attendanceRecords AttendanceRecord[]
 
   @@index([therapistId])
   @@map("patients")
+}
+
+model AttendanceRecord {
+  id          String           @id @default(uuid())
+  patientId   String           @map("patient_id")
+  therapistId String           @map("therapist_id")
+  sessionDate DateTime         @map("session_date") @db.Date
+  status      AttendanceStatus
+  notes       String?          @db.Text
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  therapist User    @relation(fields: [therapistId], references: [id])
+
+  @@unique([patientId, sessionDate])
+  @@index([therapistId, sessionDate])
+  @@map("attendance_records")
 }
 
 model IntakeSession {

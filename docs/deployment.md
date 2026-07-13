@@ -124,7 +124,9 @@ Upload **contents** of `dist/` to `~/public_html/danielasantos/`:
 | `index.html` | Yes |
 | `404.html` | Yes |
 | `assets/*` | Yes (new hashed filenames each build) |
-| `.htaccess` | Only if you changed `public/.htaccess` in the repo |
+| **`.htaccess`** | **Yes — required for /backoffice routes** |
+
+> **Important:** `.htaccess` is a hidden file. In cPanel File Manager, enable **Settings → Show Hidden Files**. In FTP clients, enable “show dotfiles”. Without `.htaccess`, routes like `/backoffice/patients` return **404**.
 
 ### Do not upload to the frontend
 
@@ -271,7 +273,7 @@ npm install && npm run dev
 | API 503 | Node app not running / wrong startup file | Startup = `loader.cjs`, Restart app |
 | `require is not defined` in app.js | cPanel default `app.js` restored | Replace with repo `app.js` or use `loader.cjs` as startup |
 | DB connection error | Wrong `DATABASE_URL` on server | Fix server `.env` + Node.js env vars |
-| CORS error on login | `FRONTEND_URL` mismatch | Set to `https://danielasantos.work` |
+| `/backoffice/patients` returns **404** on production | `.htaccess` missing on server | Rebuild, upload `dist/.htaccess`, enable hidden files in FTP |
 | Prisma client error | `prisma generate` not run | Run NPM Install (postinstall runs generate) |
 
 ### Useful Terminal commands (cPanel)

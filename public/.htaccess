@@ -1,8 +1,18 @@
+# SPA fallback — required for /backoffice/* and /formularios/p/* client routes.
+# Upload this file to the site root (same folder as index.html). Show hidden files in FTP.
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+
+  # Serve existing files and folders as-is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else → React app
+  RewriteRule ^ index.html [L]
 </IfModule>
+
+# Fallback if mod_rewrite is unavailable (some LiteSpeed/cPanel setups)
+ErrorDocument 404 /index.html

@@ -8,6 +8,11 @@ import {
   parseCreatePatientInput,
   parseCreateSessionInput,
 } from '../services/sessions.js'
+import {
+  listPatientAttendance,
+  upsertPatientAttendance,
+} from '../services/attendance.js'
+import { attendanceQuerySchema, attendanceUpsertSchema } from '../lib/schemas.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -55,6 +60,64 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
     return { patient }
   })
+
+  app.get(
+    '/api/therapist/patients/:id/attendance',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = attendanceQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const records = await listPatientAttendance(
+          request.user.sub,
+          id,
+          parsed.data.year,
+          parsed.data.month,
+        )
+        return { records }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.put(
+    '/api/therapist/patients/:id/attendance',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = attendanceUpsertSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const record = await upsertPatientAttendance(
+          request.user.sub,
+          id,
+          parsed.data.date,
+          parsed.data.status,
+          parsed.data.notes,
+        )
+        return { record }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'INVALID_DATE') {
+          return reply.status(400).send({ error: 'Data inválida' })
+        }
+        throw error
+      }
+    },
+  )
 
   app.post(
     '/api/therapist/patients/:id/sessions',

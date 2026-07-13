@@ -81,6 +81,14 @@ export type PatientSummary = {
   }>
 }
 
+export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'absent'
+
+export type AttendanceRecord = {
+  date: string
+  status: AttendanceStatus
+  notes: string | null
+}
+
 export const therapistApi = {
   listPatients: (token: string) =>
     apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
@@ -108,6 +116,20 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  listAttendance: (token: string, patientId: string, year: number, month: number) =>
+    apiRequest<{ records: AttendanceRecord[] }>(
+      `/api/therapist/patients/${patientId}/attendance?year=${year}&month=${month}`,
+      { token },
+    ),
+  upsertAttendance: (
+    token: string,
+    patientId: string,
+    body: { date: string; status: AttendanceStatus | null },
+  ) =>
+    apiRequest<{ record: AttendanceRecord | { date: string; status: null; notes: null } }>(
+      `/api/therapist/patients/${patientId}/attendance`,
+      { method: 'PUT', token, body },
+    ),
 }
 
 export const adminApi = {

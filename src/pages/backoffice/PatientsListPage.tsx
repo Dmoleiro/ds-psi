@@ -55,6 +55,8 @@ export function PatientsListPage() {
                   <td>{latest ? `${latest.status} · ${new Date(latest.createdAt).toLocaleDateString('pt-PT')}` : '—'}</td>
                   <td>
                     <Link to={`/backoffice/patients/${patient.id}`}>Abrir</Link>
+                    {' · '}
+                    <Link to={`/backoffice/patients/${patient.id}#presencas`}>Presenças</Link>
                   </td>
                 </tr>
               )
