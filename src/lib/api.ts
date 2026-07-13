@@ -1,0 +1,177 @@
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '')
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public details?: unknown,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+type RequestOptions = {
+  method?: string
+  body?: unknown
+  token?: string | null
+  patientToken?: string | null
+}
+
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+  }
+
+  if (options.body !== undefined) {
+    headers['Content-Type'] = 'application/json'
+  }
+  if (options.token) {
+    headers.Authorization = `Bearer ${options.token}`
+  }
+  if (options.patientToken) {
+    headers['X-Patient-Token'] = options.patientToken
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method: options.method ?? (options.body !== undefined ? 'POST' : 'GET'),
+    headers,
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new ApiError(data.error ?? 'Erro de comunicação', response.status, data.details)
+  }
+
+  return data as T
+}
+
+export type StaffUser = {
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'therapist'
+}
+
+export type LoginResponse = {
+  token: string
+  user: StaffUser
+}
+
+export const authApi = {
+  login: (email: string, password: string) =>
+    apiRequest<LoginResponse>('/api/auth/login', { method: 'POST', body: { email, password } }),
+  me: (token: string) => apiRequest<{ user: StaffUser }>('/api/auth/me', { token }),
+}
+
+export type PatientSummary = {
+  id: string
+  fullName: string
+  email: string | null
+  phone: string | null
+  birthDate: string | null
+  createdAt: string
+  intakeSessions?: Array<{
+    id: string
+    status: string
+    createdAt: string
+    completedAt: string | null
+  }>
+}
+
+export const therapistApi = {
+  listPatients: (token: string) =>
+    apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
+  createPatient: (token: string, body: Record<string, unknown>) =>
+    apiRequest<{ patient: PatientSummary }>('/api/therapist/patients', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  getPatient: (token: string, id: string) =>
+    apiRequest<{ patient: PatientSummary & { intakeSessions: unknown[] } }>(
+      `/api/therapist/patients/${id}`,
+      { token },
+    ),
+  createSession: (token: string, patientId: string, formIds: string[]) =>
+    apiRequest<{ session: unknown; url: string }>(`/api/therapist/patients/${patientId}/sessions`, {
+      method: 'POST',
+      token,
+      body: { formIds },
+    }),
+  getSessionSubmissions: (token: string, sessionId: string) =>
+    apiRequest<{ session: unknown }>(`/api/therapist/sessions/${sessionId}/submissions`, { token }),
+  revokeSession: (token: string, sessionId: string) =>
+    apiRequest<{ session: unknown }>(`/api/therapist/sessions/${sessionId}/revoke`, {
+      method: 'POST',
+      token,
+    }),
+}
+
+export const adminApi = {
+  listTherapists: (token: string) =>
+    apiRequest<{ therapists: Array<StaffUser & { active: boolean; createdAt: string }> }>(
+      '/api/admin/therapists',
+      { token },
+    ),
+  createTherapist: (token: string, body: { email: string; name: string; password: string }) =>
+    apiRequest<{ therapist: StaffUser }>('/api/admin/therapists', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateTherapist: (
+    token: string,
+    id: string,
+    body: { name?: string; active?: boolean; password?: string },
+  ) =>
+    apiRequest<{ therapist: StaffUser }>(`/api/admin/therapists/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+}
+
+export type PatientSessionForm = {
+  formId: string
+  title: string
+  description?: string | null
+  status: 'not_started' | 'in_progress' | 'submitted'
+}
+
+export type PatientSession = {
+  id: string
+  status: string
+  consentAt: string | null
+  patientFirstName: string
+  forms: PatientSessionForm[]
+}
+
+export const patientApi = {
+  getSession: (token: string) =>
+    apiRequest<{ session: PatientSession }>(`/api/patient/session/${token}`, { patientToken: token }),
+  acceptConsent: (token: string) =>
+    apiRequest<{ consentAt: string }>(`/api/patient/session/${token}/consent`, {
+      method: 'POST',
+      patientToken: token,
+      body: { accepted: true },
+    }),
+  getForm: (token: string, formId: string) =>
+    apiRequest<{ form: { formId: string; title: string; status: string; answers: unknown; readOnly: boolean } }>(
+      `/api/patient/session/${token}/forms/${formId}`,
+      { patientToken: token },
+    ),
+  saveDraft: (token: string, formId: string, answers: Record<string, unknown>) =>
+    apiRequest<{ saved: boolean }>(`/api/patient/session/${token}/forms/${formId}/draft`, {
+      method: 'PUT',
+      patientToken: token,
+      body: { answers },
+    }),
+  submitForm: (token: string, formId: string, answers: Record<string, unknown>) =>
+    apiRequest<{ submitted: boolean; sessionStatus: string; allComplete: boolean }>(
+      `/api/patient/session/${token}/forms/${formId}/submit`,
+      { method: 'POST', patientToken: token, body: answers },
+    ),
+}

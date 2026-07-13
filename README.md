@@ -57,11 +57,25 @@ Then publish the `dist/` folder with any static host. For Namecheap later, build
 
 ## Planned features
 
-- Patient forms with secure, therapist-specific access links
-- Backoffice for patient profile management
+- Patient forms with secure, therapist-specific access links — **implemented** (see `docs/formularios-architecture.md`)
+- Backoffice for patient profile management — **implemented** (`/backoffice`)
 - Privacy policy and cookie policy pages
 
+## Formulários PICCA (backoffice + API)
 
-## Dev
+Local setup:
 
-- dmoleiro
+```bash
+cp api/.env.example api/.env
+# Edit DATABASE_URL for your local MySQL, e.g.:
+# DATABASE_URL="mysql://root:password@localhost:3306/ds_psi"
+
+cd api && npm install && npx prisma migrate deploy && npm run db:seed && npm run dev
+
+cp .env.example .env
+npm install && npm run dev
+```
+
+- Patient portal: `/formularios/p/:token`
+- Therapist backoffice: `/backoffice/login`
+- API default port: `3001`

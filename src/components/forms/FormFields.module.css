@@ -1,0 +1,39 @@
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  background: #fff;
+}
+
+.textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.readOnly {
+  opacity: 0.85;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+}
+
+.checkboxRow input {
+  margin-top: 0.2rem;
+}

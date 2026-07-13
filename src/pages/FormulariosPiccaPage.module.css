@@ -79,3 +79,14 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+.note {
+  margin-top: var(--space-2xl);
+  font-size: 0.9375rem;
+  color: var(--color-ink-muted);
+}
+
+.note a {
+  color: var(--color-primary);
+  font-weight: 600;
+}

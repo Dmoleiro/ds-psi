@@ -1,8 +1,17 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
 import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
 import { HomePage } from './pages/HomePage'
+import { AdminTherapistsPage } from './pages/backoffice/AdminTherapistsPage'
+import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardPage'
+import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
+import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
+import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
+import { PatientsListPage } from './pages/backoffice/PatientsListPage'
+import { PatientCompletePage } from './pages/patient/PatientCompletePage'
+import { PatientFormPage } from './pages/patient/PatientFormPage'
+import { PatientPortalPage } from './pages/patient/PatientPortalPage'
 import './styles/global.css'
 
 function getBasename(): string {
@@ -39,6 +48,16 @@ export function App() {
             </SiteLayout>
           }
         />
+        <Route path="/formularios/p/:token" element={<PatientPortalPage />} />
+        <Route path="/formularios/p/:token/concluido" element={<PatientCompletePage />} />
+        <Route path="/formularios/p/:token/:formId" element={<PatientFormPage />} />
+        <Route path="/backoffice/login" element={<BackofficeLoginPage />} />
+        <Route path="/backoffice" element={<BackofficeDashboardPage />} />
+        <Route path="/backoffice/patients" element={<PatientsListPage />} />
+        <Route path="/backoffice/patients/new" element={<PatientCreatePage />} />
+        <Route path="/backoffice/patients/:id" element={<PatientDetailPage />} />
+        <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
+        <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
       </Routes>
     </BrowserRouter>
   )

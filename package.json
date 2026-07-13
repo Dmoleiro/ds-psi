@@ -5,15 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "npm --prefix api run dev",
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
+    "build:api": "npm --prefix api run build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:api": "npm --prefix api run test",
     "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.4"
+    "react-router-dom": "^6.30.4",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
