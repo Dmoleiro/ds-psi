@@ -63,19 +63,17 @@ Then publish the `dist/` folder with any static host. For Namecheap later, build
 
 ## Formulários PICCA (backoffice + API)
 
-Local setup:
+See **[docs/local-development.md](docs/local-development.md)** for full local setup (database, API, frontend).
+
+Quick start:
 
 ```bash
+docker compose up -d
 cp api/.env.example api/.env
-# Edit DATABASE_URL for your local MySQL, e.g.:
-# DATABASE_URL="mysql://root:password@localhost:3306/ds_psi"
-
 cd api && npm install && npx prisma migrate deploy && npm run db:seed && npm run dev
 
 cp .env.example .env
 npm install && npm run dev
 ```
 
-- Patient portal: `/formularios/p/:token`
-- Therapist backoffice: `/backoffice/login`
-- API default port: `3001`
+Production deploy: **[docs/deployment.md](docs/deployment.md)**
