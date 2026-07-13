@@ -36,9 +36,9 @@ Default admin after seed: `admin@danielasantos.work` / `ChangeMeAdmin123!`
 ## Production (Namecheap cPanel)
 
 1. Create MySQL database and user
-2. **Setup Node.js App** → application root `api/`, startup `dist/server.js`
-3. Environment: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `PORT`
-4. SSH: `cd api && npm install && npm run build && npx prisma migrate deploy && npm run db:seed`
+2. **Setup Node.js App** → application root `api.danielasantos.work/`, startup **`loader.cjs`**
+3. Environment: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` (PORT is set by Passenger)
+4. Upload `dist/` + `app.js` from Mac (`npm run build`), then cPanel: **Run NPM Install** → `npx prisma migrate deploy` → `npm run db:seed`
 5. Build frontend with `VITE_API_URL=https://api.danielasantos.work` → upload `dist/` to `public_html`
 6. `.htaccess` SPA fallback for `/backoffice/*` and `/formularios/p/*`
 
