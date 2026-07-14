@@ -1,8 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
+import { RequireTherapist } from './components/backoffice/BackofficeLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
 import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
 import { HomePage } from './pages/HomePage'
+import { AdminCoordinatorsPage } from './pages/backoffice/AdminCoordinatorsPage'
 import { AdminLocationsPage } from './pages/backoffice/AdminLocationsPage'
 import { AdminTherapistsPage } from './pages/backoffice/AdminTherapistsPage'
 import { AttendancePage } from './pages/backoffice/AttendancePage'
@@ -55,11 +57,12 @@ export function App() {
         <Route path="/formularios/p/:token/:formId" element={<PatientFormPage />} />
         <Route path="/backoffice/login" element={<BackofficeLoginPage />} />
         <Route path="/backoffice" element={<BackofficeDashboardPage />} />
-        <Route path="/backoffice/patients" element={<PatientsListPage />} />
-        <Route path="/backoffice/patients/new" element={<PatientCreatePage />} />
-        <Route path="/backoffice/patients/:id" element={<PatientDetailPage />} />
+        <Route path="/backoffice/patients" element={<RequireTherapist><PatientsListPage /></RequireTherapist>} />
+        <Route path="/backoffice/patients/new" element={<RequireTherapist><PatientCreatePage /></RequireTherapist>} />
+        <Route path="/backoffice/patients/:id" element={<RequireTherapist><PatientDetailPage /></RequireTherapist>} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
+        <Route path="/backoffice/admin/coordinators" element={<AdminCoordinatorsPage />} />
         <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />
         <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
       </Routes>

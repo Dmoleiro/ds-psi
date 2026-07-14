@@ -26,6 +26,8 @@ export const createTherapistSchema = z.object({
   password: z.string().min(8),
 })
 
+export const createCoordinatorSchema = createTherapistSchema
+
 export const updateTherapistSchema = z.object({
   name: z.string().min(2).optional(),
   active: z.boolean().optional(),
@@ -72,6 +74,10 @@ export const attendanceMonthQuerySchema = z.object({
 
 export const attendanceMatrixQuerySchema = attendanceMonthQuerySchema.extend({
   locationId: z.string().uuid(),
+})
+
+export const coordinatorAttendanceQuerySchema = attendanceMatrixQuerySchema.extend({
+  therapistId: z.string().uuid(),
 })
 
 export const attendanceUpsertSchema = z.object({

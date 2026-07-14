@@ -35,9 +35,11 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
                 <Link to="/backoffice/attendance">Presenças</Link>
               </>
             )}
+            {user.role === 'coordinator' && <Link to="/backoffice/attendance">Presenças</Link>}
             {user.role === 'admin' && (
               <>
                 <Link to="/backoffice/admin/therapists">Terapeutas</Link>
+                <Link to="/backoffice/admin/coordinators">Administrativos</Link>
                 <Link to="/backoffice/admin/locations">Locais</Link>
               </>
             )}
@@ -63,6 +65,15 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   if (loading) return null
   if (!user || user.role !== 'admin') {
     return <Navigate to="/backoffice" replace />
+  }
+  return <>{children}</>
+}
+
+export function RequireTherapist({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user || user.role !== 'therapist') {
+    return <Navigate to="/backoffice/attendance" replace />
   }
   return <>{children}</>
 }

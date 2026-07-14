@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client'
 import { config } from './lib/schemas.js'
 import { authRoutes } from './routes/auth.js'
 import { adminRoutes } from './routes/admin.js'
+import { coordinatorRoutes } from './routes/coordinator.js'
 import { therapistRoutes } from './routes/therapist.js'
 import { patientRoutes } from './routes/patient.js'
 
@@ -47,6 +48,7 @@ export async function buildApp() {
 
   await app.register(authRoutes)
   await app.register(adminRoutes)
+  await app.register(coordinatorRoutes)
   await app.register(therapistRoutes)
 
   await app.register(

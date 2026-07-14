@@ -304,28 +304,30 @@ export const therapist = {
   ] satisfies TimelineEntry[],
 }
 
+export const piccaFormDefinitions = [
+  {
+    id: 'intake',
+    title: 'Formulário de Admissão',
+    description:
+      'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
+  },
+  {
+    id: 'consent',
+    title: 'Consentimento Informado',
+    description: 'Documento de consentimento para acompanhamento psicológico.',
+  },
+  {
+    id: 'history',
+    title: 'Historial Clínico',
+    description: 'Questionário sobre historial de desenvolvimento e saúde.',
+  },
+] satisfies FormStub[]
+
 export const piccaFormsPage = {
   title: 'Formulários PICCA',
   intro:
-    'Área reservada para pacientes com acesso autorizado. Em breve, cada paciente receberá um link único para aceder aos formulários de admissão.',
-  forms: [
-    {
-      id: 'intake',
-      title: 'Formulário de Admissão',
-      description:
-        'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
-    },
-    {
-      id: 'consent',
-      title: 'Consentimento Informado',
-      description: 'Documento de consentimento para acompanhamento psicológico.',
-    },
-    {
-      id: 'history',
-      title: 'Historial Clínico',
-      description: 'Questionário sobre historial de desenvolvimento e saúde.',
-    },
-  ] satisfies FormStub[],
+    'Área reservada para pacientes com acesso autorizado. Em breve, cada paciente receberá um link único da sua terapeuta para preencher os formulários de admissão de forma segura.',
+  comingSoon: 'Brevemente',
 } as const
 
 export const legal = {

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -7,6 +7,14 @@ import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 export function BackofficeDashboardPage() {
   const { user } = useAuth()
+
+  if (user?.role === 'coordinator') {
+    return <Navigate to="/backoffice/attendance" replace />
+  }
+
+  if (user?.role === 'admin') {
+    return <Navigate to="/backoffice/admin/therapists" replace />
+  }
 
   return (
     <BackofficeLayout>

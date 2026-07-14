@@ -16,7 +16,11 @@ export function BackofficeLoginPage() {
 
   if (user) {
     const redirect =
-      user.role === 'admin' ? '/backoffice/admin/therapists' : '/backoffice'
+      user.role === 'admin'
+        ? '/backoffice/admin/therapists'
+        : user.role === 'coordinator'
+          ? '/backoffice/attendance'
+          : '/backoffice'
     return <Navigate to={redirect} replace />
   }
 
@@ -38,7 +42,7 @@ export function BackofficeLoginPage() {
   return (
     <Container as="div" className={styles.loginWrap}>
       <h1 className={styles.pageTitle}>Backoffice</h1>
-      <p className={styles.muted}>Acesso reservado a terapeutas e administradores.</p>
+      <p className={styles.muted}>Acesso reservado a terapeutas, administradores e equipa administrativa.</p>
       {from && <p className={styles.muted}>Inicie sessão para continuar.</p>}
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.field}>

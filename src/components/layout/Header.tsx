@@ -100,6 +100,11 @@ export function Header() {
               {navigation.map((item) => (
                 <li key={item.id}>{renderNavLink(item)}</li>
               ))}
+              <li>
+                <Link to="/backoffice/login" className={styles.navLink} onClick={closeMenu}>
+                  Backoffice
+                </Link>
+              </li>
             </ul>
             <a href={`mailto:${site.email}`} className={styles.cta}>
               Marcar consulta
@@ -120,6 +125,11 @@ export function Header() {
               {navigation.map((item) => (
                 <li key={item.id}>{renderNavLink(item)}</li>
               ))}
+              <li>
+                <Link to="/backoffice/login" className={styles.navLink} onClick={closeMenu}>
+                  Backoffice
+                </Link>
+              </li>
             </ul>
             <a href={`mailto:${site.email}`} className={styles.cta} onClick={closeMenu}>
               Marcar consulta

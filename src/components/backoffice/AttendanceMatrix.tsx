@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError, therapistApi, type AttendanceStatus, type LocationSummary } from '../../lib/api'
+import { ApiError, coordinatorApi, therapistApi, type AttendanceStatus, type LocationSummary } from '../../lib/api'
 import { getMonthDays, STATUS_CYCLE, STATUS_LABELS, toIsoDate } from '../../lib/attendance'
 import type { useEditLock } from '../../hooks/useEditLock'
 import styles from './AttendanceMatrix.module.css'
@@ -18,10 +18,12 @@ type EditLock = ReturnType<typeof useEditLock>
 type Props = {
   token: string
   location: LocationSummary
-  editLock: EditLock
+  editLock?: EditLock
+  readOnly?: boolean
+  therapistId?: string
 }
 
-export function AttendanceMatrix({ token, location, editLock }: Props) {
+export function AttendanceMatrix({ token, location, editLock, readOnly = false, therapistId }: Props) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
@@ -30,7 +32,9 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const { unlocked, toggle, lock } = editLock
+  const unlocked = readOnly ? false : (editLock?.unlocked ?? false)
+  const toggle = editLock?.toggle ?? (() => {})
+  const lock = editLock?.lock
 
   const days = useMemo(() => getMonthDays(viewYear, viewMonth), [viewYear, viewMonth])
 
@@ -46,7 +50,10 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
     setLoading(true)
     setError('')
     try {
-      const data = await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
+      const data =
+        readOnly && therapistId
+          ? await coordinatorApi.listAttendanceMatrix(token, therapistId, viewYear, viewMonth, location.id)
+          : await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
       setPatients(data.patients)
       setRecords(data.records)
     } catch (err) {
@@ -54,15 +61,15 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [token, viewYear, viewMonth, location.id])
+  }, [token, viewYear, viewMonth, location.id, readOnly, therapistId])
 
   useEffect(() => {
-    lock()
-    loadMonth()
+    lock?.()
+    void loadMonth()
   }, [loadMonth, lock])
 
   function shiftMonth(delta: number) {
-    lock()
+    lock?.()
     const date = new Date(viewYear, viewMonth - 1 + delta, 1)
     setViewYear(date.getFullYear())
     setViewMonth(date.getMonth() + 1)
@@ -121,27 +128,34 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
       </div>
 
       <div className={styles.editBar}>
-        <button
-          type="button"
-          className={`${styles.lockButton} ${unlocked ? styles.lockButtonOpen : ''}`}
-          onClick={toggle}
-          aria-pressed={unlocked}
-          title={unlocked ? 'Bloquear edição' : 'Desbloquear para editar'}
-        >
-          <span className={styles.lockIcon} aria-hidden>
-            {unlocked ? '🔓' : '🔒'}
-          </span>
-          {unlocked ? 'Edição ativa' : 'Só consulta — clique para editar'}
-        </button>
-        {unlocked && (
-          <p className={styles.idleHint}>Bloqueia automaticamente após 1 minuto sem atividade.</p>
+        {!readOnly && (
+          <>
+            <button
+              type="button"
+              className={`${styles.lockButton} ${unlocked ? styles.lockButtonOpen : ''}`}
+              onClick={toggle}
+              aria-pressed={unlocked}
+              title={unlocked ? 'Bloquear edição' : 'Desbloquear para editar'}
+            >
+              <span className={styles.lockIcon} aria-hidden>
+                {unlocked ? '🔓' : '🔒'}
+              </span>
+              {unlocked ? 'Edição ativa' : 'Só consulta — clique para editar'}
+            </button>
+            {unlocked && (
+              <p className={styles.idleHint}>Bloqueia automaticamente após 1 minuto sem atividade.</p>
+            )}
+          </>
         )}
+        {readOnly && <p className={styles.idleHint}>Modo consulta — não pode alterar presenças.</p>}
       </div>
 
       <p className={styles.hint}>
-        {unlocked
-          ? 'Clique numa célula para alternar: por pagar → pago → falta → limpar.'
-          : 'Modo consulta — desbloqueie o cadeado para marcar presenças.'}
+        {readOnly
+          ? 'Visualização das presenças registadas pelos terapeutas.'
+          : unlocked
+            ? 'Clique numa célula para alternar: por pagar → pago → falta → limpar.'
+            : 'Modo consulta — desbloqueie o cadeado para marcar presenças.'}
       </p>
 
       <div className={styles.legend}>
@@ -159,8 +173,13 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
         <p className={styles.loading}>A carregar…</p>
       ) : patients.length === 0 ? (
         <p className={styles.loading}>
-          Nenhum paciente neste local.{' '}
-          <Link to="/backoffice/patients/new">Criar paciente</Link>
+          Nenhum paciente neste local.
+          {!readOnly && (
+            <>
+              {' '}
+              <Link to="/backoffice/patients/new">Criar paciente</Link>
+            </>
+          )}
         </p>
       ) : (
         <div className={`${styles.scrollWrap} ${!unlocked ? styles.readOnly : ''}`}>
@@ -188,9 +207,13 @@ export function AttendanceMatrix({ token, location, editLock }: Props) {
               {patients.map((patient) => (
                 <tr key={patient.id}>
                   <th className={styles.stickyCol} scope="row">
-                    <Link to={`/backoffice/patients/${patient.id}`} className={styles.patientLink}>
-                      {patient.fullName}
-                    </Link>
+                    {readOnly ? (
+                      patient.fullName
+                    ) : (
+                      <Link to={`/backoffice/patients/${patient.id}`} className={styles.patientLink}>
+                        {patient.fullName}
+                      </Link>
+                    )}
                   </th>
                   {days.map(({ date }) => {
                     const key = `${patient.id}:${date}`

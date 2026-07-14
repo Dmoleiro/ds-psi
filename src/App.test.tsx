@@ -57,7 +57,7 @@ describe('App', () => {
     )
   })
 
-  it('shows PICCA forms on the dedicated page', async () => {
+  it('shows PICCA forms coming soon on the dedicated page', async () => {
     const user = userEvent.setup()
     render(<App />)
 
@@ -65,9 +65,16 @@ describe('App', () => {
     await user.click(piccaLinks[0])
 
     expect(screen.getByRole('heading', { level: 1, name: /Formulários PICCA/i })).toBeInTheDocument()
-    expect(screen.getAllByText('Disponível').length).toBeGreaterThan(0)
-    expect(screen.getByText('Formulário de Admissão')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /aceder ao backoffice/i })).toBeInTheDocument()
+    expect(screen.getByText('Brevemente')).toBeInTheDocument()
+    expect(screen.queryByText('Formulário de Admissão')).not.toBeInTheDocument()
+  })
+
+  it('shows backoffice link in the header', () => {
+    render(<App />)
+
+    const backofficeLinks = screen.getAllByRole('link', { name: /backoffice/i, hidden: true })
+    expect(backofficeLinks.length).toBeGreaterThan(0)
+    expect(backofficeLinks[0]).toHaveAttribute('href', '/backoffice/login')
   })
 
   it('shows the cookie banner until consent is given', async () => {

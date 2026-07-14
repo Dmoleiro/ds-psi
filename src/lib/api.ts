@@ -60,7 +60,7 @@ export type StaffUser = {
   id: string
   email: string
   name: string
-  role: 'admin' | 'therapist'
+  role: 'admin' | 'therapist' | 'coordinator'
 }
 
 export type LoginResponse = {
@@ -160,6 +160,34 @@ export const therapistApi = {
     ),
 }
 
+export const coordinatorApi = {
+  listTherapists: (token: string) =>
+    apiRequest<{ therapists: Array<{ id: string; name: string; email: string }> }>(
+      '/api/coordinator/therapists',
+      { token },
+    ),
+  listLocations: (token: string) =>
+    apiRequest<{ locations: LocationSummary[] }>('/api/coordinator/locations', { token }),
+  listAttendanceMatrix: (
+    token: string,
+    therapistId: string,
+    year: number,
+    month: number,
+    locationId: string,
+  ) =>
+    apiRequest<{
+      year: number
+      month: number
+      daysInMonth: number
+      location: LocationSummary
+      patients: Array<{ id: string; fullName: string }>
+      records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+    }>(
+      `/api/coordinator/attendance?therapistId=${therapistId}&year=${year}&month=${month}&locationId=${locationId}`,
+      { token },
+    ),
+}
+
 export const adminApi = {
   listTherapists: (token: string) =>
     apiRequest<{ therapists: Array<StaffUser & { active: boolean; createdAt: string }> }>(
@@ -182,6 +210,19 @@ export const adminApi = {
       token,
       body,
     }),
+  listCoordinators: (token: string) =>
+    apiRequest<{ coordinators: Array<StaffUser & { active: boolean; createdAt: string }> }>(
+      '/api/admin/coordinators',
+      { token },
+    ),
+  createCoordinator: (token: string, body: { email: string; name: string; password: string }) =>
+    apiRequest<{ coordinator: StaffUser }>('/api/admin/coordinators', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  deleteCoordinator: (token: string, id: string) =>
+    apiRequest<void>(`/api/admin/coordinators/${id}`, { method: 'DELETE', token }),
   listLocations: (token: string) =>
     apiRequest<{
       locations: Array<LocationSummary & { active: boolean; patientCount: number; createdAt: string }>

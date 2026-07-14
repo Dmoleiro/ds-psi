@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
-import { piccaFormsPage } from '../../content/site.pt'
+import { piccaFormDefinitions } from '../../content/site.pt'
 import { ApiError, therapistApi } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -136,7 +136,7 @@ export function PatientDetailPage() {
         <h2>Gerar link de formulários</h2>
         <p className={styles.muted}>Selecione os formulários a incluir no link único do paciente.</p>
         <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
-          {piccaFormsPage.forms.map((form) => (
+          {piccaFormDefinitions.map((form) => (
             <label key={form.id}>
               <input
                 type="checkbox"

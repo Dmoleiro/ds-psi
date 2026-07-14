@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export async function adminRoutes(app: FastifyInstance) {
@@ -74,6 +74,60 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return { therapist: updated }
+  })
+
+  app.get('/api/admin/coordinators', { preHandler: adminOnly }, async () => {
+    const coordinators = await prisma.user.findMany({
+      where: { role: UserRole.coordinator },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        createdAt: true,
+      },
+      orderBy: { name: 'asc' },
+    })
+    return { coordinators }
+  })
+
+  app.post('/api/admin/coordinators', { preHandler: adminOnly }, async (request, reply) => {
+    const parsed = createCoordinatorSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } })
+    if (existing) {
+      return reply.status(409).send({ error: 'Email já registado' })
+    }
+
+    const passwordHash = await hashPassword(parsed.data.password)
+    const coordinator = await prisma.user.create({
+      data: {
+        email: parsed.data.email,
+        name: parsed.data.name,
+        role: UserRole.coordinator,
+        passwordHash,
+      },
+      select: { id: true, email: true, name: true, active: true, createdAt: true },
+    })
+
+    return reply.status(201).send({ coordinator })
+  })
+
+  app.delete('/api/admin/coordinators/:id', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+
+    const coordinator = await prisma.user.findFirst({
+      where: { id, role: UserRole.coordinator },
+    })
+    if (!coordinator) {
+      return reply.status(404).send({ error: 'Utilizador administrativo não encontrado' })
+    }
+
+    await prisma.user.delete({ where: { id } })
+    return reply.status(204).send()
   })
 
   app.get('/api/admin/locations', { preHandler: adminOnly }, async () => {
