@@ -4,15 +4,17 @@ import { prisma } from '../lib/prisma.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import {
   createPatientSession,
+  deleteTherapistPatient,
   getTherapistPatient,
   parseCreatePatientInput,
   parseCreateSessionInput,
 } from '../services/sessions.js'
 import {
   listPatientAttendance,
+  listTherapistAttendance,
   upsertPatientAttendance,
 } from '../services/attendance.js'
-import { attendanceQuerySchema, attendanceUpsertSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, createLocationSchema, updateLocationSchema } from '../lib/schemas.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -22,6 +24,7 @@ export async function therapistRoutes(app: FastifyInstance) {
       where: { therapistId: request.user.sub },
       orderBy: { createdAt: 'desc' },
       include: {
+        location: { select: { id: true, name: true } },
         intakeSessions: {
           select: { id: true, status: true, createdAt: true, completedAt: true },
           orderBy: { createdAt: 'desc' },
@@ -32,15 +35,57 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { patients }
   })
 
+  app.get('/api/therapist/locations', { preHandler: therapistOnly }, async () => {
+    const locations = await prisma.location.findMany({
+      where: { active: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, address: true },
+    })
+    return { locations }
+  })
+
+  app.get('/api/therapist/attendance', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = attendanceMatrixQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const data = await listTherapistAttendance(
+        request.user.sub,
+        parsed.data.year,
+        parsed.data.month,
+        parsed.data.locationId,
+      )
+      return data
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_MONTH') {
+        return reply.status(400).send({ error: 'Mês inválido' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      throw error
+    }
+  })
+
   app.post('/api/therapist/patients', { preHandler: therapistOnly }, async (request, reply) => {
     const parsed = parseCreatePatientInput(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
+    const location = await prisma.location.findFirst({
+      where: { id: parsed.data.locationId, active: true },
+    })
+    if (!location) {
+      return reply.status(400).send({ error: 'Local inválido' })
+    }
+
     const patient = await prisma.patient.create({
       data: {
         therapistId: request.user.sub,
+        locationId: parsed.data.locationId,
         fullName: parsed.data.fullName,
         email: parsed.data.email || null,
         phone: parsed.data.phone || null,
@@ -61,12 +106,25 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { patient }
   })
 
+  app.delete('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    try {
+      await deleteTherapistPatient(request.user.sub, id)
+      return reply.status(204).send()
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
+  })
+
   app.get(
     '/api/therapist/patients/:id/attendance',
     { preHandler: therapistOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const parsed = attendanceQuerySchema.safeParse(request.query)
+      const parsed = attendanceMonthQuerySchema.safeParse(request.query)
       if (!parsed.success) {
         return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
       }

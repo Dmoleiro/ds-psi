@@ -73,6 +73,7 @@ export async function getTherapistPatient(therapistId: string, patientId: string
   return prisma.patient.findFirst({
     where: { id: patientId, therapistId },
     include: {
+      location: { select: { id: true, name: true } },
       intakeSessions: {
         include: {
           forms: {
@@ -84,4 +85,16 @@ export async function getTherapistPatient(therapistId: string, patientId: string
       },
     },
   })
+}
+
+export async function deleteTherapistPatient(therapistId: string, patientId: string) {
+  const patient = await prisma.patient.findFirst({
+    where: { id: patientId, therapistId },
+    select: { id: true },
+  })
+  if (!patient) {
+    throw new Error('PATIENT_NOT_FOUND')
+  }
+
+  await prisma.patient.delete({ where: { id: patientId } })
 }

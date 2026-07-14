@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { piccaFormsPage } from '../../content/site.pt'
 import { ApiError, therapistApi } from '../../lib/api'
@@ -7,7 +7,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
-import { AttendanceCalendar } from '../../components/backoffice/AttendanceCalendar'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 type SessionRow = {
@@ -25,11 +24,13 @@ type PatientDetail = {
   phone: string | null
   birthDate: string | null
   internalNotes: string | null
+  location?: { id: string; name: string }
   intakeSessions: SessionRow[]
 }
 
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { token } = useAuth()
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [selectedForms, setSelectedForms] = useState<string[]>(['intake', 'consent', 'history'])
@@ -38,6 +39,9 @@ export function PatientDetailPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submissions, setSubmissions] = useState<unknown[] | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     if (!token || !id) return
@@ -77,6 +81,22 @@ export function PatientDetailPage() {
     setSubmissions(session.submissions)
   }
 
+  async function handleDeletePatient() {
+    if (!token || !id) return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      await therapistApi.deletePatient(token, id)
+      navigate('/backoffice/patients', { replace: true })
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : 'Não foi possível eliminar o paciente')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const sessionCount = patient?.intakeSessions.length ?? 0
+
   if (loading) {
     return (
       <BackofficeLayout>
@@ -101,7 +121,9 @@ export function PatientDetailPage() {
       </p>
       <h1 className={styles.pageTitle}>{patient.fullName}</h1>
       <p className={styles.muted}>
-        {[patient.email, patient.phone].filter(Boolean).join(' · ') || 'Sem contacto'}
+        {[patient.email, patient.phone, patient.location?.name].filter(Boolean).join(' · ') || 'Sem contacto'}
+        {' · '}
+        <Link to="/backoffice/attendance">Ver presenças</Link>
       </p>
       {patient.internalNotes && (
         <Card as="section" className={styles.sectionSpaced}>
@@ -109,12 +131,6 @@ export function PatientDetailPage() {
           <p>{patient.internalNotes}</p>
         </Card>
       )}
-
-      <Card as="section" className={styles.sectionSpaced} id="presencas">
-        <h2>Presenças</h2>
-        <p className={styles.muted}>Calendário mensal — marque consultas como por pagar, pagas ou falta.</p>
-        {token && <AttendanceCalendar patientId={patient.id} token={token} />}
-      </Card>
 
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link de formulários</h2>
@@ -197,6 +213,49 @@ export function PatientDetailPage() {
           </pre>
         </Card>
       )}
+
+      <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
+        <h2>Zona de perigo</h2>
+        <p className={styles.muted}>
+          Eliminar este paciente remove permanentemente o perfil, todas as sessões de formulários, respostas
+          submetidas, rascunhos e registos de presença. Esta ação não pode ser desfeita.
+        </p>
+        {!confirmDelete ? (
+          <Button type="button" variant="outline" onClick={() => setConfirmDelete(true)}>
+            Eliminar paciente…
+          </Button>
+        ) : (
+          <>
+            <p className={styles.error}>
+              Tem a certeza que pretende eliminar <strong>{patient.fullName}</strong>?
+              {sessionCount > 0 && (
+                <>
+                  {' '}
+                  Serão apagadas {sessionCount} sessão{sessionCount === 1 ? '' : 'ões'} de formulários e todos os
+                  dados associados.
+                </>
+              )}
+            </p>
+            {deleteError && <p className={styles.error}>{deleteError}</p>}
+            <div className={styles.dangerActions}>
+              <Button type="button" onClick={handleDeletePatient} disabled={deleting}>
+                {deleting ? 'A eliminar…' : 'Sim, eliminar tudo'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setConfirmDelete(false)
+                  setDeleteError('')
+                }}
+                disabled={deleting}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </>
+        )}
+      </section>
     </BackofficeLayout>
   )
 }

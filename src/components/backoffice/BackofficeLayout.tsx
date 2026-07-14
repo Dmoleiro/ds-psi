@@ -32,10 +32,14 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
               <>
                 <Link to="/backoffice">Painel</Link>
                 <Link to="/backoffice/patients">Pacientes</Link>
+                <Link to="/backoffice/attendance">Presenças</Link>
               </>
             )}
             {user.role === 'admin' && (
-              <Link to="/backoffice/admin/therapists">Terapeutas</Link>
+              <>
+                <Link to="/backoffice/admin/therapists">Terapeutas</Link>
+                <Link to="/backoffice/admin/locations">Locais</Link>
+              </>
             )}
             <Link to="/">Site público</Link>
           </nav>

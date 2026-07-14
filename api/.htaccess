@@ -1,0 +1,13 @@
+# cPanel / CloudLinux Passenger — Node.js API (api.danielasantos.work)
+#
+# Upload to ~/api.danielasantos.work/.htaccess (same folder as loader.cjs).
+# Verify PassengerNodejs matches cPanel → Setup Node.js App (Node 18 → /18/, Node 20 → /20/).
+# Preferred fix if the file is missing: Setup Node.js App → Edit → Save (regenerates this file).
+
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/dmolnlpq/api.danielasantos.work"
+PassengerBaseURI "/"
+PassengerNodejs "/home/dmolnlpq/nodevenv/api.danielasantos.work/20/bin/node"
+PassengerAppType node
+PassengerStartupFile loader.cjs
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END

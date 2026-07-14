@@ -165,6 +165,7 @@ npm test   # optional but recommended
 | `package.json` | When dependencies or scripts change |
 | `package-lock.json` | When dependencies change |
 | `loader.cjs` | If changed (rare) |
+| `.htaccess` | If missing on server (Passenger config — see below) |
 | `start.mjs` | If changed (rare) |
 | `app.js` | If changed (legacy; Passenger uses `loader.cjs`) |
 | `prisma/schema.prisma` | When database schema changes |
@@ -183,8 +184,20 @@ npm test   # optional but recommended
 |------|-----|
 | `.env` | Contains production secrets and DB password |
 | `node_modules/` | Rebuilt by cPanel **Run NPM Install** |
-| `.htaccess` | Managed by Setup Node.js App (Passenger config) |
 | `tmp/` | Passenger restart marker |
+
+### API `.htaccess` (Passenger)
+
+The API subdomain needs a **Passenger** `.htaccess` in `~/api.danielasantos.work/` (not the SPA rewrite file used by the frontend).
+
+| Method | When to use |
+|--------|-------------|
+| **cPanel → Setup Node.js App → Edit → Save** | Preferred — regenerates `.htaccess` with correct paths |
+| Upload `api/.htaccess` from this repo | When the file was deleted and cPanel UI is unavailable |
+
+After uploading, open **Setup Node.js App** and confirm **Application startup file** is `loader.cjs`, then click **Restart**.
+
+> If Node version in cPanel is **18** (not 20), edit the uploaded file: change `.../20/bin/node` to `.../18/bin/node`.
 
 ### After uploading
 
@@ -270,10 +283,11 @@ npm install && npm run dev
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Login hits `localhost:3001` | Frontend built without production `VITE_API_URL` | Rebuild with correct `.env`, re-upload `dist/` |
-| API 503 | Node app not running / wrong startup file | Startup = `loader.cjs`, Restart app |
+| API 503 | Node app not running / wrong startup file / missing `.htaccess` | Startup = `loader.cjs`, upload `api/.htaccess` or re-save Node.js app, Restart |
 | `require is not defined` in app.js | cPanel default `app.js` restored | Replace with repo `app.js` or use `loader.cjs` as startup |
 | DB connection error | Wrong `DATABASE_URL` on server | Fix server `.env` + Node.js env vars |
 | `/backoffice/patients` returns **404** on production | `.htaccess` missing on server | Rebuild, upload `dist/.htaccess`, enable hidden files in FTP |
+| **Locais** (or Presenças) shows **500** / Internal Server Error | `locations` migration not applied on production DB | Upload `prisma/migrations/` + `schema.prisma`, then run `npx prisma migrate deploy` in cPanel Terminal, Restart app |
 | Prisma client error | `prisma generate` not run | Run NPM Install (postinstall runs generate) |
 
 ### Useful Terminal commands (cPanel)

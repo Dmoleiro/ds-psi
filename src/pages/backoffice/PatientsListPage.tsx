@@ -40,6 +40,7 @@ export function PatientsListPage() {
           <thead>
             <tr>
               <th>Nome</th>
+              <th>Local</th>
               <th>Contacto</th>
               <th>Última sessão</th>
               <th />
@@ -51,12 +52,11 @@ export function PatientsListPage() {
               return (
                 <tr key={patient.id}>
                   <td>{patient.fullName}</td>
+                  <td>{patient.location?.name ?? '—'}</td>
                   <td>{patient.email ?? patient.phone ?? '—'}</td>
                   <td>{latest ? `${latest.status} · ${new Date(latest.createdAt).toLocaleDateString('pt-PT')}` : '—'}</td>
                   <td>
                     <Link to={`/backoffice/patients/${patient.id}`}>Abrir</Link>
-                    {' · '}
-                    <Link to={`/backoffice/patients/${patient.id}#presencas`}>Presenças</Link>
                   </td>
                 </tr>
               )

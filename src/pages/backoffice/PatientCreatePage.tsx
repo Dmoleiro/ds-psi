@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
-import { ApiError } from '../../lib/api'
-import { therapistApi } from '../../lib/api'
+import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
@@ -10,6 +9,8 @@ import styles from '../../components/backoffice/BackofficeLayout.module.css'
 export function PatientCreatePage() {
   const { token } = useAuth()
   const navigate = useNavigate()
+  const [locations, setLocations] = useState<LocationSummary[]>([])
+  const [locationId, setLocationId] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -18,14 +19,25 @@ export function PatientCreatePage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  useEffect(() => {
+    if (!token) return
+    therapistApi.listLocations(token).then((data) => {
+      setLocations(data.locations)
+      if (data.locations.length === 1) {
+        setLocationId(data.locations[0].id)
+      }
+    })
+  }, [token])
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!token) return
+    if (!token || !locationId) return
     setSubmitting(true)
     setError('')
     try {
       const { patient } = await therapistApi.createPatient(token, {
         fullName,
+        locationId,
         email,
         phone,
         birthDate,
@@ -43,6 +55,22 @@ export function PatientCreatePage() {
     <BackofficeLayout>
       <h1 className={styles.pageTitle}>Novo paciente</h1>
       <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.field}>
+          <label htmlFor="locationId">Local de consulta</label>
+          <select
+            id="locationId"
+            value={locationId}
+            onChange={(e) => setLocationId(e.target.value)}
+            required
+          >
+            <option value="">Selecione um local</option>
+            {locations.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className={styles.field}>
           <label htmlFor="fullName">Nome completo</label>
           <input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
@@ -64,7 +92,7 @@ export function PatientCreatePage() {
           <textarea id="notes" value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} />
         </div>
         {error && <p className={styles.error}>{error}</p>}
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting || !locationId}>
           {submitting ? 'A guardar…' : 'Criar paciente'}
         </Button>
       </form>

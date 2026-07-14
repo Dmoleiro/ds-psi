@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
+import { Prisma } from '@prisma/client'
 import { config } from './lib/schemas.js'
 import { authRoutes } from './routes/auth.js'
 import { adminRoutes } from './routes/admin.js'
@@ -25,6 +26,24 @@ export async function buildApp() {
   })
 
   app.get('/api/health', async () => ({ ok: true }))
+
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2021' || error.code === 'P2022') {
+        request.log.error(error)
+        return reply.status(503).send({
+          error:
+            'Base de dados desatualizada. No servidor, execute: npx prisma migrate deploy (e reinicie a app Node).',
+        })
+      }
+    }
+
+    request.log.error(error)
+    const message = error instanceof Error ? error.message : 'Erro interno'
+    const publicMessage =
+      process.env.NODE_ENV === 'production' ? 'Erro interno do servidor' : message
+    return reply.status(500).send({ error: publicMessage })
+  })
 
   await app.register(authRoutes)
   await app.register(adminRoutes)

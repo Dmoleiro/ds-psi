@@ -34,10 +34,22 @@ export const updateTherapistSchema = z.object({
 
 export const createPatientSchema = z.object({
   fullName: z.string().min(2),
+  locationId: z.string().uuid(),
   email: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   birthDate: z.string().optional(),
   internalNotes: z.string().optional(),
+})
+
+export const createLocationSchema = z.object({
+  name: z.string().min(2),
+  address: z.string().optional(),
+})
+
+export const updateLocationSchema = z.object({
+  name: z.string().min(2).optional(),
+  address: z.string().optional().nullable(),
+  active: z.boolean().optional(),
 })
 
 export const createSessionSchema = z.object({
@@ -53,9 +65,13 @@ export const consentSchema = z.object({
   accepted: z.literal(true),
 })
 
-export const attendanceQuerySchema = z.object({
+export const attendanceMonthQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
   month: z.coerce.number().int().min(1).max(12),
+})
+
+export const attendanceMatrixQuerySchema = attendanceMonthQuerySchema.extend({
+  locationId: z.string().uuid(),
 })
 
 export const attendanceUpsertSchema = z.object({

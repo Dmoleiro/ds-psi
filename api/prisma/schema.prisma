@@ -51,6 +51,7 @@ model User {
 model Patient {
   id            String    @id @default(uuid())
   therapistId   String    @map("therapist_id")
+  locationId    String    @map("location_id")
   fullName      String    @map("full_name")
   email         String?
   phone         String?
@@ -59,12 +60,27 @@ model Patient {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  therapist      User            @relation(fields: [therapistId], references: [id])
-  intakeSessions IntakeSession[]
+  therapist         User              @relation(fields: [therapistId], references: [id])
+  location          Location          @relation(fields: [locationId], references: [id])
+  intakeSessions    IntakeSession[]
   attendanceRecords AttendanceRecord[]
 
   @@index([therapistId])
+  @@index([locationId])
   @@map("patients")
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?  @db.Text
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  patients Patient[]
+
+  @@map("locations")
 }
 
 model AttendanceRecord {
@@ -97,7 +113,7 @@ model IntakeSession {
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
-  patient  Patient       @relation(fields: [patientId], references: [id])
+  patient  Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
   therapist User         @relation(fields: [therapistId], references: [id])
   forms    SessionForm[]
 

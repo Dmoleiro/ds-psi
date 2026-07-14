@@ -42,7 +42,15 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const data = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    throw new ApiError(data.error ?? 'Erro de comunicação', response.status, data.details)
+    const message =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      'Erro de comunicação'
+    throw new ApiError(message, response.status, data.details)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
   }
 
   return data as T
@@ -66,6 +74,12 @@ export const authApi = {
   me: (token: string) => apiRequest<{ user: StaffUser }>('/api/auth/me', { token }),
 }
 
+export type LocationSummary = {
+  id: string
+  name: string
+  address?: string | null
+}
+
 export type PatientSummary = {
   id: string
   fullName: string
@@ -73,6 +87,7 @@ export type PatientSummary = {
   phone: string | null
   birthDate: string | null
   createdAt: string
+  location?: LocationSummary
   intakeSessions?: Array<{
     id: string
     status: string
@@ -103,6 +118,8 @@ export const therapistApi = {
       `/api/therapist/patients/${id}`,
       { token },
     ),
+  deletePatient: (token: string, id: string) =>
+    apiRequest<void>(`/api/therapist/patients/${id}`, { method: 'DELETE', token }),
   createSession: (token: string, patientId: string, formIds: string[]) =>
     apiRequest<{ session: unknown; url: string }>(`/api/therapist/patients/${patientId}/sessions`, {
       method: 'POST',
@@ -121,6 +138,17 @@ export const therapistApi = {
       `/api/therapist/patients/${patientId}/attendance?year=${year}&month=${month}`,
       { token },
     ),
+  listLocations: (token: string) =>
+    apiRequest<{ locations: LocationSummary[] }>('/api/therapist/locations', { token }),
+  listAttendanceMatrix: (token: string, year: number, month: number, locationId: string) =>
+    apiRequest<{
+      year: number
+      month: number
+      daysInMonth: number
+      location: LocationSummary
+      patients: Array<{ id: string; fullName: string }>
+      records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+    }>(`/api/therapist/attendance?year=${year}&month=${month}&locationId=${locationId}`, { token }),
   upsertAttendance: (
     token: string,
     patientId: string,
@@ -150,6 +178,26 @@ export const adminApi = {
     body: { name?: string; active?: boolean; password?: string },
   ) =>
     apiRequest<{ therapist: StaffUser }>(`/api/admin/therapists/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  listLocations: (token: string) =>
+    apiRequest<{
+      locations: Array<LocationSummary & { active: boolean; patientCount: number; createdAt: string }>
+    }>('/api/admin/locations', { token }),
+  createLocation: (token: string, body: { name: string; address?: string }) =>
+    apiRequest<{ location: LocationSummary & { active: boolean } }>('/api/admin/locations', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateLocation: (
+    token: string,
+    id: string,
+    body: { name?: string; address?: string | null; active?: boolean },
+  ) =>
+    apiRequest<{ location: LocationSummary & { active: boolean } }>(`/api/admin/locations/${id}`, {
       method: 'PATCH',
       token,
       body,

@@ -67,6 +67,17 @@ async function main() {
 
   console.log('Seed complete.')
   console.log(`Admin: ${adminEmail}`)
+
+  const defaultLocations = [
+    { name: 'Azambuja', address: 'Azambuja' },
+    { name: 'Lisboa', address: 'Lisboa' },
+  ]
+  for (const loc of defaultLocations) {
+    const existing = await prisma.location.findFirst({ where: { name: loc.name } })
+    if (!existing) {
+      await prisma.location.create({ data: loc })
+    }
+  }
 }
 
 main()

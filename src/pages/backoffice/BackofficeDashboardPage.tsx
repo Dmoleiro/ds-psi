@@ -20,6 +20,13 @@ export function BackofficeDashboardPage() {
           </Button>
         </Card>
         <Card as="article">
+          <h2>Presenças</h2>
+          <p className={styles.muted}>Calendário mensal de consultas — por pagar, pagas e faltas.</p>
+          <Button href="/backoffice/attendance" style={{ marginTop: 'var(--space-md)' }}>
+            Abrir calendário
+          </Button>
+        </Card>
+        <Card as="article">
           <h2>Formulários PICCA</h2>
           <p className={styles.muted}>
             Admissão, consentimento informado e historial clínico disponíveis para atribuição.

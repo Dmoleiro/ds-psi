@@ -233,6 +233,7 @@ FLUSH PRIVILEGES;
 
 | Problem | Fix |
 |---------|-----|
+| **Internal Server Error** on Locais / Presenças | Run `cd api && npx prisma migrate deploy && npx prisma generate`, then **restart** `npm run dev` in `api/` |
 | `Can't connect to MySQL` | `docker compose up -d` and wait ~10s |
 | Port 3306 already in use | Stop other MySQL, or change port in `docker-compose.yml` and `DATABASE_URL` |
 | API 500 on login | Check `api/.env` exists and `DATABASE_URL` is correct |

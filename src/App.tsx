@@ -3,7 +3,9 @@ import { SiteLayout } from './components/layout/SiteLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
 import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
 import { HomePage } from './pages/HomePage'
+import { AdminLocationsPage } from './pages/backoffice/AdminLocationsPage'
 import { AdminTherapistsPage } from './pages/backoffice/AdminTherapistsPage'
+import { AttendancePage } from './pages/backoffice/AttendancePage'
 import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardPage'
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
@@ -56,7 +58,9 @@ export function App() {
         <Route path="/backoffice/patients" element={<PatientsListPage />} />
         <Route path="/backoffice/patients/new" element={<PatientCreatePage />} />
         <Route path="/backoffice/patients/:id" element={<PatientDetailPage />} />
+        <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
+        <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />
         <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
       </Routes>
     </BrowserRouter>

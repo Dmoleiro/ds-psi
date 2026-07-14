@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export async function adminRoutes(app: FastifyInstance) {
@@ -74,5 +74,56 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return { therapist: updated }
+  })
+
+  app.get('/api/admin/locations', { preHandler: adminOnly }, async () => {
+    const locations = await prisma.location.findMany({
+      orderBy: { name: 'asc' },
+      include: { _count: { select: { patients: true } } },
+    })
+    return {
+      locations: locations.map(({ _count, ...location }) => ({
+        ...location,
+        patientCount: _count.patients,
+      })),
+    }
+  })
+
+  app.post('/api/admin/locations', { preHandler: adminOnly }, async (request, reply) => {
+    const parsed = createLocationSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const location = await prisma.location.create({
+      data: {
+        name: parsed.data.name,
+        address: parsed.data.address || null,
+      },
+    })
+    return reply.status(201).send({ location })
+  })
+
+  app.patch('/api/admin/locations/:id', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = updateLocationSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const existing = await prisma.location.findUnique({ where: { id } })
+    if (!existing) {
+      return reply.status(404).send({ error: 'Local não encontrado' })
+    }
+
+    const location = await prisma.location.update({
+      where: { id },
+      data: {
+        name: parsed.data.name,
+        address: parsed.data.address,
+        active: parsed.data.active,
+      },
+    })
+    return { location }
   })
 }

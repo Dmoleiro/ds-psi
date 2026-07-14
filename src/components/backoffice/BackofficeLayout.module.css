@@ -190,3 +190,23 @@
   padding: var(--space-md);
   word-break: break-all;
 }
+
+.dangerZone {
+  border: 1px solid #e8b4b4;
+  border-radius: var(--radius-sm);
+  padding: var(--space-lg);
+  background: #fff8f8;
+}
+
+.dangerZone h2 {
+  margin: 0 0 var(--space-sm);
+  font-size: 1.125rem;
+  color: #9b2c2c;
+}
+
+.dangerActions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-top: var(--space-md);
+}

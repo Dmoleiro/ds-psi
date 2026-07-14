@@ -67,10 +67,58 @@ export async function listPatientAttendance(
   })
 
   return records.map((record) => ({
+    patientId: record.patientId,
     date: formatDateOnly(record.sessionDate),
     status: record.status,
     notes: record.notes,
   }))
+}
+
+export async function listTherapistAttendance(
+  therapistId: string,
+  year: number,
+  month: number,
+  locationId: string,
+) {
+  const range = parseYearMonth(year, month)
+  if (!range) {
+    throw new Error('INVALID_MONTH')
+  }
+
+  const location = await prisma.location.findFirst({
+    where: { id: locationId, active: true },
+  })
+  if (!location) {
+    throw new Error('LOCATION_NOT_FOUND')
+  }
+
+  const [patients, records] = await Promise.all([
+    prisma.patient.findMany({
+      where: { therapistId, locationId },
+      orderBy: { fullName: 'asc' },
+      select: { id: true, fullName: true },
+    }),
+    prisma.attendanceRecord.findMany({
+      where: {
+        therapistId,
+        sessionDate: { gte: range.from, lte: range.to },
+      },
+      orderBy: [{ sessionDate: 'asc' }, { patientId: 'asc' }],
+    }),
+  ])
+
+  return {
+    year,
+    month,
+    daysInMonth: range.to.getUTCDate(),
+    location: { id: location.id, name: location.name },
+    patients,
+    records: records.map((record) => ({
+      patientId: record.patientId,
+      date: formatDateOnly(record.sessionDate),
+      status: record.status,
+    })),
+  }
 }
 
 export async function upsertPatientAttendance(
