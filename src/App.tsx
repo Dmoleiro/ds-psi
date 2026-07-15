@@ -13,6 +13,7 @@ import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
 import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
 import { PatientsListPage } from './pages/backoffice/PatientsListPage'
+import { TherapistProfilePage } from './pages/backoffice/TherapistProfilePage'
 import { PatientCompletePage } from './pages/patient/PatientCompletePage'
 import { PatientFormPage } from './pages/patient/PatientFormPage'
 import { PatientPortalPage } from './pages/patient/PatientPortalPage'
@@ -61,6 +62,7 @@ export function App() {
         <Route path="/backoffice/patients/new" element={<RequireTherapist><PatientCreatePage /></RequireTherapist>} />
         <Route path="/backoffice/patients/:id" element={<RequireTherapist><PatientDetailPage /></RequireTherapist>} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
+        <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
         <Route path="/backoffice/admin/coordinators" element={<AdminCoordinatorsPage />} />
         <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />

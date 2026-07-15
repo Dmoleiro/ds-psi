@@ -68,5 +68,13 @@ export function useAuth() {
     setUser(null)
   }, [])
 
-  return { user, token, loading, login, logout, isAdmin: user?.role === 'admin' }
+  const updateUser = useCallback((nextUser: StaffUser, nextToken?: string) => {
+    setUser(nextUser)
+    if (nextToken) {
+      setStoredToken(nextToken)
+      setToken(nextToken)
+    }
+  }, [])
+
+  return { user, token, loading, login, logout, updateUser, isAdmin: user?.role === 'admin' }
 }

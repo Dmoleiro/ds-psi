@@ -46,7 +46,13 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
             <Link to="/">Site público</Link>
           </nav>
           <div className={styles.user}>
-            <span>{user.name}</span>
+            {user.role === 'therapist' ? (
+              <Link to="/backoffice/profile" className={styles.userName}>
+                {user.name}
+              </Link>
+            ) : (
+              <span>{user.name}</span>
+            )}
             <button type="button" onClick={logout} className={styles.logout}>
               Sair
             </button>

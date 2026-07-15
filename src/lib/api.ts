@@ -60,6 +60,7 @@ export type StaffUser = {
   id: string
   email: string
   name: string
+  phone?: string | null
   role: 'admin' | 'therapist' | 'coordinator'
 }
 
@@ -105,6 +106,22 @@ export type AttendanceRecord = {
 }
 
 export const therapistApi = {
+  getProfile: (token: string) =>
+    apiRequest<{ profile: StaffUser }>('/api/therapist/profile', { token }),
+  updateProfile: (
+    token: string,
+    body: { name: string; email: string; phone?: string; password?: string },
+  ) =>
+    apiRequest<{ profile: StaffUser; token: string; user: StaffUser }>('/api/therapist/profile', {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  sendTestEmail: (token: string) =>
+    apiRequest<{ ok: true; sentTo: string }>('/api/therapist/profile/test-email', {
+      method: 'POST',
+      token,
+    }),
   listPatients: (token: string) =>
     apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
   createPatient: (token: string, body: Record<string, unknown>) =>
@@ -127,7 +144,20 @@ export const therapistApi = {
       body: { formIds },
     }),
   getSessionSubmissions: (token: string, sessionId: string) =>
-    apiRequest<{ session: unknown }>(`/api/therapist/sessions/${sessionId}/submissions`, { token }),
+    apiRequest<{
+      session: {
+        id: string
+        status: string
+        patient: { id: string; fullName: string }
+        location: { name: string }
+        submissions: Array<{
+          formId: string
+          title: string
+          submittedAt: string
+          fields: Array<{ key: string; label: string; value: string }>
+        }>
+      }
+    }>(`/api/therapist/sessions/${sessionId}/submissions`, { token }),
   revokeSession: (token: string, sessionId: string) =>
     apiRequest<{ session: unknown }>(`/api/therapist/sessions/${sessionId}/revoke`, {
       method: 'POST',

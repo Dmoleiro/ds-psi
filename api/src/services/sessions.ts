@@ -1,7 +1,54 @@
-import { FormStatus, SessionStatus } from '@prisma/client'
+import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
 import { config, createPatientSchema, createSessionSchema } from '../lib/schemas.js'
+
+type SessionWithUrl = {
+  status: SessionStatus
+  patientToken: string | null
+  expiresAt: Date | null
+}
+
+export function getAccessibleSessionUrl(session: SessionWithUrl): string | null {
+  if (!session.patientToken) return null
+  if (session.status === SessionStatus.completed || session.status === SessionStatus.revoked) {
+    return null
+  }
+  if (session.expiresAt && session.expiresAt < new Date()) {
+    return null
+  }
+  return buildPatientUrl(session.patientToken, config.frontendUrl)
+}
+
+type TherapistPatient = Prisma.PatientGetPayload<{
+  include: {
+    location: { select: { id: true; name: true } }
+    intakeSessions: {
+      include: {
+        forms: {
+          include: { definition: true; submission: true }
+          orderBy: { sortOrder: 'asc' }
+        }
+      }
+      orderBy: { createdAt: 'desc' }
+    }
+  }
+}>
+
+export function formatTherapistPatient(patient: TherapistPatient) {
+  return {
+    ...patient,
+    intakeSessions: patient.intakeSessions.map((session) => ({
+      id: session.id,
+      status: session.status,
+      createdAt: session.createdAt,
+      completedAt: session.completedAt,
+      expiresAt: session.expiresAt,
+      forms: session.forms,
+      url: getAccessibleSessionUrl(session),
+    })),
+  }
+}
 
 export async function completeSessionIfReady(sessionId: string) {
   const forms = await prisma.sessionForm.findMany({ where: { sessionId } })
@@ -13,6 +60,7 @@ export async function completeSessionIfReady(sessionId: string) {
     data: {
       status: SessionStatus.completed,
       completedAt: new Date(),
+      patientToken: null,
     },
   })
 }
@@ -38,6 +86,7 @@ export async function createPatientSession(
       patientId,
       therapistId,
       tokenHash,
+      patientToken: rawToken,
       expiresAt,
       forms: {
         create: formIds.map((formId, index) => ({

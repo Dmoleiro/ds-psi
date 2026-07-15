@@ -42,7 +42,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.get('/api/auth/me', { preHandler: [requireAuth] }, async (request, reply) => {
     const user = await prisma.user.findUnique({
       where: { id: request.user.sub },
-      select: { id: true, email: true, name: true, role: true, active: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, active: true },
     })
     if (!user || !user.active) {
       return reply.status(401).send({ error: 'Não autorizado' })

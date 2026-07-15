@@ -34,6 +34,13 @@ export const updateTherapistSchema = z.object({
   password: z.string().min(8).optional(),
 })
 
+export const updateTherapistProfileSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().optional().or(z.literal('')),
+  password: z.string().min(8).optional(),
+})
+
 export const createPatientSchema = z.object({
   fullName: z.string().min(2),
   locationId: z.string().uuid(),

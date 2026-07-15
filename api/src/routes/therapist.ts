@@ -1,10 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { hashPassword } from '../lib/password.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import {
   createPatientSession,
   deleteTherapistPatient,
+  formatTherapistPatient,
   getTherapistPatient,
   parseCreatePatientInput,
   parseCreateSessionInput,
@@ -14,10 +16,88 @@ import {
   listTherapistAttendance,
   upsertPatientAttendance,
 } from '../services/attendance.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, createLocationSchema, updateLocationSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, createLocationSchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { formatFormAnswers } from '../lib/formPresentation.js'
+import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
+
+  app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
+    const profile = await prisma.user.findUniqueOrThrow({
+      where: { id: request.user.sub },
+      select: { id: true, email: true, name: true, phone: true, role: true },
+    })
+    return { profile }
+  })
+
+  app.patch('/api/therapist/profile', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = updateTherapistProfileSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id: request.user.sub } })
+    if (!existing || existing.role !== UserRole.therapist) {
+      return reply.status(404).send({ error: 'Perfil não encontrado' })
+    }
+
+    if (parsed.data.email !== existing.email) {
+      const emailTaken = await prisma.user.findUnique({ where: { email: parsed.data.email } })
+      if (emailTaken) {
+        return reply.status(409).send({ error: 'Email já registado' })
+      }
+    }
+
+    const data: { name: string; email: string; phone: string | null; passwordHash?: string } = {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      phone: parsed.data.phone?.trim() ? parsed.data.phone.trim() : null,
+    }
+    if (parsed.data.password) {
+      data.passwordHash = await hashPassword(parsed.data.password)
+    }
+
+    const profile = await prisma.user.update({
+      where: { id: existing.id },
+      data,
+      select: { id: true, email: true, name: true, phone: true, role: true },
+    })
+
+    const token = await reply.jwtSign({
+      sub: profile.id,
+      email: profile.email,
+      role: profile.role,
+      name: profile.name,
+    })
+
+    return { profile, token, user: profile }
+  })
+
+  app.post('/api/therapist/profile/test-email', { preHandler: therapistOnly }, async (request, reply) => {
+    const profile = await prisma.user.findUnique({
+      where: { id: request.user.sub },
+      select: { email: true, name: true, role: true },
+    })
+    if (!profile || profile.role !== UserRole.therapist) {
+      return reply.status(404).send({ error: 'Perfil não encontrado' })
+    }
+
+    try {
+      await sendTestEmail(profile.email, profile.name)
+      return { ok: true, sentTo: profile.email }
+    } catch (err) {
+      if (err instanceof Error && err.message === 'SMTP_NOT_CONFIGURED') {
+        return reply.status(503).send({
+          error: 'Envio de email não configurado no servidor. Contacte o administrador.',
+        })
+      }
+      request.log.error({ err }, 'Failed to send test email')
+      return reply.status(502).send({
+        error: formatSmtpError(err),
+      })
+    }
+  })
 
   app.get('/api/therapist/patients', { preHandler: therapistOnly }, async (request) => {
     const patients = await prisma.patient.findMany({
@@ -103,7 +183,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     if (!patient) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
-    return { patient }
+    return { patient: formatTherapistPatient(patient) }
   })
 
   app.delete('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
@@ -260,7 +340,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
       const updated = await prisma.intakeSession.update({
         where: { id },
-        data: { status: 'revoked' },
+        data: { status: 'revoked', patientToken: null },
       })
       return { session: updated }
     },
@@ -274,7 +354,13 @@ export async function therapistRoutes(app: FastifyInstance) {
       const session = await prisma.intakeSession.findFirst({
         where: { id, therapistId: request.user.sub },
         include: {
-          patient: { select: { id: true, fullName: true } },
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              location: { select: { name: true } },
+            },
+          },
           forms: {
             include: {
               definition: true,
@@ -293,13 +379,14 @@ export async function therapistRoutes(app: FastifyInstance) {
           id: session.id,
           status: session.status,
           patient: session.patient,
+          location: session.patient.location,
           submissions: session.forms
             .filter((f) => f.submission)
             .map((f) => ({
               formId: f.formId,
               title: f.definition.title,
               submittedAt: f.submission!.submittedAt,
-              answers: f.submission!.answersJson,
+              fields: formatFormAnswers(f.formId, f.submission!.answersJson as Record<string, unknown>),
             })),
         },
       }

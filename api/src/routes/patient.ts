@@ -4,6 +4,8 @@ import { prisma } from '../lib/prisma.js'
 import { consentSchema, draftSchema, getFormSchema } from '../lib/schemas.js'
 import { requirePatientToken } from '../middleware/patientToken.js'
 import { completeSessionIfReady } from '../services/sessions.js'
+import { notifyTherapistOfFormSubmission } from '../services/formNotifications.js'
+import { formatFormAnswers } from '../lib/formPresentation.js'
 
 export async function patientRoutes(app: FastifyInstance) {
   const withToken = { preHandler: [requirePatientToken] }
@@ -199,6 +201,14 @@ export async function patientRoutes(app: FastifyInstance) {
       })
 
       await completeSessionIfReady(ctx.sessionId)
+
+      notifyTherapistOfFormSubmission(
+        ctx.sessionId,
+        formId,
+        parsed.data as Record<string, unknown>,
+      ).catch((err) => {
+        request.log.error({ err }, 'Failed to send therapist notification email')
+      })
 
       const session = await prisma.intakeSession.findUnique({ where: { id: ctx.sessionId } })
 

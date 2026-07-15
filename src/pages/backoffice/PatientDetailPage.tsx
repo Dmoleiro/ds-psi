@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { piccaFormDefinitions } from '../../content/site.pt'
 import { ApiError, therapistApi } from '../../lib/api'
+import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -14,6 +16,7 @@ type SessionRow = {
   status: string
   createdAt: string
   completedAt: string | null
+  url?: string | null
   forms: Array<{ formId: string; status: string; definition?: { title: string } }>
 }
 
@@ -38,10 +41,11 @@ export function PatientDetailPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [submissions, setSubmissions] = useState<unknown[] | null>(null)
+  const [submissions, setSubmissions] = useState<SessionSubmissionsView | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [copyFeedback, setCopyFeedback] = useState('')
 
   useEffect(() => {
     if (!token || !id) return
@@ -76,9 +80,18 @@ export function PatientDetailPage() {
 
   async function handleViewSubmissions(sessionId: string) {
     if (!token) return
-    const result = await therapistApi.getSessionSubmissions(token, sessionId)
-    const session = result.session as { submissions: unknown[] }
-    setSubmissions(session.submissions)
+    try {
+      const result = await therapistApi.getSessionSubmissions(token, sessionId)
+      setSubmissions(result.session)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar as respostas')
+    }
+  }
+
+  const sessionCount = patient?.intakeSessions.length ?? 0
+
+  function sessionHasSubmissions(session: SessionRow) {
+    return session.forms.some((form) => form.status === 'submitted')
   }
 
   async function handleDeletePatient() {
@@ -95,7 +108,19 @@ export function PatientDetailPage() {
     }
   }
 
-  const sessionCount = patient?.intakeSessions.length ?? 0
+  async function copySessionUrl(url: string) {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopyFeedback('Link copiado.')
+      window.setTimeout(() => setCopyFeedback(''), 2000)
+    } catch {
+      setCopyFeedback('Não foi possível copiar o link.')
+    }
+  }
+
+  function sessionIsOpen(session: SessionRow) {
+    return session.status === 'active' || session.status === 'in_progress'
+  }
 
   if (loading) {
     return (
@@ -153,14 +178,18 @@ export function PatientDetailPage() {
         </Button>
         {generatedUrl && (
           <div className={styles.successBox} style={{ marginTop: 'var(--space-md)' }}>
-            <strong>Link gerado (mostrado apenas uma vez):</strong>
+            <strong>Link gerado</strong>
             <p>{generatedUrl}</p>
+            <p className={styles.muted} style={{ marginTop: 'var(--space-sm)' }}>
+              Pode voltar a consultar ou copiar este link na lista de sessões enquanto estiver em curso.
+            </p>
           </div>
         )}
       </Card>
 
       <Card as="section">
         <h2>Sessões</h2>
+        {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {patient.intakeSessions.length === 0 ? (
           <p className={styles.muted}>Ainda não existem links gerados.</p>
         ) : (
@@ -188,15 +217,36 @@ export function PatientDetailPage() {
                       .join(' · ')}
                   </td>
                   <td>
-                    {session.status === 'completed' && (
-                      <button
-                        type="button"
-                        className={styles.linkButton}
-                        onClick={() => handleViewSubmissions(session.id)}
-                      >
-                        Ver respostas
-                      </button>
-                    )}
+                    <div className={styles.sessionActions}>
+                      {session.url && sessionIsOpen(session) && (
+                        <>
+                          <a
+                            href={session.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={styles.linkButton}
+                          >
+                            Abrir link
+                          </a>
+                          <button
+                            type="button"
+                            className={styles.linkButton}
+                            onClick={() => copySessionUrl(session.url!)}
+                          >
+                            Copiar link
+                          </button>
+                        </>
+                      )}
+                      {sessionHasSubmissions(session) && (
+                        <button
+                          type="button"
+                          className={styles.linkButton}
+                          onClick={() => handleViewSubmissions(session.id)}
+                        >
+                          Ver respostas
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -206,12 +256,7 @@ export function PatientDetailPage() {
       </Card>
 
       {submissions && (
-        <Card as="section" className={styles.sectionSpacedTop}>
-          <h2>Respostas submetidas</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '0.875rem' }}>
-            {JSON.stringify(submissions, null, 2)}
-          </pre>
-        </Card>
+        <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />
       )}
 
       <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
