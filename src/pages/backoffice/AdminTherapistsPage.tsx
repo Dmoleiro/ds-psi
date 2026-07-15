@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackofficeLayout, RequireAdmin } from '../../components/backoffice/BackofficeLayout'
+import { AdminPasswordReset } from '../../components/backoffice/AdminPasswordReset'
 import { adminApi } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -101,13 +102,21 @@ export function AdminTherapistsPage() {
                 <td>{therapist.email}</td>
                 <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
                 <td>
-                  <button
-                    type="button"
-                    className={styles.linkButton}
-                    onClick={() => toggleActive(therapist)}
-                  >
-                    {therapist.active ? 'Desativar' : 'Ativar'}
-                  </button>
+                  <div className={styles.rowActions}>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => toggleActive(therapist)}
+                    >
+                      {therapist.active ? 'Desativar' : 'Ativar'}
+                    </button>
+                    <AdminPasswordReset
+                      onSubmit={async (password) => {
+                        if (!token) return
+                        await adminApi.updateTherapist(token, therapist.id, { password })
+                      }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

@@ -327,6 +327,16 @@ export const adminApi = {
     }),
   deleteCoordinator: (token: string, id: string) =>
     apiRequest<void>(`/api/admin/coordinators/${id}`, { method: 'DELETE', token }),
+  updateCoordinator: (
+    token: string,
+    id: string,
+    body: { name?: string; active?: boolean; password?: string },
+  ) =>
+    apiRequest<{ coordinator: StaffUser }>(`/api/admin/coordinators/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
   listLocations: (token: string) =>
     apiRequest<{
       locations: Array<LocationSummary & { active: boolean; patientCount: number; createdAt: string }>

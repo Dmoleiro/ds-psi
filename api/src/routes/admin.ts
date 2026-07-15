@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema, updateCoordinatorSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 export async function adminRoutes(app: FastifyInstance) {
@@ -114,6 +114,34 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return reply.status(201).send({ coordinator })
+  })
+
+  app.patch('/api/admin/coordinators/:id', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = updateCoordinatorSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const coordinator = await prisma.user.findFirst({
+      where: { id, role: UserRole.coordinator },
+    })
+    if (!coordinator) {
+      return reply.status(404).send({ error: 'Utilizador administrativo não encontrado' })
+    }
+
+    const data: { name?: string; active?: boolean; passwordHash?: string } = {}
+    if (parsed.data.name !== undefined) data.name = parsed.data.name
+    if (parsed.data.active !== undefined) data.active = parsed.data.active
+    if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password)
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, email: true, name: true, active: true, createdAt: true },
+    })
+
+    return { coordinator: updated }
   })
 
   app.delete('/api/admin/coordinators/:id', { preHandler: adminOnly }, async (request, reply) => {

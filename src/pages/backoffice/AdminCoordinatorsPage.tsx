@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackofficeLayout, RequireAdmin } from '../../components/backoffice/BackofficeLayout'
+import { AdminPasswordReset } from '../../components/backoffice/AdminPasswordReset'
 import { adminApi, ApiError } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -124,13 +125,21 @@ export function AdminCoordinatorsPage() {
                   <td>{coordinator.name}</td>
                   <td>{coordinator.email}</td>
                   <td>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => handleDelete(coordinator)}
-                    >
-                      Eliminar
-                    </button>
+                    <div className={styles.rowActions}>
+                      <AdminPasswordReset
+                        onSubmit={async (password) => {
+                          if (!token) return
+                          await adminApi.updateCoordinator(token, coordinator.id, { password })
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className={styles.linkButton}
+                        onClick={() => handleDelete(coordinator)}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
