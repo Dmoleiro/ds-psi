@@ -29,6 +29,7 @@ enum FormStatus {
 enum AttendanceStatus {
   present_unpaid
   present_paid
+  receipt_issued
   absent
 }
 

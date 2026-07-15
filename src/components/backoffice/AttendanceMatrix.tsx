@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, coordinatorApi, therapistApi, type AttendanceStatus, type LocationSummary } from '../../lib/api'
-import { getMonthDays, SCHEDULED_APPOINTMENT_LABEL, STATUS_CYCLE, STATUS_LABELS, toIsoDate } from '../../lib/attendance'
+import {
+  getMonthDays,
+  RECEIPT_TOGGLE_STATUSES,
+  SCHEDULED_APPOINTMENT_LABEL,
+  STATUS_CYCLE,
+  STATUS_LABELS,
+  toIsoDate,
+} from '../../lib/attendance'
 import type { useEditLock } from '../../hooks/useEditLock'
 import styles from './AttendanceMatrix.module.css'
 
@@ -24,11 +31,18 @@ type Props = {
   token: string
   location: LocationSummary
   editLock?: EditLock
-  readOnly?: boolean
+  mode?: 'therapist' | 'coordinator'
   therapistId?: string
 }
 
-export function AttendanceMatrix({ token, location, editLock, readOnly = false, therapistId }: Props) {
+export function AttendanceMatrix({
+  token,
+  location,
+  editLock,
+  mode = 'therapist',
+  therapistId,
+}: Props) {
+  const isCoordinator = mode === 'coordinator'
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
@@ -38,7 +52,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const unlocked = readOnly ? false : (editLock?.unlocked ?? false)
+  const unlocked = editLock?.unlocked ?? false
   const toggle = editLock?.toggle ?? (() => {})
   const lock = editLock?.lock
 
@@ -61,13 +75,14 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
   }, [scheduledAppointments])
 
   const loadMonth = useCallback(async () => {
+    if (isCoordinator && !therapistId) return
+
     setLoading(true)
     setError('')
     try {
-      const data =
-        readOnly && therapistId
-          ? await coordinatorApi.listAttendanceMatrix(token, therapistId, viewYear, viewMonth, location.id)
-          : await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
+      const data = isCoordinator
+        ? await coordinatorApi.listAttendanceMatrix(token, therapistId!, viewYear, viewMonth, location.id)
+        : await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
       setPatients(data.patients)
       setRecords(data.records)
       setScheduledAppointments(data.scheduledAppointments ?? [])
@@ -76,7 +91,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
     } finally {
       setLoading(false)
     }
-  }, [token, viewYear, viewMonth, location.id, readOnly, therapistId])
+  }, [token, viewYear, viewMonth, location.id, isCoordinator, therapistId])
 
   useEffect(() => {
     lock?.()
@@ -90,11 +105,12 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
     setViewMonth(date.getMonth() + 1)
   }
 
-  async function handleCellClick(patientId: string, isoDate: string) {
+  async function handleTherapistCellClick(patientId: string, isoDate: string) {
     if (!unlocked) return
 
     const key = `${patientId}:${isoDate}`
     const current = statusMap.get(key) ?? null
+
     const currentIndex = STATUS_CYCLE.indexOf(current)
     const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length]
 
@@ -108,16 +124,55 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
       setRecords((prev) => {
         const without = prev.filter((r) => !(r.patientId === patientId && r.date === isoDate))
         if (record.status === null) return without
-        return [
-          ...without,
-          { patientId, date: isoDate, status: record.status as AttendanceStatus },
-        ]
+        return [...without, { patientId, date: isoDate, status: record.status as AttendanceStatus }]
       })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
     } finally {
       setSavingKey(null)
     }
+  }
+
+  async function handleCoordinatorCellClick(patientId: string, isoDate: string) {
+    if (!unlocked || !therapistId) return
+
+    const key = `${patientId}:${isoDate}`
+    const current = statusMap.get(key)
+    if (!current || !RECEIPT_TOGGLE_STATUSES.includes(current)) return
+
+    setSavingKey(key)
+    setError('')
+    try {
+      const { record } = await coordinatorApi.toggleReceiptStatus(token, {
+        therapistId,
+        patientId,
+        date: isoDate,
+      })
+      setRecords((prev) => {
+        const without = prev.filter((r) => !(r.patientId === patientId && r.date === isoDate))
+        return [...without, { patientId, date: isoDate, status: record.status }]
+      })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
+    } finally {
+      setSavingKey(null)
+    }
+  }
+
+  function handleCellClick(patientId: string, isoDate: string) {
+    if (isCoordinator) {
+      void handleCoordinatorCellClick(patientId, isoDate)
+    } else {
+      void handleTherapistCellClick(patientId, isoDate)
+    }
+  }
+
+  function canEditCell(status: AttendanceStatus | undefined) {
+    if (!unlocked) return false
+    if (isCoordinator) {
+      return status !== undefined && RECEIPT_TOGGLE_STATUSES.includes(status)
+    }
+    return true
   }
 
   const monthLabel = new Date(viewYear, viewMonth - 1, 1).toLocaleDateString('pt-PT', {
@@ -143,33 +198,30 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
       </div>
 
       <div className={styles.editBar}>
-        {!readOnly && (
-          <>
-            <button
-              type="button"
-              className={`${styles.lockButton} ${unlocked ? styles.lockButtonOpen : ''}`}
-              onClick={toggle}
-              aria-pressed={unlocked}
-              title={unlocked ? 'Bloquear edição' : 'Desbloquear para editar'}
-            >
-              <span className={styles.lockIcon} aria-hidden>
-                {unlocked ? '🔓' : '🔒'}
-              </span>
-              {unlocked ? 'Edição ativa' : 'Só consulta — clique para editar'}
-            </button>
-            {unlocked && (
-              <p className={styles.idleHint}>Bloqueia automaticamente após 1 minuto sem atividade.</p>
-            )}
-          </>
+        <button
+          type="button"
+          className={`${styles.lockButton} ${unlocked ? styles.lockButtonOpen : ''}`}
+          onClick={toggle}
+          aria-pressed={unlocked}
+          title={unlocked ? 'Bloquear edição' : 'Desbloquear para editar'}
+        >
+          <span className={styles.lockIcon} aria-hidden>
+            {unlocked ? '🔓' : '🔒'}
+          </span>
+          {unlocked ? 'Edição ativa' : 'Só consulta — clique para editar'}
+        </button>
+        {unlocked && (
+          <p className={styles.idleHint}>Bloqueia automaticamente após 1 minuto sem atividade.</p>
         )}
-        {readOnly && <p className={styles.idleHint}>Modo consulta — não pode alterar presenças.</p>}
       </div>
 
       <p className={styles.hint}>
-        {readOnly
-          ? 'Visualização das presenças registadas pelos terapeutas.'
+        {isCoordinator
+          ? unlocked
+            ? 'Clique em células «presente pago» para marcar recibo passado, ou em «recibo passado» para reverter.'
+            : 'Modo consulta — desbloqueie o cadeado para atualizar recibos.'
           : unlocked
-            ? 'Clique numa célula para alternar: por pagar → pago → falta → limpar.'
+            ? 'Clique numa célula para alternar: por pagar → pago → recibo passado → falta → limpar.'
             : 'Modo consulta — desbloqueie o cadeado para marcar presenças.'}
       </p>
 
@@ -193,7 +245,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
       ) : patients.length === 0 ? (
         <p className={styles.loading}>
           Nenhum paciente neste local.
-          {!readOnly && (
+          {!isCoordinator && (
             <>
               {' '}
               <Link to="/backoffice/patients/new">Criar paciente</Link>
@@ -226,7 +278,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
               {patients.map((patient) => (
                 <tr key={patient.id}>
                   <th className={styles.stickyCol} scope="row">
-                    {readOnly ? (
+                    {isCoordinator ? (
                       patient.fullName
                     ) : (
                       <Link to={`/backoffice/patients/${patient.id}`} className={styles.patientLink}>
@@ -238,7 +290,8 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
                     const key = `${patient.id}:${date}`
                     const status = statusMap.get(key)
                     const hasScheduledAppointment = !status && scheduledMap.has(key)
-                    const CellTag = unlocked ? 'button' : 'span'
+                    const editable = canEditCell(status)
+                    const CellTag = editable ? 'button' : 'span'
                     const cellLabel = status
                       ? STATUS_LABELS[status]
                       : hasScheduledAppointment
@@ -247,14 +300,14 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
                     return (
                       <td key={key} className={date === todayIso ? styles.todayCol : undefined}>
                         <CellTag
-                          {...(unlocked
+                          {...(editable
                             ? {
                                 type: 'button' as const,
                                 onClick: () => handleCellClick(patient.id, date),
                                 disabled: savingKey === key,
                               }
                             : {})}
-                          className={`${styles.cell} ${status ? styles[status] : hasScheduledAppointment ? styles.scheduled : ''}`}
+                          className={`${styles.cell} ${status ? styles[status] : hasScheduledAppointment ? styles.scheduled : ''} ${isCoordinator && unlocked && status && !RECEIPT_TOGGLE_STATUSES.includes(status) ? styles.cellLocked : ''}`}
                           title={`${patient.fullName} — ${cellLabel}`}
                           aria-label={`${patient.fullName}, ${date}, ${cellLabel}`}
                         />

@@ -89,12 +89,22 @@ export const coordinatorAttendanceQuerySchema = attendanceMatrixQuerySchema.exte
 
 export const attendanceUpsertSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  status: z.enum(['present_unpaid', 'present_paid', 'absent']).nullable(),
+  status: z.enum(['present_unpaid', 'present_paid', 'receipt_issued', 'absent']).nullable(),
   notes: z.string().max(2000).optional().nullable(),
 })
 
 export const appointmentMonthQuerySchema = attendanceMonthQuerySchema.extend({
   locationId: z.string().uuid().optional(),
+})
+
+export const coordinatorReceiptToggleSchema = z.object({
+  therapistId: z.string().uuid(),
+  patientId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+})
+
+export const coordinatorAppointmentsQuerySchema = appointmentMonthQuerySchema.extend({
+  therapistId: z.string().uuid(),
 })
 
 export const appointmentBodySchema = z.object({

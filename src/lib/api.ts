@@ -97,7 +97,7 @@ export type PatientSummary = {
   }>
 }
 
-export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'absent'
+export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'receipt_issued' | 'absent'
 
 export type AppointmentSummary = {
   id: string
@@ -269,6 +269,25 @@ export const coordinatorApi = {
       scheduledAppointments: Array<{ patientId: string; date: string }>
     }>(
       `/api/coordinator/attendance?therapistId=${therapistId}&year=${year}&month=${month}&locationId=${locationId}`,
+      { token },
+    ),
+  toggleReceiptStatus: (
+    token: string,
+    body: { therapistId: string; patientId: string; date: string },
+  ) =>
+    apiRequest<{ record: { date: string; status: AttendanceStatus; notes: string | null } }>(
+      '/api/coordinator/attendance/receipt',
+      { method: 'PUT', token, body },
+    ),
+  listAppointments: (
+    token: string,
+    therapistId: string,
+    year: number,
+    month: number,
+    locationId?: string,
+  ) =>
+    apiRequest<{ year: number; month: number; appointments: AppointmentSummary[] }>(
+      `/api/coordinator/appointments?therapistId=${therapistId}&year=${year}&month=${month}${locationId ? `&locationId=${locationId}` : ''}`,
       { token },
     ),
 }

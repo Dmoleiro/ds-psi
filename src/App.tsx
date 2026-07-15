@@ -62,7 +62,7 @@ export function App() {
         <Route path="/backoffice/patients" element={<RequireTherapist><PatientsListPage /></RequireTherapist>} />
         <Route path="/backoffice/patients/new" element={<RequireTherapist><PatientCreatePage /></RequireTherapist>} />
         <Route path="/backoffice/patients/:id" element={<RequireTherapist><PatientDetailPage /></RequireTherapist>} />
-        <Route path="/backoffice/appointments" element={<RequireTherapist><AppointmentsPage /></RequireTherapist>} />
+        <Route path="/backoffice/appointments" element={<AppointmentsPage />} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />

@@ -180,3 +180,50 @@ export async function upsertPatientAttendance(
     notes: record.notes,
   }
 }
+
+export async function toggleCoordinatorReceiptStatus(
+  therapistId: string,
+  patientId: string,
+  isoDate: string,
+) {
+  await getTherapistPatientOrThrow(therapistId, patientId)
+  const sessionDate = parseDateOnly(isoDate)
+  if (!sessionDate) {
+    throw new Error('INVALID_DATE')
+  }
+
+  const existing = await prisma.attendanceRecord.findUnique({
+    where: {
+      patientId_sessionDate: { patientId, sessionDate },
+    },
+  })
+
+  if (!existing || existing.therapistId !== therapistId) {
+    throw new Error('RECORD_NOT_FOUND')
+  }
+
+  if (
+    existing.status !== AttendanceStatus.present_paid &&
+    existing.status !== AttendanceStatus.receipt_issued
+  ) {
+    throw new Error('NOT_RECEIPT_EDITABLE')
+  }
+
+  const nextStatus =
+    existing.status === AttendanceStatus.present_paid
+      ? AttendanceStatus.receipt_issued
+      : AttendanceStatus.present_paid
+
+  const record = await prisma.attendanceRecord.update({
+    where: {
+      patientId_sessionDate: { patientId, sessionDate },
+    },
+    data: { status: nextStatus },
+  })
+
+  return {
+    date: formatDateOnly(record.sessionDate),
+    status: record.status,
+    notes: record.notes,
+  }
+}

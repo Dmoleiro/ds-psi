@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ApiError,
+  coordinatorApi,
   therapistApi,
   type AppointmentSummary,
   type LocationSummary,
@@ -25,6 +26,8 @@ import layout from './BackofficeLayout.module.css'
 type Props = {
   token: string
   therapistName: string
+  readOnly?: boolean
+  therapistId?: string
 }
 
 type FormState = {
@@ -60,7 +63,12 @@ function patientsForLocation(patients: PatientSummary[], locationId: string, sel
   return filtered
 }
 
-export function AppointmentsCalendar({ token, therapistName }: Props) {
+export function AppointmentsCalendar({
+  token,
+  therapistName,
+  readOnly = false,
+  therapistId,
+}: Props) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
@@ -97,26 +105,46 @@ export function AppointmentsCalendar({ token, therapistName }: Props) {
     setLoading(true)
     setError('')
     try {
-      const data = await therapistApi.listAppointments(
-        token,
-        viewYear,
-        viewMonth,
-        locationFilter || undefined,
-      )
+      const data =
+        readOnly && therapistId
+          ? await coordinatorApi.listAppointments(
+              token,
+              therapistId,
+              viewYear,
+              viewMonth,
+              locationFilter || undefined,
+            )
+          : await therapistApi.listAppointments(
+              token,
+              viewYear,
+              viewMonth,
+              locationFilter || undefined,
+            )
       setAppointments(data.appointments)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao carregar consultas')
     } finally {
       setLoading(false)
     }
-  }, [token, viewYear, viewMonth, locationFilter])
+  }, [token, viewYear, viewMonth, locationFilter, readOnly, therapistId])
 
   useEffect(() => {
     loadMonth()
   }, [loadMonth])
 
   useEffect(() => {
-    Promise.all([therapistApi.listPatients(token), therapistApi.listLocations(token)])
+    const locationsRequest = readOnly
+      ? coordinatorApi.listLocations(token)
+      : therapistApi.listLocations(token)
+
+    if (readOnly) {
+      locationsRequest
+        .then((data) => setLocations(data.locations))
+        .catch(() => setLocations([]))
+      return
+    }
+
+    Promise.all([therapistApi.listPatients(token), locationsRequest])
       .then(([patientsData, locationsData]) => {
         setPatients(patientsData.patients)
         setLocations(locationsData.locations)
@@ -125,7 +153,7 @@ export function AppointmentsCalendar({ token, therapistName }: Props) {
         setPatients([])
         setLocations([])
       })
-  }, [token])
+  }, [token, readOnly])
 
   function openDay(date: string) {
     setSelectedDate(date)
@@ -266,6 +294,8 @@ export function AppointmentsCalendar({ token, therapistName }: Props) {
         </div>
       </div>
 
+      {readOnly && <p className={layout.muted}>Modo consulta — não pode alterar marcações.</p>}
+
       {error && <p className={layout.error}>{error}</p>}
       {loading ? (
         <p className={layout.muted}>A carregar…</p>
@@ -348,31 +378,39 @@ export function AppointmentsCalendar({ token, therapistName }: Props) {
                     </p>
                     <h3 className={styles.existingTitle}>{appointment.patientName}</h3>
                     {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
-                    <div className={styles.existingActions}>
-                      <button
-                        type="button"
-                        className={styles.textButton}
-                        onClick={() => startEdit(appointment)}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className={`${styles.textButton} ${styles.textButtonDanger}`}
-                        onClick={() => handleDelete(appointment.id)}
-                        disabled={submitting}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
+                    {!readOnly && (
+                      <div className={styles.existingActions}>
+                        <button
+                          type="button"
+                          className={styles.textButton}
+                          onClick={() => startEdit(appointment)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.textButton} ${styles.textButtonDanger}`}
+                          onClick={() => handleDelete(appointment.id)}
+                          disabled={submitting}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
             )}
 
-            <hr className={styles.divider} />
+            {readOnly ? (
+              selectedDayAppointments.length === 0 && (
+                <p className={layout.muted}>Sem consultas neste dia.</p>
+              )
+            ) : (
+              <>
+                <hr className={styles.divider} />
 
-            <form className={styles.form} onSubmit={handleSubmit}>
+                <form className={styles.form} onSubmit={handleSubmit}>
               <h3>{editingId ? 'Editar consulta' : 'Nova consulta'}</h3>
               {dialogError && <p className={layout.error}>{dialogError}</p>}
               {patients.length === 0 ? (
@@ -472,6 +510,8 @@ export function AppointmentsCalendar({ token, therapistName }: Props) {
                 </>
               )}
             </form>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -16,11 +16,7 @@ export function BackofficeLoginPage() {
 
   if (user) {
     const redirect =
-      user.role === 'admin'
-        ? '/backoffice/admin/therapists'
-        : user.role === 'coordinator'
-          ? '/backoffice/attendance'
-          : '/backoffice'
+      user.role === 'admin' ? '/backoffice/admin/therapists' : '/backoffice'
     return <Navigate to={redirect} replace />
   }
 

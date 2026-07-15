@@ -57,9 +57,7 @@ export function AttendancePage() {
   }
 
   function selectLocation(location: LocationSummary) {
-    if (!isCoordinator) {
-      editLock.lock()
-    }
+    editLock.lock()
     setSelectedLocation(location)
   }
 
@@ -70,9 +68,7 @@ export function AttendancePage() {
   }
 
   function changeLocation() {
-    if (!isCoordinator) {
-      editLock.lock()
-    }
+    editLock.lock()
     setSelectedLocation(null)
   }
 
@@ -164,8 +160,8 @@ export function AttendancePage() {
             <AttendanceMatrix
               token={token}
               location={selectedLocation}
-              editLock={isCoordinator ? undefined : editLock}
-              readOnly={isCoordinator}
+              editLock={editLock}
+              mode={isCoordinator ? 'coordinator' : 'therapist'}
               therapistId={selectedTherapist?.id}
             />
           )}

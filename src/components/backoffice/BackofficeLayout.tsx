@@ -36,7 +36,13 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
                 <Link to="/backoffice/attendance">Presenças</Link>
               </>
             )}
-            {user.role === 'coordinator' && <Link to="/backoffice/attendance">Presenças</Link>}
+            {user.role === 'coordinator' && (
+              <>
+                <Link to="/backoffice">Painel</Link>
+                <Link to="/backoffice/appointments">Consultas</Link>
+                <Link to="/backoffice/attendance">Presenças</Link>
+              </>
+            )}
             {user.role === 'admin' && (
               <>
                 <Link to="/backoffice/admin/therapists">Terapeutas</Link>

@@ -4,14 +4,18 @@ export const STATUS_CYCLE: Array<AttendanceStatus | null> = [
   null,
   'present_unpaid',
   'present_paid',
+  'receipt_issued',
   'absent',
 ]
 
 export const STATUS_LABELS: Record<AttendanceStatus, string> = {
   present_unpaid: 'Presente por pagar',
   present_paid: 'Presente pago',
+  receipt_issued: 'Recibo passado',
   absent: 'Falta',
 }
+
+export const RECEIPT_TOGGLE_STATUSES: AttendanceStatus[] = ['present_paid', 'receipt_issued']
 
 export const SCHEDULED_APPOINTMENT_LABEL = 'Consulta agendada'
 
