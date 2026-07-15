@@ -31,7 +31,7 @@ function nl2br(value: string): string {
   return value.replace(/\n/g, '<br>')
 }
 
-export function exportSessionSubmissionsPdf(session: SessionSubmissionsView): void {
+function buildPrintHtml(session: SessionSubmissionsView): string {
   const generatedAt = new Date().toLocaleString('pt-PT')
   const formsHtml = session.submissions
     .map((submission) => {
@@ -57,7 +57,7 @@ export function exportSessionSubmissionsPdf(session: SessionSubmissionsView): vo
     })
     .join('')
 
-  const html = `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -124,21 +124,57 @@ export function exportSessionSubmissionsPdf(session: SessionSubmissionsView): vo
     </p>
     ${formsHtml}
     <p class="footer">Daniela Santos Psicologia — formulários PICCA</p>
-    <script>
-      window.addEventListener('load', () => {
-        window.focus();
-        window.print();
-      });
-    </script>
   </body>
 </html>`
+}
 
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer')
-  if (!printWindow) {
-    throw new Error('Não foi possível abrir a janela de impressão. Permita pop-ups neste site.')
+export function exportSessionSubmissionsPdf(session: SessionSubmissionsView): void {
+  if (session.submissions.length === 0) {
+    throw new Error('Não existem formulários submetidos para exportar.')
   }
 
-  printWindow.document.open()
-  printWindow.document.write(html)
-  printWindow.document.close()
+  const iframe = document.createElement('iframe')
+  iframe.setAttribute('title', 'Pré-visualização de impressão')
+  iframe.setAttribute('aria-hidden', 'true')
+  Object.assign(iframe.style, {
+    position: 'fixed',
+    right: '0',
+    bottom: '0',
+    width: '0',
+    height: '0',
+    border: '0',
+    opacity: '0',
+    pointerEvents: 'none',
+  })
+
+  document.body.appendChild(iframe)
+
+  const printWindow = iframe.contentWindow
+  const printDocument = iframe.contentDocument ?? printWindow?.document
+
+  if (!printWindow || !printDocument) {
+    iframe.remove()
+    throw new Error('Não foi possível preparar a impressão neste browser.')
+  }
+
+  printDocument.open()
+  printDocument.write(buildPrintHtml(session))
+  printDocument.close()
+
+  const cleanup = () => {
+    iframe.remove()
+  }
+
+  const runPrint = () => {
+    printWindow.focus()
+    printWindow.print()
+    printWindow.addEventListener('afterprint', cleanup, { once: true })
+    window.setTimeout(cleanup, 60_000)
+  }
+
+  if (printDocument.readyState === 'complete') {
+    window.setTimeout(runPrint, 150)
+  } else {
+    iframe.addEventListener('load', () => window.setTimeout(runPrint, 150), { once: true })
+  }
 }

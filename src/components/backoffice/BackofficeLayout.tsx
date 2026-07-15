@@ -32,6 +32,7 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
               <>
                 <Link to="/backoffice">Painel</Link>
                 <Link to="/backoffice/patients">Pacientes</Link>
+                <Link to="/backoffice/appointments">Consultas</Link>
                 <Link to="/backoffice/attendance">Presenças</Link>
               </>
             )}

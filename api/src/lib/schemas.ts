@@ -93,6 +93,19 @@ export const attendanceUpsertSchema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 })
 
+export const appointmentMonthQuerySchema = attendanceMonthQuerySchema.extend({
+  locationId: z.string().uuid().optional(),
+})
+
+export const appointmentBodySchema = z.object({
+  patientId: z.string().uuid(),
+  locationId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+  durationMinutes: z.coerce.number().int().min(15).max(240),
+  notes: z.string().max(2000).optional().nullable(),
+})
+
 export const intakeFormSchema = z.object({
   fullName: z.string().min(2),
   birthDate: z.string().optional(),

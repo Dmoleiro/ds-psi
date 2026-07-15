@@ -16,7 +16,13 @@ import {
   listTherapistAttendance,
   upsertPatientAttendance,
 } from '../services/attendance.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, createLocationSchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import {
+  createTherapistAppointment,
+  deleteTherapistAppointment,
+  listTherapistAppointments,
+  updateTherapistAppointment,
+} from '../services/appointments.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createLocationSchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 
@@ -389,6 +395,106 @@ export async function therapistRoutes(app: FastifyInstance) {
               fields: formatFormAnswers(f.formId, f.submission!.answersJson as Record<string, unknown>),
             })),
         },
+      }
+    },
+  )
+
+  app.get('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = appointmentMonthQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const appointments = await listTherapistAppointments(
+        request.user.sub,
+        parsed.data.year,
+        parsed.data.month,
+        parsed.data.locationId,
+      )
+      return {
+        year: parsed.data.year,
+        month: parsed.data.month,
+        appointments,
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_MONTH') {
+        return reply.status(400).send({ error: 'Mês inválido' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.post('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = appointmentBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const appointment = await createTherapistAppointment(request.user.sub, parsed.data)
+      return reply.status(201).send({ appointment })
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_SCHEDULE') {
+        return reply.status(400).send({ error: 'Data ou hora inválida' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.patch(
+    '/api/therapist/appointments/:id',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = appointmentBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const appointment = await updateTherapistAppointment(request.user.sub, id, parsed.data)
+        return { appointment }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Consulta não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'INVALID_SCHEDULE') {
+          return reply.status(400).send({ error: 'Data ou hora inválida' })
+        }
+        if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Local não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/appointments/:id',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        await deleteTherapistAppointment(request.user.sub, id)
+        return reply.status(204).send()
+      } catch (error) {
+        if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Consulta não encontrada' })
+        }
+        throw error
       }
     },
   )

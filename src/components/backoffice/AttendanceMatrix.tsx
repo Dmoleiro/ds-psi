@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, coordinatorApi, therapistApi, type AttendanceStatus, type LocationSummary } from '../../lib/api'
-import { getMonthDays, STATUS_CYCLE, STATUS_LABELS, toIsoDate } from '../../lib/attendance'
+import { getMonthDays, SCHEDULED_APPOINTMENT_LABEL, STATUS_CYCLE, STATUS_LABELS, toIsoDate } from '../../lib/attendance'
 import type { useEditLock } from '../../hooks/useEditLock'
 import styles from './AttendanceMatrix.module.css'
 
@@ -11,6 +11,11 @@ type MatrixRecord = {
   patientId: string
   date: string
   status: AttendanceStatus
+}
+
+type ScheduledAppointment = {
+  patientId: string
+  date: string
 }
 
 type EditLock = ReturnType<typeof useEditLock>
@@ -29,6 +34,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
   const [patients, setPatients] = useState<PatientRow[]>([])
   const [records, setRecords] = useState<MatrixRecord[]>([])
+  const [scheduledAppointments, setScheduledAppointments] = useState<ScheduledAppointment[]>([])
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -46,6 +52,14 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
     return map
   }, [records])
 
+  const scheduledMap = useMemo(() => {
+    const set = new Set<string>()
+    for (const appointment of scheduledAppointments) {
+      set.add(`${appointment.patientId}:${appointment.date}`)
+    }
+    return set
+  }, [scheduledAppointments])
+
   const loadMonth = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -56,6 +70,7 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
           : await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
       setPatients(data.patients)
       setRecords(data.records)
+      setScheduledAppointments(data.scheduledAppointments ?? [])
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar presenças')
     } finally {
@@ -159,6 +174,10 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
       </p>
 
       <div className={styles.legend}>
+        <span className={styles.legendItem}>
+          <span className={`${styles.swatch} ${styles.scheduled}`} aria-hidden />
+          {SCHEDULED_APPOINTMENT_LABEL}
+        </span>
         {(Object.keys(STATUS_LABELS) as AttendanceStatus[]).map((status) => (
           <span key={status} className={styles.legendItem}>
             <span className={`${styles.swatch} ${styles[status]}`} aria-hidden />
@@ -218,7 +237,13 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
                   {days.map(({ date }) => {
                     const key = `${patient.id}:${date}`
                     const status = statusMap.get(key)
+                    const hasScheduledAppointment = !status && scheduledMap.has(key)
                     const CellTag = unlocked ? 'button' : 'span'
+                    const cellLabel = status
+                      ? STATUS_LABELS[status]
+                      : hasScheduledAppointment
+                        ? SCHEDULED_APPOINTMENT_LABEL
+                        : 'sem registo'
                     return (
                       <td key={key} className={date === todayIso ? styles.todayCol : undefined}>
                         <CellTag
@@ -229,17 +254,9 @@ export function AttendanceMatrix({ token, location, editLock, readOnly = false, 
                                 disabled: savingKey === key,
                               }
                             : {})}
-                          className={`${styles.cell} ${status ? styles[status] : ''}`}
-                          title={
-                            status
-                              ? `${patient.fullName} — ${STATUS_LABELS[status]}`
-                              : `${patient.fullName} — sem registo`
-                          }
-                          aria-label={
-                            status
-                              ? `${patient.fullName}, ${date}, ${STATUS_LABELS[status]}`
-                              : `${patient.fullName}, ${date}, sem registo`
-                          }
+                          className={`${styles.cell} ${status ? styles[status] : hasScheduledAppointment ? styles.scheduled : ''}`}
+                          title={`${patient.fullName} — ${cellLabel}`}
+                          aria-label={`${patient.fullName}, ${date}, ${cellLabel}`}
                         />
                       </td>
                     )

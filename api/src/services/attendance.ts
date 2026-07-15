@@ -92,7 +92,7 @@ export async function listTherapistAttendance(
     throw new Error('LOCATION_NOT_FOUND')
   }
 
-  const [patients, records] = await Promise.all([
+  const [patients, records, appointments] = await Promise.all([
     prisma.patient.findMany({
       where: { therapistId, locationId },
       orderBy: { fullName: 'asc' },
@@ -104,6 +104,18 @@ export async function listTherapistAttendance(
         sessionDate: { gte: range.from, lte: range.to },
       },
       orderBy: [{ sessionDate: 'asc' }, { patientId: 'asc' }],
+    }),
+    prisma.appointment.findMany({
+      where: {
+        therapistId,
+        locationId,
+        scheduledAt: {
+          gte: new Date(Date.UTC(year, month - 1, 1, 0, 0, 0)),
+          lt: new Date(Date.UTC(year, month, 1, 0, 0, 0)),
+        },
+      },
+      select: { patientId: true, scheduledAt: true },
+      orderBy: { scheduledAt: 'asc' },
     }),
   ])
 
@@ -117,6 +129,10 @@ export async function listTherapistAttendance(
       patientId: record.patientId,
       date: formatDateOnly(record.sessionDate),
       status: record.status,
+    })),
+    scheduledAppointments: appointments.map((appointment) => ({
+      patientId: appointment.patientId,
+      date: formatDateOnly(appointment.scheduledAt),
     })),
   }
 }

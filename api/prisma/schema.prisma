@@ -46,6 +46,7 @@ model User {
   patients       Patient[]
   intakeSessions IntakeSession[]
   attendanceRecords AttendanceRecord[]
+  appointments   Appointment[]
 
   @@map("users")
 }
@@ -66,6 +67,7 @@ model Patient {
   location          Location          @relation(fields: [locationId], references: [id])
   intakeSessions    IntakeSession[]
   attendanceRecords AttendanceRecord[]
+  appointments      Appointment[]
 
   @@index([therapistId])
   @@index([locationId])
@@ -81,6 +83,7 @@ model Location {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   patients Patient[]
+  appointments Appointment[]
 
   @@map("locations")
 }
@@ -174,4 +177,25 @@ model FormSubmission {
   sessionForm SessionForm @relation(fields: [sessionFormId], references: [id], onDelete: Cascade)
 
   @@map("form_submissions")
+}
+
+model Appointment {
+  id              String   @id @default(uuid())
+  therapistId     String   @map("therapist_id")
+  patientId       String   @map("patient_id")
+  locationId      String   @map("location_id")
+  scheduledAt     DateTime @map("scheduled_at")
+  durationMinutes Int      @default(60) @map("duration_minutes")
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  therapist User     @relation(fields: [therapistId], references: [id])
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  location  Location @relation(fields: [locationId], references: [id])
+
+  @@index([therapistId, scheduledAt])
+  @@index([patientId])
+  @@index([locationId, scheduledAt])
+  @@map("appointments")
 }

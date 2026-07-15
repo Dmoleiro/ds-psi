@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import { Container } from '../../components/layout/Container'
+import { formatFormStatus, formStatusBadgeVariant } from '../../lib/intakeStatus'
 import styles from './PatientPortal.module.css'
 
 export function PatientPortalPage() {
@@ -104,12 +105,8 @@ export function PatientPortalPage() {
             <Card key={form.formId} as="article" className={styles.formCard}>
               <div className={styles.cardHeader}>
                 <h2>{form.title}</h2>
-                <Badge variant={form.status === 'submitted' ? 'accent' : 'muted'}>
-                  {form.status === 'submitted'
-                    ? 'Submetido'
-                    : form.status === 'in_progress'
-                      ? 'Em progresso'
-                      : 'Por iniciar'}
+                <Badge variant={formStatusBadgeVariant(form.status)}>
+                  {formatFormStatus(form.status)}
                 </Badge>
               </div>
               {form.description && <p>{form.description}</p>}

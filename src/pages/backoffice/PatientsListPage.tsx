@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { Badge } from '../../components/ui/Badge'
 import { therapistApi, type PatientSummary } from '../../lib/api'
+import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 import { useAuth } from '../../hooks/useAuth'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
@@ -42,7 +44,7 @@ export function PatientsListPage() {
               <th>Nome</th>
               <th>Local</th>
               <th>Contacto</th>
-              <th>Última sessão</th>
+              <th>Últimos formulários</th>
               <th />
             </tr>
           </thead>
@@ -54,7 +56,19 @@ export function PatientsListPage() {
                   <td>{patient.fullName}</td>
                   <td>{patient.location?.name ?? '—'}</td>
                   <td>{patient.email ?? patient.phone ?? '—'}</td>
-                  <td>{latest ? `${latest.status} · ${new Date(latest.createdAt).toLocaleDateString('pt-PT')}` : '—'}</td>
+                  <td>
+                    {latest ? (
+                      <>
+                        <Badge variant={sessionStatusBadgeVariant(latest.status)}>
+                          {formatSessionStatus(latest.status)}
+                        </Badge>
+                        {' · '}
+                        {new Date(latest.createdAt).toLocaleDateString('pt-PT')}
+                      </>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td>
                     <Link to={`/backoffice/patients/${patient.id}`}>Abrir</Link>
                   </td>

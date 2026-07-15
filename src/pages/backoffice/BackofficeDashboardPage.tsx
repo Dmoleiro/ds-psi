@@ -28,8 +28,15 @@ export function BackofficeDashboardPage() {
           </Button>
         </Card>
         <Card as="article">
+          <h2>Consultas</h2>
+          <p className={styles.muted}>Calendário mensal para agendar consultas com os seus pacientes.</p>
+          <Button href="/backoffice/appointments" style={{ marginTop: 'var(--space-md)' }}>
+            Abrir agenda
+          </Button>
+        </Card>
+        <Card as="article">
           <h2>Presenças</h2>
-          <p className={styles.muted}>Calendário mensal de consultas — por pagar, pagas e faltas.</p>
+          <p className={styles.muted}>Registo mensal de presenças — por pagar, pagas e faltas.</p>
           <Button href="/backoffice/attendance" style={{ marginTop: 'var(--space-md)' }}>
             Abrir calendário
           </Button>

@@ -10,6 +10,12 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
+import {
+  formatFormStatus,
+  formatSessionStatus,
+  formStatusBadgeVariant,
+  sessionStatusBadgeVariant,
+} from '../../lib/intakeStatus'
 
 type SessionRow = {
   id: string
@@ -181,17 +187,17 @@ export function PatientDetailPage() {
             <strong>Link gerado</strong>
             <p>{generatedUrl}</p>
             <p className={styles.muted} style={{ marginTop: 'var(--space-sm)' }}>
-              Pode voltar a consultar ou copiar este link na lista de sessões enquanto estiver em curso.
+              Pode voltar a consultar ou copiar este link na lista de formulários enquanto estiver em curso.
             </p>
           </div>
         )}
       </Card>
 
       <Card as="section">
-        <h2>Sessões</h2>
+        <h2>Formulários</h2>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {patient.intakeSessions.length === 0 ? (
-          <p className={styles.muted}>Ainda não existem links gerados.</p>
+          <p className={styles.muted}>Ainda não existem formulários gerados.</p>
         ) : (
           <table className={styles.table}>
             <thead>
@@ -207,14 +213,21 @@ export function PatientDetailPage() {
                 <tr key={session.id}>
                   <td>{new Date(session.createdAt).toLocaleString('pt-PT')}</td>
                   <td>
-                    <Badge variant={session.status === 'completed' ? 'accent' : 'muted'}>
-                      {session.status}
+                    <Badge variant={sessionStatusBadgeVariant(session.status)}>
+                      {formatSessionStatus(session.status)}
                     </Badge>
                   </td>
                   <td>
-                    {session.forms
-                      .map((f) => `${f.definition?.title ?? f.formId}: ${f.status}`)
-                      .join(' · ')}
+                    <div className={styles.formStatusList}>
+                      {session.forms.map((form) => (
+                        <div key={form.formId} className={styles.formStatusItem}>
+                          <span>{form.definition?.title ?? form.formId}</span>
+                          <Badge variant={formStatusBadgeVariant(form.status)}>
+                            {formatFormStatus(form.status)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
                   </td>
                   <td>
                     <div className={styles.sessionActions}>
@@ -262,7 +275,7 @@ export function PatientDetailPage() {
       <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
         <h2>Zona de perigo</h2>
         <p className={styles.muted}>
-          Eliminar este paciente remove permanentemente o perfil, todas as sessões de formulários, respostas
+          Eliminar este paciente remove permanentemente o perfil, todos os formulários gerados, respostas
           submetidas, rascunhos e registos de presença. Esta ação não pode ser desfeita.
         </p>
         {!confirmDelete ? (
@@ -276,7 +289,7 @@ export function PatientDetailPage() {
               {sessionCount > 0 && (
                 <>
                   {' '}
-                  Serão apagadas {sessionCount} sessão{sessionCount === 1 ? '' : 'ões'} de formulários e todos os
+                  Serão apagados {sessionCount} conjunto{sessionCount === 1 ? '' : 's'} de formulários e todos os
                   dados associados.
                 </>
               )}

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `appointments` MODIFY `duration_minutes` INTEGER NOT NULL DEFAULT 60;

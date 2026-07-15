@@ -99,6 +99,19 @@ export type PatientSummary = {
 
 export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'absent'
 
+export type AppointmentSummary = {
+  id: string
+  patientId: string
+  patientName: string
+  locationId: string
+  locationName: string
+  date: string
+  time: string
+  scheduledAt: string
+  durationMinutes: number
+  notes: string | null
+}
+
 export type AttendanceRecord = {
   date: string
   status: AttendanceStatus
@@ -178,6 +191,7 @@ export const therapistApi = {
       location: LocationSummary
       patients: Array<{ id: string; fullName: string }>
       records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+      scheduledAppointments: Array<{ patientId: string; date: string }>
     }>(`/api/therapist/attendance?year=${year}&month=${month}&locationId=${locationId}`, { token }),
   upsertAttendance: (
     token: string,
@@ -188,6 +202,46 @@ export const therapistApi = {
       `/api/therapist/patients/${patientId}/attendance`,
       { method: 'PUT', token, body },
     ),
+  listAppointments: (token: string, year: number, month: number, locationId?: string) =>
+    apiRequest<{ year: number; month: number; appointments: AppointmentSummary[] }>(
+      `/api/therapist/appointments?year=${year}&month=${month}${locationId ? `&locationId=${locationId}` : ''}`,
+      { token },
+    ),
+  createAppointment: (
+    token: string,
+    body: {
+      patientId: string
+      locationId: string
+      date: string
+      time: string
+      durationMinutes: number
+      notes?: string | null
+    },
+  ) =>
+    apiRequest<{ appointment: AppointmentSummary }>('/api/therapist/appointments', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateAppointment: (
+    token: string,
+    id: string,
+    body: {
+      patientId: string
+      locationId: string
+      date: string
+      time: string
+      durationMinutes: number
+      notes?: string | null
+    },
+  ) =>
+    apiRequest<{ appointment: AppointmentSummary }>(`/api/therapist/appointments/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  deleteAppointment: (token: string, id: string) =>
+    apiRequest<void>(`/api/therapist/appointments/${id}`, { method: 'DELETE', token }),
 }
 
 export const coordinatorApi = {
@@ -212,6 +266,7 @@ export const coordinatorApi = {
       location: LocationSummary
       patients: Array<{ id: string; fullName: string }>
       records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+      scheduledAppointments: Array<{ patientId: string; date: string }>
     }>(
       `/api/coordinator/attendance?therapistId=${therapistId}&year=${year}&month=${month}&locationId=${locationId}`,
       { token },

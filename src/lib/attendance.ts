@@ -13,6 +13,8 @@ export const STATUS_LABELS: Record<AttendanceStatus, string> = {
   absent: 'Falta',
 }
 
+export const SCHEDULED_APPOINTMENT_LABEL = 'Consulta agendada'
+
 export function toIsoDate(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }

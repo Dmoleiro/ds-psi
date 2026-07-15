@@ -228,3 +228,20 @@
   flex-wrap: wrap;
   margin-top: var(--space-md);
 }
+
+.formStatusList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.formStatusItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.formStatusItem span {
+  color: var(--color-ink-muted);
+}

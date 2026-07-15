@@ -28,7 +28,7 @@ export function FormSubmissionsPanel({ session, onClose }: Props) {
         </div>
         <div className={styles.actions}>
           <Button type="button" variant="outline" onClick={handleExportPdf}>
-            Exportar PDF
+            Imprimir / guardar PDF
           </Button>
           {onClose && (
             <button type="button" className={styles.closeButton} onClick={onClose}>
@@ -39,7 +39,7 @@ export function FormSubmissionsPanel({ session, onClose }: Props) {
       </div>
 
       {session.submissions.length === 0 ? (
-        <p className={styles.empty}>Ainda não existem formulários submetidos nesta sessão.</p>
+        <p className={styles.empty}>Ainda não existem formulários submetidos.</p>
       ) : (
         <div className={styles.forms}>
           {session.submissions.map((submission) => (

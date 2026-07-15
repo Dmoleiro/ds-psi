@@ -240,6 +240,11 @@
   border-color: #e11d48;
 }
 
+.scheduled {
+  background: #c4b5fd;
+  border-color: #7c3aed;
+}
+
 @media (max-width: 768px) {
   .stickyCol {
     min-width: 7rem;
