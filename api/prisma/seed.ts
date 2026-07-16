@@ -10,6 +10,12 @@ const formDefinitions = [
     title: 'Ficha de inscrição',
     description: 'Dados da criança/jovem, encarregado de educação e motivo do pedido.',
   },
+  {
+    id: 'queixa-inicial',
+    title: 'Queixa inicial e preocupações',
+    description:
+      'Questionário sobre a queixa inicial, sintomas observados e motivo do pedido de consulta.',
+  },
 ]
 
 async function main() {

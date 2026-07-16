@@ -58,6 +58,16 @@ const FORM_FIELD_LABELS: Record<string, FormFieldLabels> = {
     signatureName: 'Assinatura',
     signedAt: 'Data da assinatura',
   },
+  'queixa-inicial': {
+    concernOrigin: 'Como surgiu a preocupação/o diagnóstico para o pedido de consulta?',
+    mainSymptoms: 'Principais sintomas/sinais observados',
+    concernStartAge: 'Idade quando as preocupações tiveram início',
+    interventionsAtHome: 'O que já foi feito em casa',
+    interventionsAtSchool: 'O que já foi feito na escola',
+    familyDynamicsEffect: 'Efeito na dinâmica familiar',
+    referredBy: 'Encaminhado por quem (recomendação)',
+    requestObjective: 'Objetivo do pedido',
+  },
 }
 
 const FIELD_ORDER: Record<string, string[]> = {
@@ -117,6 +127,16 @@ const FIELD_ORDER: Record<string, string[]> = {
     'additionalInfo',
     'signatureName',
     'signedAt',
+  ],
+  'queixa-inicial': [
+    'concernOrigin',
+    'mainSymptoms',
+    'concernStartAge',
+    'interventionsAtHome',
+    'interventionsAtSchool',
+    'familyDynamicsEffect',
+    'referredBy',
+    'requestObjective',
   ],
 }
 

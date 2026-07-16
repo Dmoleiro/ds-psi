@@ -68,7 +68,7 @@ export function BackofficeDashboardPage() {
         <Card as="article">
           <h2>Formulários PICCA</h2>
           <p className={styles.muted}>
-            Ficha de inscrição disponível para atribuição a pacientes.
+            Ficha de inscrição e queixa inicial disponíveis para atribuição a pacientes.
           </p>
           <Link to="/formularios-picca" className={styles.muted}>
             Ver página pública →

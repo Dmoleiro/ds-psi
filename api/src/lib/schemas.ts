@@ -152,10 +152,25 @@ export const fichaInscricaoFormSchema = z
 
 export type FichaInscricaoFormData = z.infer<typeof fichaInscricaoFormSchema>
 
+export const queixaInicialFormSchema = z.object({
+  concernOrigin: z.string().min(5),
+  mainSymptoms: z.string().optional(),
+  concernStartAge: z.string().optional(),
+  interventionsAtHome: z.string().optional(),
+  interventionsAtSchool: z.string().optional(),
+  familyDynamicsEffect: z.string().optional(),
+  referredBy: z.string().optional(),
+  requestObjective: z.string().min(5),
+})
+
+export type QueixaInicialFormData = z.infer<typeof queixaInicialFormSchema>
+
 export function getFormSchema(formId: string) {
   switch (formId) {
     case 'ficha-inscricao':
       return fichaInscricaoFormSchema
+    case 'queixa-inicial':
+      return queixaInicialFormSchema
     default:
       return null
   }
