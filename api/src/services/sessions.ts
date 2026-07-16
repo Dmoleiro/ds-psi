@@ -1,7 +1,7 @@
 import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
-import { config, createPatientSchema, createSessionSchema } from '../lib/schemas.js'
+import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
 
 type SessionWithUrl = {
   status: SessionStatus
@@ -146,4 +146,51 @@ export async function deleteTherapistPatient(therapistId: string, patientId: str
   }
 
   await prisma.patient.delete({ where: { id: patientId } })
+}
+
+export function parseUpdatePatientInput(body: unknown) {
+  return updatePatientSchema.safeParse(body)
+}
+
+export async function updateTherapistPatient(
+  therapistId: string,
+  patientId: string,
+  data: {
+    fullName: string
+    locationId: string
+    email?: string
+    phone?: string
+    birthDate?: string
+    internalNotes?: string
+  },
+) {
+  const patient = await prisma.patient.findFirst({
+    where: { id: patientId, therapistId },
+    select: { id: true },
+  })
+  if (!patient) {
+    throw new Error('PATIENT_NOT_FOUND')
+  }
+
+  const location = await prisma.location.findFirst({
+    where: { id: data.locationId, active: true },
+  })
+  if (!location) {
+    throw new Error('INVALID_LOCATION')
+  }
+
+  return prisma.patient.update({
+    where: { id: patientId },
+    data: {
+      fullName: data.fullName,
+      locationId: data.locationId,
+      email: data.email || null,
+      phone: data.phone || null,
+      birthDate: data.birthDate ? new Date(data.birthDate) : null,
+      internalNotes: data.internalNotes || null,
+    },
+    include: {
+      location: { select: { id: true, name: true } },
+    },
+  })
 }

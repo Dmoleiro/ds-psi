@@ -189,6 +189,32 @@
   gap: var(--space-sm);
 }
 
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.titleRow .pageTitle {
+  margin: 0;
+}
+
+.editPatientForm {
+  display: grid;
+  gap: var(--space-md);
+  max-width: 32rem;
+  margin-bottom: var(--space-md);
+}
+
+.editPatientActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .inlineForm {
   display: flex;
   flex-wrap: wrap;

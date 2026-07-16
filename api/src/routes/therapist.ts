@@ -10,6 +10,8 @@ import {
   getTherapistPatient,
   parseCreatePatientInput,
   parseCreateSessionInput,
+  parseUpdatePatientInput,
+  updateTherapistPatient,
 } from '../services/sessions.js'
 import {
   listPatientAttendance,
@@ -199,6 +201,27 @@ export async function therapistRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
     return { patient: formatTherapistPatient(patient) }
+  })
+
+  app.patch('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = parseUpdatePatientInput(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const patient = await updateTherapistPatient(request.user.sub, id, parsed.data)
+      return { patient }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_LOCATION') {
+        return reply.status(400).send({ error: 'Local inválido' })
+      }
+      throw error
+    }
   })
 
   app.delete('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {

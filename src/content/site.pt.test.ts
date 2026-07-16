@@ -28,7 +28,7 @@ describe('site content', () => {
   it('links to the pricing PDF with the site base URL', () => {
     expect(legal.pricing.label).toBe('Preçários das consultas')
     expect(legal.pricing.href).toBe(
-      `${import.meta.env.BASE_URL}docs/precarios-consultas-povoa-santa-iria-2026.pdf`,
+      `${import.meta.env.BASE_URL}docs/precarios-consultas-2026.pdf`,
     )
   })
 

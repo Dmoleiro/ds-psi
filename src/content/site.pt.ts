@@ -320,7 +320,7 @@ export const legal = {
   },
   pricing: {
     label: 'Preçários das consultas',
-    href: publicAsset('docs/precarios-consultas-povoa-santa-iria-2026.pdf'),
+    href: publicAsset('docs/precarios-consultas-2026.pdf'),
   },
   cookies: {
     label: 'Política de Cookies',

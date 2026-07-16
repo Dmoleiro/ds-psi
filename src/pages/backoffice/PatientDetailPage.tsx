@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
-import { ApiError, therapistApi } from '../../lib/api'
+import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -47,6 +47,7 @@ export function PatientDetailPage() {
   const navigate = useNavigate()
   const { token } = useAuth()
   const [patient, setPatient] = useState<PatientDetail | null>(null)
+  const [locations, setLocations] = useState<LocationSummary[]>([])
   const [availableForms, setAvailableForms] = useState<FormOption[]>([])
   const [selectedForms, setSelectedForms] = useState<string[]>([])
   const [generatedUrl, setGeneratedUrl] = useState('')
@@ -58,6 +59,15 @@ export function PatientDetailPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
   const [copyFeedback, setCopyFeedback] = useState('')
+  const [editingPatient, setEditingPatient] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [locationIdDraft, setLocationIdDraft] = useState('')
+  const [emailDraft, setEmailDraft] = useState('')
+  const [phoneDraft, setPhoneDraft] = useState('')
+  const [birthDateDraft, setBirthDateDraft] = useState('')
+  const [internalNotesDraft, setInternalNotesDraft] = useState('')
+  const [patientEditError, setPatientEditError] = useState('')
+  const [savingPatient, setSavingPatient] = useState(false)
 
   useEffect(() => {
     if (!token || !id) return
@@ -70,6 +80,7 @@ export function PatientDetailPage() {
   useEffect(() => {
     if (!token) return
     therapistApi.listForms(token).then((data) => setAvailableForms(data.forms))
+    therapistApi.listLocations(token).then((data) => setLocations(data.locations))
   }, [token])
 
   function toggleForm(formId: string) {
@@ -139,6 +150,78 @@ export function PatientDetailPage() {
     return session.status === 'active' || session.status === 'in_progress'
   }
 
+  function toDateInputValue(value: string | null): string {
+    if (!value) return ''
+    return value.slice(0, 10)
+  }
+
+  function formatBirthDate(value: string | null): string | null {
+    if (!value) return null
+    const date = new Date(`${value.slice(0, 10)}T12:00:00`)
+    if (Number.isNaN(date.getTime())) return null
+    return date.toLocaleDateString('pt-PT')
+  }
+
+  function startEditingPatient() {
+    if (!patient) return
+    setNameDraft(patient.fullName)
+    setLocationIdDraft(patient.location?.id ?? '')
+    setEmailDraft(patient.email ?? '')
+    setPhoneDraft(patient.phone ?? '')
+    setBirthDateDraft(toDateInputValue(patient.birthDate))
+    setInternalNotesDraft(patient.internalNotes ?? '')
+    setPatientEditError('')
+    setEditingPatient(true)
+  }
+
+  function cancelEditingPatient() {
+    setEditingPatient(false)
+    setNameDraft('')
+    setLocationIdDraft('')
+    setEmailDraft('')
+    setPhoneDraft('')
+    setBirthDateDraft('')
+    setInternalNotesDraft('')
+    setPatientEditError('')
+  }
+
+  async function handleSavePatient(event: React.FormEvent) {
+    event.preventDefault()
+    if (!token || !id || !nameDraft.trim() || !locationIdDraft) return
+    setSavingPatient(true)
+    setPatientEditError('')
+    try {
+      const result = await therapistApi.updatePatient(token, id, {
+        fullName: nameDraft.trim(),
+        locationId: locationIdDraft,
+        email: emailDraft,
+        phone: phoneDraft,
+        birthDate: birthDateDraft,
+        internalNotes: internalNotesDraft,
+      })
+      setPatient((current) =>
+        current
+          ? {
+              ...current,
+              fullName: result.patient.fullName,
+              email: result.patient.email,
+              phone: result.patient.phone,
+              birthDate: result.patient.birthDate,
+              internalNotes: result.patient.internalNotes,
+              location: result.patient.location,
+            }
+          : current,
+      )
+      setEditingPatient(false)
+    } catch (err) {
+      setPatientEditError(
+        err instanceof ApiError ? err.message : 'Não foi possível atualizar os dados do paciente',
+      )
+    } finally {
+      setSavingPatient(false)
+    }
+  }
+
   if (loading) {
     return (
       <BackofficeLayout>
@@ -161,13 +244,109 @@ export function PatientDetailPage() {
       <p className={styles.muted}>
         <Link to="/backoffice/patients">← Pacientes</Link>
       </p>
-      <h1 className={styles.pageTitle}>{patient.fullName}</h1>
+      {editingPatient ? (
+        <form className={styles.editPatientForm} onSubmit={handleSavePatient}>
+          <div className={styles.field}>
+            <label htmlFor="patientFullName">Nome completo</label>
+            <input
+              id="patientFullName"
+              value={nameDraft}
+              onChange={(event) => setNameDraft(event.target.value)}
+              minLength={2}
+              required
+              autoFocus
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="patientLocationId">Local de consulta</label>
+            <select
+              id="patientLocationId"
+              value={locationIdDraft}
+              onChange={(event) => setLocationIdDraft(event.target.value)}
+              required
+            >
+              <option value="">Selecione um local</option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="patientEmail">Email</label>
+            <input
+              id="patientEmail"
+              type="email"
+              value={emailDraft}
+              onChange={(event) => setEmailDraft(event.target.value)}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="patientPhone">Telefone</label>
+            <input
+              id="patientPhone"
+              type="tel"
+              value={phoneDraft}
+              onChange={(event) => setPhoneDraft(event.target.value)}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="patientBirthDate">Data de nascimento</label>
+            <input
+              id="patientBirthDate"
+              type="date"
+              value={birthDateDraft}
+              onChange={(event) => setBirthDateDraft(event.target.value)}
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="patientInternalNotes">Notas internas</label>
+            <textarea
+              id="patientInternalNotes"
+              value={internalNotesDraft}
+              onChange={(event) => setInternalNotesDraft(event.target.value)}
+            />
+          </div>
+          <div className={styles.editPatientActions}>
+            <Button
+              type="submit"
+              disabled={savingPatient || nameDraft.trim().length < 2 || !locationIdDraft}
+            >
+              {savingPatient ? 'A guardar…' : 'Guardar'}
+            </Button>
+            <button
+              type="button"
+              className={styles.linkButton}
+              onClick={cancelEditingPatient}
+              disabled={savingPatient}
+            >
+              Cancelar
+            </button>
+          </div>
+          {patientEditError && <p className={styles.error}>{patientEditError}</p>}
+        </form>
+      ) : (
+        <div className={styles.titleRow}>
+          <h1 className={styles.pageTitle}>{patient.fullName}</h1>
+          <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
+            Editar dados
+          </button>
+        </div>
+      )}
       <p className={styles.muted}>
-        {[patient.email, patient.phone, patient.location?.name].filter(Boolean).join(' · ') || 'Sem contacto'}
+        {[
+          patient.email,
+          patient.phone,
+          formatBirthDate(patient.birthDate),
+          patient.location?.name,
+        ]
+          .filter(Boolean)
+          .join(' · ') || 'Sem contacto'}
         {' · '}
         <Link to="/backoffice/attendance">Ver presenças</Link>
       </p>
-      {patient.internalNotes && (
+      {!editingPatient && patient.internalNotes && (
         <Card as="section" className={styles.sectionSpaced}>
           <h2>Notas internas</h2>
           <p>{patient.internalNotes}</p>

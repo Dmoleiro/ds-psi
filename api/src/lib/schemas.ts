@@ -52,6 +52,15 @@ export const createPatientSchema = z.object({
   internalNotes: z.string().optional(),
 })
 
+export const updatePatientSchema = z.object({
+  fullName: z.string().min(2),
+  locationId: z.string().uuid(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  birthDate: z.string().optional().or(z.literal('')),
+  internalNotes: z.string().optional(),
+})
+
 export const createLocationSchema = z.object({
   name: z.string().min(2),
   address: z.string().optional(),

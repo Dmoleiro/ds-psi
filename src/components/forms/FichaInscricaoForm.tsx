@@ -1,4 +1,5 @@
 import { FormField, TextArea, TextInput } from './FormFields'
+import { legal } from '../../content/site.pt'
 import type { PatientFormRendererProps } from './formRegistry'
 import styles from './FormFields.module.css'
 
@@ -332,6 +333,14 @@ export function FichaInscricaoForm({ values, onChange, readOnly }: PatientFormRe
           required
         />
       </FormField>
+
+      <p className={styles.pricingNote}>
+        Consulte os{' '}
+        <a href={legal.pricing.href} target="_blank" rel="noopener noreferrer">
+          {legal.pricing.label.toLowerCase()}
+        </a>
+        .
+      </p>
     </div>
   )
 }

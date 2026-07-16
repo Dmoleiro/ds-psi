@@ -148,6 +148,25 @@ export const therapistApi = {
       `/api/therapist/patients/${id}`,
       { token },
     ),
+  updatePatient: (
+    token: string,
+    id: string,
+    body: {
+      fullName: string
+      locationId: string
+      email?: string
+      phone?: string
+      birthDate?: string
+      internalNotes?: string
+    },
+  ) =>
+    apiRequest<{
+      patient: PatientSummary & { internalNotes: string | null }
+    }>(`/api/therapist/patients/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
   deletePatient: (token: string, id: string) =>
     apiRequest<void>(`/api/therapist/patients/${id}`, { method: 'DELETE', token }),
   listForms: (token: string) =>
