@@ -56,6 +56,11 @@ export function Footer() {
                 </a>
               </li>
               <li>
+                <a href={legal.pricing.href} target="_blank" rel="noopener noreferrer">
+                  {legal.pricing.label}
+                </a>
+              </li>
+              <li>
                 <Link to="/politica-cookies">{legal.cookies.label}</Link>
               </li>
               <li>{legal.oppDisclaimer}</li>

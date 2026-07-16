@@ -55,6 +55,10 @@ describe('App', () => {
       'href',
       'https://www.livroreclamacoes.pt/inicio',
     )
+    expect(screen.getByRole('link', { name: /preçários das consultas/i })).toHaveAttribute(
+      'href',
+      `${import.meta.env.BASE_URL}docs/precarios-consultas-povoa-santa-iria-2026.pdf`,
+    )
   })
 
   it('shows PICCA forms coming soon on the dedicated page', async () => {

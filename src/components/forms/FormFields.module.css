@@ -37,3 +37,33 @@
 .checkboxRow input {
   margin-top: 0.2rem;
 }
+
+.sectionTitle {
+  margin: var(--space-lg) 0 var(--space-sm);
+  font-size: 1.05rem;
+  color: var(--color-ink);
+}
+
+.sectionTitle:first-child {
+  margin-top: 0;
+}
+
+.muted {
+  color: var(--color-ink-muted);
+}
+
+.answerList {
+  display: grid;
+  gap: var(--space-md);
+  margin: 0;
+}
+
+.answerItem dt {
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.answerItem dd {
+  margin: 0;
+  white-space: pre-wrap;
+}

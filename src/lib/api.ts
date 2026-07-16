@@ -150,6 +150,10 @@ export const therapistApi = {
     ),
   deletePatient: (token: string, id: string) =>
     apiRequest<void>(`/api/therapist/patients/${id}`, { method: 'DELETE', token }),
+  listForms: (token: string) =>
+    apiRequest<{
+      forms: Array<{ id: string; title: string; description: string | null }>
+    }>('/api/therapist/forms', { token }),
   createSession: (token: string, patientId: string, formIds: string[]) =>
     apiRequest<{ session: unknown; url: string }>(`/api/therapist/patients/${patientId}/sessions`, {
       method: 'POST',

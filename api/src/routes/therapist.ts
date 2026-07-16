@@ -130,6 +130,15 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { locations }
   })
 
+  app.get('/api/therapist/forms', { preHandler: therapistOnly }, async () => {
+    const forms = await prisma.formDefinition.findMany({
+      where: { active: true },
+      select: { id: true, title: true, description: true },
+      orderBy: { title: 'asc' },
+    })
+    return { forms }
+  })
+
   app.get('/api/therapist/attendance', { preHandler: therapistOnly }, async (request, reply) => {
     const parsed = attendanceMatrixQuerySchema.safeParse(request.query)
     if (!parsed.success) {

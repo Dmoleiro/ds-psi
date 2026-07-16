@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
-import { piccaFormDefinitions } from '../../content/site.pt'
 import { ApiError, therapistApi } from '../../lib/api'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
@@ -26,6 +25,12 @@ type SessionRow = {
   forms: Array<{ formId: string; status: string; definition?: { title: string } }>
 }
 
+type FormOption = {
+  id: string
+  title: string
+  description: string | null
+}
+
 type PatientDetail = {
   id: string
   fullName: string
@@ -42,7 +47,8 @@ export function PatientDetailPage() {
   const navigate = useNavigate()
   const { token } = useAuth()
   const [patient, setPatient] = useState<PatientDetail | null>(null)
-  const [selectedForms, setSelectedForms] = useState<string[]>(['intake', 'consent', 'history'])
+  const [availableForms, setAvailableForms] = useState<FormOption[]>([])
+  const [selectedForms, setSelectedForms] = useState<string[]>([])
   const [generatedUrl, setGeneratedUrl] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -60,6 +66,11 @@ export function PatientDetailPage() {
       .then((data) => setPatient(data.patient as unknown as PatientDetail))
       .finally(() => setLoading(false))
   }, [token, id])
+
+  useEffect(() => {
+    if (!token) return
+    therapistApi.listForms(token).then((data) => setAvailableForms(data.forms))
+  }, [token])
 
   function toggleForm(formId: string) {
     setSelectedForms((current) =>
@@ -166,20 +177,28 @@ export function PatientDetailPage() {
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link de formulários</h2>
         <p className={styles.muted}>Selecione os formulários a incluir no link único do paciente.</p>
-        <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
-          {piccaFormDefinitions.map((form) => (
-            <label key={form.id}>
-              <input
-                type="checkbox"
-                checked={selectedForms.includes(form.id)}
-                onChange={() => toggleForm(form.id)}
-              />
-              {form.title}
-            </label>
-          ))}
-        </div>
+        {availableForms.length === 0 ? (
+          <p className={styles.muted}>Ainda não existem formulários disponíveis para atribuir.</p>
+        ) : (
+          <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
+            {availableForms.map((form) => (
+              <label key={form.id}>
+                <input
+                  type="checkbox"
+                  checked={selectedForms.includes(form.id)}
+                  onChange={() => toggleForm(form.id)}
+                />
+                {form.title}
+              </label>
+            ))}
+          </div>
+        )}
         {error && <p className={styles.error}>{error}</p>}
-        <Button type="button" onClick={handleGenerateLink} disabled={submitting || selectedForms.length === 0}>
+        <Button
+          type="button"
+          onClick={handleGenerateLink}
+          disabled={submitting || selectedForms.length === 0 || availableForms.length === 0}
+        >
           {submitting ? 'A gerar…' : 'Gerar link'}
         </Button>
         {generatedUrl && (

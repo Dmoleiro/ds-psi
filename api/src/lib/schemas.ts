@@ -64,7 +64,7 @@ export const updateLocationSchema = z.object({
 })
 
 export const createSessionSchema = z.object({
-  formIds: z.array(z.enum(['intake', 'consent', 'history'])).min(1),
+  formIds: z.array(z.string().min(1)).min(1),
   expiresAt: z.string().datetime().optional(),
 })
 
@@ -118,52 +118,44 @@ export const appointmentBodySchema = z.object({
   notes: z.string().max(2000).optional().nullable(),
 })
 
-export const intakeFormSchema = z.object({
-  fullName: z.string().min(2),
-  birthDate: z.string().optional(),
-  email: z.string().email().optional().or(z.literal('')),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  emergencyContact: z.string().optional(),
-  emergencyPhone: z.string().optional(),
-  reasonForVisit: z.string().min(5),
-  previousTherapy: z.enum(['yes', 'no']).optional(),
-  previousTherapyDetails: z.string().optional(),
-  medications: z.string().optional(),
-  generalNotes: z.string().optional(),
-})
+export const fichaInscricaoFormSchema = z
+  .object({
+    recordedAt: z.string().min(1),
+    childName: z.string().min(2),
+    address: z.string().optional(),
+    postalCodeLocality: z.string().optional(),
+    nif: z.string().optional(),
+    birthDate: z.string().optional(),
+    childPhone: z.string().optional(),
+    childEmail: z.string().email().optional().or(z.literal('')),
+    healthConditions: z.string().optional(),
+    insuranceNumber: z.string().optional(),
+    insurer: z.string().optional(),
+    schoolName: z.string().optional(),
+    schoolYear: z.string().optional(),
+    retentionsCount: z.string().optional(),
+    reasonForRequest: z.string().min(5),
+    guardianName: z.string().min(2),
+    relationshipType: z.string().min(2),
+    profession: z.string().optional(),
+    guardianPhone: z.string().optional(),
+    guardianEmail: z.string().email().optional().or(z.literal('')),
+    declarationAccepted: z.literal(true),
+    additionalInfo: z.string().optional(),
+    signatureName: z.string().min(2),
+    signedAt: z.string().min(1),
+  })
+  .refine((data) => Boolean(data.guardianPhone?.trim() || data.guardianEmail?.trim()), {
+    message: 'Indique pelo menos um contacto do responsável',
+    path: ['guardianPhone'],
+  })
 
-export const consentFormSchema = z.object({
-  readAndUnderstood: z.literal(true),
-  consentToTreatment: z.literal(true),
-  consentToDataProcessing: z.literal(true),
-  signatureName: z.string().min(2),
-  signedAt: z.string(),
-})
-
-export const historyFormSchema = z.object({
-  developmentConcerns: z.string().optional(),
-  schoolHistory: z.string().optional(),
-  familyHistory: z.string().optional(),
-  medicalHistory: z.string().optional(),
-  currentDifficulties: z.string().min(5),
-  strengths: z.string().optional(),
-  goals: z.string().min(5),
-  additionalInfo: z.string().optional(),
-})
-
-export type IntakeFormData = z.infer<typeof intakeFormSchema>
-export type ConsentFormData = z.infer<typeof consentFormSchema>
-export type HistoryFormData = z.infer<typeof historyFormSchema>
+export type FichaInscricaoFormData = z.infer<typeof fichaInscricaoFormSchema>
 
 export function getFormSchema(formId: string) {
   switch (formId) {
-    case 'intake':
-      return intakeFormSchema
-    case 'consent':
-      return consentFormSchema
-    case 'history':
-      return historyFormSchema
+    case 'ficha-inscricao':
+      return fichaInscricaoFormSchema
     default:
       return null
   }

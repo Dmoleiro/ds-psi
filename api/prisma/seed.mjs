@@ -6,19 +6,9 @@ const prisma = new PrismaClient()
 
 const formDefinitions = [
   {
-    id: 'intake',
-    title: 'Formulário de Admissão',
-    description: 'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
-  },
-  {
-    id: 'consent',
-    title: 'Consentimento Informado',
-    description: 'Documento de consentimento para acompanhamento psicológico.',
-  },
-  {
-    id: 'history',
-    title: 'Historial Clínico',
-    description: 'Questionário sobre historial de desenvolvimento e saúde.',
+    id: 'ficha-inscricao',
+    title: 'Ficha de inscrição',
+    description: 'Dados da criança/jovem, encarregado de educação e motivo do pedido.',
   },
 ]
 
@@ -27,6 +17,11 @@ async function hashPassword(password) {
 }
 
 async function main() {
+  await prisma.formDefinition.updateMany({
+    where: { id: { in: ['intake', 'consent', 'history'] } },
+    data: { active: false },
+  })
+
   for (const form of formDefinitions) {
     await prisma.formDefinition.upsert({
       where: { id: form.id },

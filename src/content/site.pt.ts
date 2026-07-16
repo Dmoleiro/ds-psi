@@ -304,29 +304,12 @@ export const therapist = {
   ] satisfies TimelineEntry[],
 }
 
-export const piccaFormDefinitions = [
-  {
-    id: 'intake',
-    title: 'Formulário de Admissão',
-    description:
-      'Dados iniciais do paciente e informações relevantes para a primeira consulta.',
-  },
-  {
-    id: 'consent',
-    title: 'Consentimento Informado',
-    description: 'Documento de consentimento para acompanhamento psicológico.',
-  },
-  {
-    id: 'history',
-    title: 'Historial Clínico',
-    description: 'Questionário sobre historial de desenvolvimento e saúde.',
-  },
-] satisfies FormStub[]
+export const piccaFormDefinitions = [] satisfies FormStub[]
 
 export const piccaFormsPage = {
   title: 'Formulários PICCA',
   intro:
-    'Área reservada para pacientes com acesso autorizado. Em breve, cada paciente receberá um link único da sua terapeuta para preencher os formulários de admissão de forma segura.',
+    'Área reservada para pacientes com acesso autorizado. Cada paciente receberá um link único da sua terapeuta para preencher os formulários de forma segura.',
   comingSoon: 'Brevemente',
 } as const
 
@@ -334,6 +317,10 @@ export const legal = {
   dataProtection: {
     label: 'Consentimento informado e proteção de dados',
     href: publicAsset('docs/consentimento-e-protecao-dados-2026.pdf'),
+  },
+  pricing: {
+    label: 'Preçários das consultas',
+    href: publicAsset('docs/precarios-consultas-povoa-santa-iria-2026.pdf'),
   },
   cookies: {
     label: 'Política de Cookies',

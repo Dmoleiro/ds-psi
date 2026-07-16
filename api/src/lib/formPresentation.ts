@@ -32,6 +32,32 @@ const FORM_FIELD_LABELS: Record<string, FormFieldLabels> = {
     goals: 'Objetivos do acompanhamento',
     additionalInfo: 'Informação adicional',
   },
+  'ficha-inscricao': {
+    recordedAt: 'Data e hora',
+    childName: 'Nome da criança/jovem',
+    address: 'Morada',
+    postalCodeLocality: 'Código postal e localidade',
+    nif: 'NIF',
+    birthDate: 'Data de nascimento',
+    childPhone: 'Telefone/telemóvel da criança/jovem',
+    childEmail: 'Email da criança/jovem',
+    healthConditions: 'Condições de saúde a assinalar',
+    insuranceNumber: 'Número do seguro',
+    insurer: 'Seguradora',
+    schoolName: 'Escola',
+    schoolYear: 'Ano de escolaridade',
+    retentionsCount: 'Número de retenções',
+    reasonForRequest: 'Dificuldades conhecidas / motivo do pedido',
+    guardianName: 'Nome do encarregado de educação / responsável',
+    relationshipType: 'Tipo de parentesco',
+    profession: 'Profissão',
+    guardianPhone: 'Telefone / telemóvel do responsável',
+    guardianEmail: 'Email de contacto do responsável',
+    declarationAccepted: 'Declaração de veracidade e consentimento',
+    additionalInfo: 'Informações adicionais',
+    signatureName: 'Assinatura',
+    signedAt: 'Data da assinatura',
+  },
 }
 
 const FIELD_ORDER: Record<string, string[]> = {
@@ -66,6 +92,32 @@ const FIELD_ORDER: Record<string, string[]> = {
     'goals',
     'additionalInfo',
   ],
+  'ficha-inscricao': [
+    'recordedAt',
+    'childName',
+    'address',
+    'postalCodeLocality',
+    'nif',
+    'birthDate',
+    'childPhone',
+    'childEmail',
+    'healthConditions',
+    'insuranceNumber',
+    'insurer',
+    'schoolName',
+    'schoolYear',
+    'retentionsCount',
+    'reasonForRequest',
+    'guardianName',
+    'relationshipType',
+    'profession',
+    'guardianPhone',
+    'guardianEmail',
+    'declarationAccepted',
+    'additionalInfo',
+    'signatureName',
+    'signedAt',
+  ],
 }
 
 export type FormattedField = {
@@ -88,6 +140,12 @@ function formatValue(key: string, value: unknown): string | null {
       const date = new Date(`${trimmed}T12:00:00`)
       if (!Number.isNaN(date.getTime())) {
         return date.toLocaleDateString('pt-PT')
+      }
+    }
+    if (key === 'recordedAt') {
+      const date = new Date(trimmed)
+      if (!Number.isNaN(date.getTime())) {
+        return date.toLocaleString('pt-PT')
       }
     }
     return trimmed
