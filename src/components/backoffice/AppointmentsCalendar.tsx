@@ -8,7 +8,10 @@ import {
   type PatientSummary,
 } from '../../lib/api'
 import {
+  addMonthsToIsoDate,
+  APPOINTMENT_SERIES_SCOPE_OPTIONS,
   DURATION_OPTIONS,
+  RECURRENCE_CADENCE_OPTIONS,
   WEEKDAY_LABELS,
   formatAppointmentRange,
   formatDayLabel,
@@ -17,6 +20,8 @@ import {
   groupAppointmentsByDate,
   isToday,
   shiftMonth,
+  type AppointmentSeriesScope,
+  type RecurrenceCadence,
 } from '../../lib/appointments'
 import { exportAppointmentsPdf } from '../../lib/exportAppointmentsPdf'
 import { Button } from '../ui/Button'
@@ -36,6 +41,10 @@ type FormState = {
   time: string
   durationMinutes: number
   notes: string
+  appointmentDate: string
+  repeatEnabled: boolean
+  repeatCadence: RecurrenceCadence
+  repeatUntil: string
 }
 
 const EMPTY_FORM: FormState = {
@@ -44,12 +53,17 @@ const EMPTY_FORM: FormState = {
   time: '09:00',
   durationMinutes: 60,
   notes: '',
+  appointmentDate: '',
+  repeatEnabled: false,
+  repeatCadence: 'weekly',
+  repeatUntil: '',
 }
 
-function initialForm(preferredLocationId = ''): FormState {
+function initialForm(preferredLocationId = '', startDate = ''): FormState {
   return {
     ...EMPTY_FORM,
     locationId: preferredLocationId,
+    repeatUntil: startDate ? addMonthsToIsoDate(startDate, 2) : '',
   }
 }
 
@@ -80,6 +94,10 @@ export function AppointmentsCalendar({
   const [error, setError] = useState('')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentSummary | null>(null)
+  const [editScope, setEditScope] = useState<AppointmentSeriesScope>('single')
+  const [pendingDelete, setPendingDelete] = useState<AppointmentSummary | null>(null)
+  const [deleteScope, setDeleteScope] = useState<AppointmentSeriesScope>('single')
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState('')
@@ -158,32 +176,45 @@ export function AppointmentsCalendar({
   function openDay(date: string) {
     setSelectedDate(date)
     setEditingId(null)
-    setForm(initialForm(locationFilter))
+    setForm(initialForm(locationFilter, date))
     setDialogError('')
   }
 
   function closeDialog() {
     setSelectedDate(null)
     setEditingId(null)
+    setEditingAppointment(null)
+    setEditScope('single')
+    setPendingDelete(null)
+    setDeleteScope('single')
     setForm(initialForm(locationFilter))
     setDialogError('')
   }
 
   function startEdit(appointment: AppointmentSummary) {
     setEditingId(appointment.id)
+    setEditingAppointment(appointment)
+    setEditScope('single')
+    setPendingDelete(null)
     setForm({
       patientId: appointment.patientId,
       locationId: appointment.locationId,
       time: appointment.time,
       durationMinutes: appointment.durationMinutes,
       notes: appointment.notes ?? '',
+      appointmentDate: appointment.date,
+      repeatEnabled: false,
+      repeatCadence: 'weekly',
+      repeatUntil: '',
     })
     setDialogError('')
   }
 
   function cancelEdit() {
     setEditingId(null)
-    setForm(initialForm(locationFilter))
+    setEditingAppointment(null)
+    setEditScope('single')
+    setForm(initialForm(locationFilter, selectedDate ?? ''))
     setDialogError('')
   }
 
@@ -197,7 +228,26 @@ export function AppointmentsCalendar({
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!selectedDate || !form.patientId || !form.locationId) return
+    if (!token) {
+      setDialogError('Sessão expirada. Inicie sessão novamente.')
+      return
+    }
+    if (!selectedDate) {
+      setDialogError('Selecione um dia no calendário.')
+      return
+    }
+    if (!form.patientId || !form.locationId) {
+      setDialogError('Selecione o local e o paciente.')
+      return
+    }
+    if (form.repeatEnabled && !form.repeatUntil) {
+      setDialogError('Indique a data final da repetição.')
+      return
+    }
+    if (form.repeatEnabled && form.repeatUntil < selectedDate) {
+      setDialogError('A data final da repetição deve ser igual ou posterior à primeira consulta.')
+      return
+    }
 
     setSubmitting(true)
     setDialogError('')
@@ -205,20 +255,38 @@ export function AppointmentsCalendar({
       const body = {
         patientId: form.patientId,
         locationId: form.locationId,
-        date: selectedDate,
+        date:
+          editingId && editingAppointment?.recurrenceGroupId && editScope !== 'single'
+            ? editingAppointment.date
+            : editingId
+              ? form.appointmentDate
+              : selectedDate,
         time: form.time,
         durationMinutes: form.durationMinutes,
         notes: form.notes.trim() ? form.notes.trim() : null,
       }
 
       if (editingId) {
-        await therapistApi.updateAppointment(token, editingId, body)
+        const result = await therapistApi.updateAppointment(token, editingId, {
+          ...body,
+          scope: editingAppointment?.recurrenceGroupId ? editScope : undefined,
+        })
         await loadMonth()
-        setEditingId(null)
-        setForm(initialForm(locationFilter))
+        if (result.updatedCount > 1) {
+          window.alert(`${result.updatedCount} consultas atualizadas com sucesso.`)
+        }
+        cancelEdit()
       } else {
-        await therapistApi.createAppointment(token, body)
+        const result = await therapistApi.createAppointment(token, {
+          ...body,
+          recurrence: form.repeatEnabled
+            ? { cadence: form.repeatCadence, until: form.repeatUntil }
+            : undefined,
+        })
         await loadMonth()
+        if (result.createdCount > 1) {
+          window.alert(`${result.createdCount} consultas criadas com sucesso.`)
+        }
         closeDialog()
       }
     } catch (err) {
@@ -228,16 +296,33 @@ export function AppointmentsCalendar({
     }
   }
 
-  async function handleDelete(appointmentId: string) {
-    if (!window.confirm('Eliminar esta consulta?')) return
+  function requestDelete(appointment: AppointmentSummary) {
+    if (appointment.recurrenceGroupId) {
+      setPendingDelete(appointment)
+      setDeleteScope('single')
+      setDialogError('')
+      return
+    }
+
+    if (window.confirm('Eliminar esta consulta?')) {
+      void confirmDelete(appointment.id, 'single')
+    }
+  }
+
+  async function confirmDelete(appointmentId: string, scope: AppointmentSeriesScope) {
     setSubmitting(true)
     setDialogError('')
     try {
-      await therapistApi.deleteAppointment(token, appointmentId)
+      const result = await therapistApi.deleteAppointment(token, appointmentId, scope)
       if (editingId === appointmentId) {
         cancelEdit()
       }
+      setPendingDelete(null)
+      setDeleteScope('single')
       await loadMonth()
+      if (result.deletedCount > 1) {
+        window.alert(`${result.deletedCount} consultas eliminadas com sucesso.`)
+      }
     } catch (err) {
       setDialogError(err instanceof ApiError ? err.message : 'Não foi possível eliminar a consulta')
     } finally {
@@ -376,7 +461,12 @@ export function AppointmentsCalendar({
                       {formatAppointmentRange(appointment.time, appointment.durationMinutes)} ·{' '}
                       {appointment.locationName}
                     </p>
-                    <h3 className={styles.existingTitle}>{appointment.patientName}</h3>
+                    <h3 className={styles.existingTitle}>
+                      {appointment.patientName}
+                      {appointment.recurrenceGroupId && (
+                        <span className={styles.seriesBadge}>Série</span>
+                      )}
+                    </h3>
                     {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
                     {!readOnly && (
                       <div className={styles.existingActions}>
@@ -390,7 +480,7 @@ export function AppointmentsCalendar({
                         <button
                           type="button"
                           className={`${styles.textButton} ${styles.textButtonDanger}`}
-                          onClick={() => handleDelete(appointment.id)}
+                          onClick={() => requestDelete(appointment)}
                           disabled={submitting}
                         >
                           Eliminar
@@ -402,6 +492,46 @@ export function AppointmentsCalendar({
               </div>
             )}
 
+            {pendingDelete && (
+              <div className={styles.seriesActionBox}>
+                <p className={layout.muted}>
+                  Esta consulta faz parte de uma série repetida. O que pretende eliminar?
+                </p>
+                <div className={styles.scopeOptions}>
+                  {APPOINTMENT_SERIES_SCOPE_OPTIONS.map((option) => (
+                    <label key={option.value} className={styles.scopeOption}>
+                      <input
+                        type="radio"
+                        name="delete-scope"
+                        value={option.value}
+                        checked={deleteScope === option.value}
+                        onChange={() => setDeleteScope(option.value)}
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                </div>
+                <div className={styles.formActions}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => confirmDelete(pendingDelete.id, deleteScope)}
+                    disabled={submitting}
+                  >
+                    {submitting ? 'A eliminar…' : 'Confirmar eliminação'}
+                  </Button>
+                  <button
+                    type="button"
+                    className={styles.textButton}
+                    onClick={() => setPendingDelete(null)}
+                    disabled={submitting}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
             {readOnly ? (
               selectedDayAppointments.length === 0 && (
                 <p className={layout.muted}>Sem consultas neste dia.</p>
@@ -410,8 +540,32 @@ export function AppointmentsCalendar({
               <>
                 <hr className={styles.divider} />
 
-                <form className={styles.form} onSubmit={handleSubmit}>
+                <form className={styles.form} onSubmit={handleSubmit} noValidate>
               <h3>{editingId ? 'Editar consulta' : 'Nova consulta'}</h3>
+              {editingAppointment?.recurrenceGroupId && (
+                <div className={styles.seriesActionBox}>
+                  <p className={layout.muted}>Esta consulta faz parte de uma série repetida.</p>
+                  <div className={styles.scopeOptions}>
+                    {APPOINTMENT_SERIES_SCOPE_OPTIONS.map((option) => (
+                      <label key={option.value} className={styles.scopeOption}>
+                        <input
+                          type="radio"
+                          name="edit-scope"
+                          value={option.value}
+                          checked={editScope === option.value}
+                          onChange={() => setEditScope(option.value)}
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                  {editScope !== 'single' && (
+                    <p className={layout.muted}>
+                      A data de cada consulta mantém-se. Altera paciente, local, hora, duração e notas.
+                    </p>
+                  )}
+                </div>
+              )}
               {dialogError && <p className={layout.error}>{dialogError}</p>}
               {patients.length === 0 ? (
                 <p className={layout.muted}>Crie um paciente antes de agendar consultas.</p>
@@ -423,7 +577,6 @@ export function AppointmentsCalendar({
                       id="appointment-location"
                       value={form.locationId}
                       onChange={(event) => handleLocationChange(event.target.value)}
-                      required
                     >
                       <option value="" disabled>
                         Selecionar local
@@ -443,7 +596,6 @@ export function AppointmentsCalendar({
                       onChange={(event) =>
                         setForm((current) => ({ ...current, patientId: event.target.value }))
                       }
-                      required
                       disabled={!form.locationId}
                     >
                       <option value="" disabled>
@@ -459,6 +611,19 @@ export function AppointmentsCalendar({
                       <p className={layout.muted}>Não existem pacientes neste local.</p>
                     )}
                   </div>
+                  {editingId && (!editingAppointment?.recurrenceGroupId || editScope === 'single') && (
+                    <div className={styles.field}>
+                      <label htmlFor="appointment-date">Data</label>
+                      <input
+                        id="appointment-date"
+                        type="date"
+                        value={form.appointmentDate}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, appointmentDate: event.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
                   <div className={styles.field}>
                     <label htmlFor="appointment-time">Hora</label>
                     <input
@@ -466,7 +631,6 @@ export function AppointmentsCalendar({
                       type="time"
                       value={form.time}
                       onChange={(event) => setForm((current) => ({ ...current, time: event.target.value }))}
-                      required
                     />
                   </div>
                   <div className={styles.field}>
@@ -497,15 +661,88 @@ export function AppointmentsCalendar({
                       placeholder="Observações internas"
                     />
                   </div>
+                  {!editingId && (
+                    <div className={styles.recurrenceSection}>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={form.repeatEnabled}
+                          onChange={(event) =>
+                            setForm((current) => ({
+                              ...current,
+                              repeatEnabled: event.target.checked,
+                              repeatUntil:
+                                event.target.checked && selectedDate
+                                  ? current.repeatUntil || addMonthsToIsoDate(selectedDate, 2)
+                                  : current.repeatUntil,
+                            }))
+                          }
+                        />
+                        Repetir consulta
+                      </label>
+                      {form.repeatEnabled && (
+                        <div className={styles.recurrenceFields}>
+                          <div className={styles.field}>
+                            <label htmlFor="appointment-cadence">Cadência</label>
+                            <select
+                              id="appointment-cadence"
+                              value={form.repeatCadence}
+                              onChange={(event) =>
+                                setForm((current) => ({
+                                  ...current,
+                                  repeatCadence: event.target.value as RecurrenceCadence,
+                                }))
+                              }
+                            >
+                              {RECURRENCE_CADENCE_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className={styles.field}>
+                            <label htmlFor="appointment-repeat-until">Repetir até</label>
+                            <input
+                              id="appointment-repeat-until"
+                              type="date"
+                              value={form.repeatUntil}
+                              min={selectedDate ?? undefined}
+                              onChange={(event) =>
+                                setForm((current) => ({ ...current, repeatUntil: event.target.value }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className={styles.formActions}>
-                    <Button type="submit" disabled={submitting || !form.patientId || !form.locationId}>
-                      {submitting ? 'A guardar…' : editingId ? 'Guardar alterações' : 'Adicionar consulta'}
+                    {dialogError && <p className={`${layout.error} ${styles.formError}`}>{dialogError}</p>}
+                    <div className={styles.formActionsRow}>
+                    <Button
+                      type="submit"
+                      disabled={
+                        submitting ||
+                        !form.patientId ||
+                        !form.locationId ||
+                        (form.repeatEnabled && !form.repeatUntil)
+                      }
+                    >
+                      {submitting
+                        ? 'A guardar…'
+                        : editingId
+                          ? 'Guardar alterações'
+                          : form.repeatEnabled
+                            ? 'Adicionar consultas'
+                            : 'Adicionar consulta'}
                     </Button>
                     {editingId && (
                       <Button type="button" variant="outline" onClick={cancelEdit} disabled={submitting}>
                         Cancelar edição
                       </Button>
                     )}
+                    </div>
                   </div>
                 </>
               )}

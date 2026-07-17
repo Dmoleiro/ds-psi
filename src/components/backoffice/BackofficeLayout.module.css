@@ -83,6 +83,27 @@
   font-size: 1.75rem;
 }
 
+.searchBar {
+  margin-bottom: var(--space-lg);
+  max-width: 24rem;
+}
+
+.searchBar label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+  font-size: 0.9375rem;
+}
+
+.searchBar input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  background: #fff;
+}
+
 .cardGrid {
   display: grid;
   gap: var(--space-lg);

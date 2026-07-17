@@ -47,6 +47,7 @@ export const createPatientSchema = z.object({
   fullName: z.string().min(2),
   locationId: z.string().uuid(),
   email: z.string().email().optional().or(z.literal('')),
+  email2: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   birthDate: z.string().optional(),
   internalNotes: z.string().optional(),
@@ -56,6 +57,7 @@ export const updatePatientSchema = z.object({
   fullName: z.string().min(2),
   locationId: z.string().uuid(),
   email: z.string().email().optional().or(z.literal('')),
+  email2: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
   birthDate: z.string().optional().or(z.literal('')),
   internalNotes: z.string().optional(),
@@ -125,6 +127,35 @@ export const appointmentBodySchema = z.object({
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
   durationMinutes: z.coerce.number().int().min(15).max(240),
   notes: z.string().max(2000).optional().nullable(),
+})
+
+export const appointmentRecurrenceSchema = z.object({
+  cadence: z.enum(['weekly', 'biweekly', 'monthly']),
+  until: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+})
+
+export const appointmentSeriesScopeSchema = z.enum(['single', 'following', 'series'])
+
+export const createAppointmentBodySchema = appointmentBodySchema
+  .extend({
+    recurrence: appointmentRecurrenceSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.recurrence && data.recurrence.until < data.date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A data final deve ser igual ou posterior à primeira consulta',
+        path: ['recurrence', 'until'],
+      })
+    }
+  })
+
+export const updateAppointmentBodySchema = appointmentBodySchema.extend({
+  scope: appointmentSeriesScopeSchema.optional(),
+})
+
+export const deleteAppointmentQuerySchema = z.object({
+  scope: appointmentSeriesScopeSchema.default('single'),
 })
 
 export const fichaInscricaoFormSchema = z

@@ -22,9 +22,10 @@ import {
   createTherapistAppointment,
   deleteTherapistAppointment,
   listTherapistAppointments,
+  MAX_RECURRING_APPOINTMENTS,
   updateTherapistAppointment,
 } from '../services/appointments.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createLocationSchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 
@@ -185,6 +186,7 @@ export async function therapistRoutes(app: FastifyInstance) {
         locationId: parsed.data.locationId,
         fullName: parsed.data.fullName,
         email: parsed.data.email || null,
+        email2: parsed.data.email2 || null,
         phone: parsed.data.phone || null,
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
         internalNotes: parsed.data.internalNotes || null,
@@ -461,20 +463,28 @@ export async function therapistRoutes(app: FastifyInstance) {
   })
 
   app.post('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
-    const parsed = appointmentBodySchema.safeParse(request.body)
+    const parsed = createAppointmentBodySchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
     try {
-      const appointment = await createTherapistAppointment(request.user.sub, parsed.data)
-      return reply.status(201).send({ appointment })
+      const result = await createTherapistAppointment(request.user.sub, parsed.data)
+      return reply.status(201).send(result)
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })
       }
       if (error instanceof Error && error.message === 'INVALID_SCHEDULE') {
         return reply.status(400).send({ error: 'Data ou hora inválida' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_RECURRENCE') {
+        return reply.status(400).send({ error: 'Recorrência inválida' })
+      }
+      if (error instanceof Error && error.message === 'TOO_MANY_APPOINTMENTS') {
+        return reply.status(400).send({
+          error: `Só é possível criar até ${MAX_RECURRING_APPOINTMENTS} consultas de uma vez`,
+        })
       }
       if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
@@ -488,14 +498,14 @@ export async function therapistRoutes(app: FastifyInstance) {
     { preHandler: therapistOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
-      const parsed = appointmentBodySchema.safeParse(request.body)
+      const parsed = updateAppointmentBodySchema.safeParse(request.body)
       if (!parsed.success) {
         return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
       }
 
       try {
-        const appointment = await updateTherapistAppointment(request.user.sub, id, parsed.data)
-        return { appointment }
+        const result = await updateTherapistAppointment(request.user.sub, id, parsed.data)
+        return result
       } catch (error) {
         if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
           return reply.status(404).send({ error: 'Consulta não encontrada' })
@@ -519,9 +529,14 @@ export async function therapistRoutes(app: FastifyInstance) {
     { preHandler: therapistOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
+      const parsed = deleteAppointmentQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
       try {
-        await deleteTherapistAppointment(request.user.sub, id)
-        return reply.status(204).send()
+        const result = await deleteTherapistAppointment(request.user.sub, id, parsed.data.scope)
+        return result
       } catch (error) {
         if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
           return reply.status(404).send({ error: 'Consulta não encontrada' })

@@ -256,8 +256,87 @@
 
 .formActions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-sm);
+  width: 100%;
+}
+
+.formActions > :not(.formError) {
+  display: inline-flex;
+}
+
+.formError {
+  width: 100%;
+  margin: 0;
+}
+
+.seriesBadge {
+  display: inline-block;
+  margin-left: var(--space-sm);
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  background: #e8f1ec;
+  color: var(--color-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.seriesActionBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-warm);
+}
+
+.scopeOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.scopeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.recurrenceSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-warm);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.recurrenceFields {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 520px) {
+  .recurrenceFields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .existingList {

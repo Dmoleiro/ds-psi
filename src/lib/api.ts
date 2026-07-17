@@ -122,6 +122,7 @@ export type PatientSummary = {
   id: string
   fullName: string
   email: string | null
+  email2: string | null
   phone: string | null
   birthDate: string | null
   createdAt: string
@@ -147,6 +148,7 @@ export type AppointmentSummary = {
   scheduledAt: string
   durationMinutes: number
   notes: string | null
+  recurrenceGroupId: string | null
 }
 
 export type AttendanceRecord = {
@@ -192,6 +194,7 @@ export const therapistApi = {
       fullName: string
       locationId: string
       email?: string
+      email2?: string
       phone?: string
       birthDate?: string
       internalNotes?: string
@@ -276,9 +279,17 @@ export const therapistApi = {
       time: string
       durationMinutes: number
       notes?: string | null
+      recurrence?: {
+        cadence: 'weekly' | 'biweekly' | 'monthly'
+        until: string
+      }
     },
   ) =>
-    apiRequest<{ appointment: AppointmentSummary }>('/api/therapist/appointments', {
+    apiRequest<{
+      appointment: AppointmentSummary
+      appointments: AppointmentSummary[]
+      createdCount: number
+    }>('/api/therapist/appointments', {
       method: 'POST',
       token,
       body,
@@ -293,15 +304,27 @@ export const therapistApi = {
       time: string
       durationMinutes: number
       notes?: string | null
+      scope?: 'single' | 'following' | 'series'
     },
   ) =>
-    apiRequest<{ appointment: AppointmentSummary }>(`/api/therapist/appointments/${id}`, {
+    apiRequest<{
+      appointment: AppointmentSummary
+      appointments: AppointmentSummary[]
+      updatedCount: number
+    }>(`/api/therapist/appointments/${id}`, {
       method: 'PATCH',
       token,
       body,
     }),
-  deleteAppointment: (token: string, id: string) =>
-    apiRequest<void>(`/api/therapist/appointments/${id}`, { method: 'DELETE', token }),
+  deleteAppointment: (
+    token: string,
+    id: string,
+    scope: 'single' | 'following' | 'series' = 'single',
+  ) =>
+    apiRequest<{ deletedCount: number }>(`/api/therapist/appointments/${id}?scope=${scope}`, {
+      method: 'DELETE',
+      token,
+    }),
 }
 
 export const coordinatorApi = {

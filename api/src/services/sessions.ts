@@ -159,6 +159,7 @@ export async function updateTherapistPatient(
     fullName: string
     locationId: string
     email?: string
+    email2?: string
     phone?: string
     birthDate?: string
     internalNotes?: string
@@ -185,6 +186,7 @@ export async function updateTherapistPatient(
       fullName: data.fullName,
       locationId: data.locationId,
       email: data.email || null,
+      email2: data.email2 || null,
       phone: data.phone || null,
       birthDate: data.birthDate ? new Date(data.birthDate) : null,
       internalNotes: data.internalNotes || null,

@@ -11,9 +11,32 @@ export type AppointmentSummary = {
   scheduledAt: string
   durationMinutes: number
   notes: string | null
+  recurrenceGroupId: string | null
 }
 
 export const DURATION_OPTIONS = [30, 45, 50, 60, 90] as const
+
+export const RECURRENCE_CADENCE_OPTIONS = [
+  { value: 'weekly', label: 'Semanal' },
+  { value: 'biweekly', label: 'Quinzenal' },
+  { value: 'monthly', label: 'Mensal' },
+] as const
+
+export type RecurrenceCadence = (typeof RECURRENCE_CADENCE_OPTIONS)[number]['value']
+
+export const APPOINTMENT_SERIES_SCOPE_OPTIONS = [
+  { value: 'single', label: 'Apenas esta consulta' },
+  { value: 'following', label: 'Esta e as seguintes' },
+  { value: 'series', label: 'Toda a série' },
+] as const
+
+export type AppointmentSeriesScope = (typeof APPOINTMENT_SERIES_SCOPE_OPTIONS)[number]['value']
+
+export function addMonthsToIsoDate(date: string, months: number): string {
+  const [year, month, day] = date.split('-').map(Number)
+  const next = new Date(year, month - 1 + months, day)
+  return toIsoDate(next.getFullYear(), next.getMonth() + 1, next.getDate())
+}
 
 export const WEEKDAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const
 

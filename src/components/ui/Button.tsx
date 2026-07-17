@@ -34,15 +34,10 @@ export function Button({
     )
   }
 
-  const { disabled, ...buttonProps } = props as ButtonHTMLAttributes<HTMLButtonElement>
+  const { disabled, type = 'button', ...buttonProps } = props as ButtonHTMLAttributes<HTMLButtonElement>
 
   return (
-    <button
-      type="button"
-      className={classes}
-      disabled={disabled}
-      {...buttonProps}
-    >
+    <button type={type} className={classes} disabled={disabled} {...buttonProps}>
       {children}
     </button>
   )
