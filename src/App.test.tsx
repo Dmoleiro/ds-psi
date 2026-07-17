@@ -61,7 +61,8 @@ describe('App', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    const piccaLinks = screen.getAllByRole('link', { name: /formulários picca/i, hidden: true })
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+    const piccaLinks = screen.getAllByRole('link', { name: /formulários picca/i })
     await user.click(piccaLinks[0])
 
     expect(screen.getByRole('heading', { level: 1, name: /Formulários PICCA/i })).toBeInTheDocument()
@@ -69,10 +70,12 @@ describe('App', () => {
     expect(screen.queryByText('Formulário de Admissão')).not.toBeInTheDocument()
   })
 
-  it('shows backoffice link in the header', () => {
+  it('shows backoffice link in the header', async () => {
+    const user = userEvent.setup()
     render(<App />)
 
-    const backofficeLinks = screen.getAllByRole('link', { name: /backoffice/i, hidden: true })
+    await user.click(screen.getByRole('button', { name: /abrir menu/i }))
+    const backofficeLinks = screen.getAllByRole('link', { name: /backoffice/i })
     expect(backofficeLinks.length).toBeGreaterThan(0)
     expect(backofficeLinks[0]).toHaveAttribute('href', '/backoffice/login')
   })

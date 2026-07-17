@@ -48,6 +48,7 @@ model User {
   intakeSessions IntakeSession[]
   attendanceRecords AttendanceRecord[]
   appointments   Appointment[]
+  workshops      Workshop[]
 
   @@map("users")
 }
@@ -199,4 +200,21 @@ model Appointment {
   @@index([patientId])
   @@index([locationId, scheduledAt])
   @@map("appointments")
+}
+
+model Workshop {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  location    String
+  eventDate   DateTime @map("event_date") @db.Date
+  imagePath   String   @map("image_path")
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([eventDate])
+  @@map("workshops")
 }

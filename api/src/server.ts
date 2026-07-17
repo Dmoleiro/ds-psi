@@ -2,7 +2,11 @@ import 'dotenv/config'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
+import multipart from '@fastify/multipart'
+import fastifyStatic from '@fastify/static'
 import rateLimit from '@fastify/rate-limit'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Prisma } from '@prisma/client'
 import { config } from './lib/schemas.js'
 import { authRoutes } from './routes/auth.js'
@@ -10,6 +14,9 @@ import { adminRoutes } from './routes/admin.js'
 import { coordinatorRoutes } from './routes/coordinator.js'
 import { therapistRoutes } from './routes/therapist.js'
 import { patientRoutes } from './routes/patient.js'
+import { workshopRoutes } from './routes/workshops.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export async function buildApp() {
   const app = Fastify({
@@ -24,6 +31,19 @@ export async function buildApp() {
 
   await app.register(jwt, {
     secret: config.jwtSecret,
+  })
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+      files: 1,
+    },
+  })
+
+  await app.register(fastifyStatic, {
+    root: path.join(__dirname, '../uploads'),
+    prefix: '/uploads/',
+    decorateReply: false,
   })
 
   app.get('/api/health', async () => ({ ok: true }))
@@ -50,6 +70,7 @@ export async function buildApp() {
   await app.register(adminRoutes)
   await app.register(coordinatorRoutes)
   await app.register(therapistRoutes)
+  await app.register(workshopRoutes)
 
   await app.register(
     async (patientApp) => {

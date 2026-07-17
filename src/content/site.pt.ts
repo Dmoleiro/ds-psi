@@ -122,7 +122,12 @@ export const navigation: NavItem[] = [
   { id: 'diretora-clinica', label: 'Diretora Clínica' },
   { id: 'equipa', label: 'Equipa' },
   { id: 'contacto', label: 'Contacto' },
+]
+
+export const moreNavigation: NavItem[] = [
   { id: 'formularios-picca', label: 'Formulários PICCA', path: '/formularios-picca' },
+  { id: 'workshops', label: 'Workshops', path: '/workshops' },
+  { id: 'backoffice', label: 'Backoffice', path: '/backoffice/login' },
 ]
 
 export const clinic = {
@@ -311,6 +316,14 @@ export const piccaFormsPage = {
   intro:
     'Área reservada para pacientes com acesso autorizado. Cada paciente receberá um link único da sua terapeuta para preencher os formulários de forma segura.',
   comingSoon: 'Brevemente',
+} as const
+
+export const workshopsPage = {
+  title: 'Workshops',
+  intro:
+    'Workshops e atividades ocasionais promovidos pela clínica. Consulte as próximas datas e inscreva-se por email.',
+  pastTitle: 'Eventos passados',
+  pastIntro: 'Registo dos workshops já realizados.',
 } as const
 
 export const legal = {

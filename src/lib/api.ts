@@ -1,5 +1,11 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '')
 
+export const apiBaseUrl = API_URL
+
+export function workshopImageUrl(imagePath: string): string {
+  return `${API_URL}${imagePath}`
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -37,6 +43,37 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     method: options.method ?? (options.body !== undefined ? 'POST' : 'GET'),
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    const message =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      'Erro de comunicação'
+    throw new ApiError(message, response.status, data.details)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
+  }
+
+  return data as T
+}
+
+export async function apiFormRequest<T>(
+  path: string,
+  formData: FormData,
+  options: { method?: string; token: string },
+): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: options.method ?? 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${options.token}`,
+    },
+    body: formData,
   })
 
   const data = await response.json().catch(() => ({}))
@@ -380,6 +417,33 @@ export const adminApi = {
       token,
       body,
     }),
+}
+
+export type WorkshopSummary = {
+  id: string
+  title: string
+  description: string
+  location: string
+  eventDate: string
+  imagePath: string
+  createdAt: string
+  updatedAt: string
+  status?: 'upcoming' | 'past'
+}
+
+export const workshopApi = {
+  listPublic: (status: 'upcoming' | 'past') =>
+    apiRequest<{ workshops: WorkshopSummary[] }>(`/api/workshops/public?status=${status}`),
+  list: (token: string) => apiRequest<{ workshops: WorkshopSummary[] }>('/api/workshops', { token }),
+  create: (token: string, formData: FormData) =>
+    apiFormRequest<{ workshop: WorkshopSummary }>('/api/workshops', formData, { token }),
+  update: (token: string, id: string, formData: FormData) =>
+    apiFormRequest<{ workshop: WorkshopSummary }>(`/api/workshops/${id}`, formData, {
+      method: 'PATCH',
+      token,
+    }),
+  delete: (token: string, id: string) =>
+    apiRequest<void>(`/api/workshops/${id}`, { method: 'DELETE', token }),
 }
 
 export type PatientSessionForm = {

@@ -66,6 +66,13 @@ export function BackofficeDashboardPage() {
           </Button>
         </Card>
         <Card as="article">
+          <h2>Workshops</h2>
+          <p className={styles.muted}>Publique workshops com flyer, data e local no site público.</p>
+          <Button href="/backoffice/workshops" style={{ marginTop: 'var(--space-md)' }}>
+            Gerir workshops
+          </Button>
+        </Card>
+        <Card as="article">
           <h2>Formulários PICCA</h2>
           <p className={styles.muted}>
             Ficha de inscrição e queixa inicial disponíveis para atribuição a pacientes.

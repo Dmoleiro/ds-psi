@@ -3,6 +3,8 @@ import { SiteLayout } from './components/layout/SiteLayout'
 import { RequireTherapist } from './components/backoffice/BackofficeLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
 import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
+import { WorkshopsPublicPage } from './pages/WorkshopsPublicPage'
+import { WorkshopsPastPage } from './pages/WorkshopsPastPage'
 import { HomePage } from './pages/HomePage'
 import { AdminCoordinatorsPage } from './pages/backoffice/AdminCoordinatorsPage'
 import { AdminLocationsPage } from './pages/backoffice/AdminLocationsPage'
@@ -15,6 +17,7 @@ import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
 import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
 import { PatientsListPage } from './pages/backoffice/PatientsListPage'
 import { TherapistProfilePage } from './pages/backoffice/TherapistProfilePage'
+import { WorkshopsPage } from './pages/backoffice/WorkshopsPage'
 import { PatientCompletePage } from './pages/patient/PatientCompletePage'
 import { PatientFormPage } from './pages/patient/PatientFormPage'
 import { PatientPortalPage } from './pages/patient/PatientPortalPage'
@@ -54,6 +57,22 @@ export function App() {
             </SiteLayout>
           }
         />
+        <Route
+          path="/workshops"
+          element={
+            <SiteLayout>
+              <WorkshopsPublicPage />
+            </SiteLayout>
+          }
+        />
+        <Route
+          path="/workshops/passados"
+          element={
+            <SiteLayout>
+              <WorkshopsPastPage />
+            </SiteLayout>
+          }
+        />
         <Route path="/formularios/p/:token" element={<PatientPortalPage />} />
         <Route path="/formularios/p/:token/concluido" element={<PatientCompletePage />} />
         <Route path="/formularios/p/:token/:formId" element={<PatientFormPage />} />
@@ -65,6 +84,7 @@ export function App() {
         <Route path="/backoffice/appointments" element={<AppointmentsPage />} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
+        <Route path="/backoffice/workshops" element={<WorkshopsPage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
         <Route path="/backoffice/admin/coordinators" element={<AdminCoordinatorsPage />} />
         <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />

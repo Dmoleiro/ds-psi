@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { navigation, site, images } from '../../content/site.pt'
+import { moreNavigation, navigation, site, images } from '../../content/site.pt'
 import styles from './Header.module.css'
 
 function useIsDesktop() {
@@ -19,10 +19,15 @@ function useIsDesktop() {
   return isDesktop
 }
 
+type NavLinkItem = (typeof navigation)[number] | (typeof moreNavigation)[number]
+
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [maisOpen, setMaisOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const isDesktop = useIsDesktop()
+  const maisMenuId = useId()
+  const maisRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -37,22 +42,91 @@ export function Header() {
     }
   }, [menuOpen])
 
-  const closeMenu = () => setMenuOpen(false)
+  useEffect(() => {
+    if (!maisOpen) return
 
-  const renderNavLink = (item: (typeof navigation)[number]) =>
+    function handlePointerDown(event: MouseEvent) {
+      if (!maisRef.current?.contains(event.target as Node)) {
+        setMaisOpen(false)
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMaisOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [maisOpen])
+
+  const closeMenus = () => {
+    setMenuOpen(false)
+    setMaisOpen(false)
+  }
+
+  const renderNavLink = (item: NavLinkItem) =>
     item.path ? (
-      <Link to={item.path} className={styles.navLink} onClick={closeMenu}>
+      <Link to={item.path} className={styles.navLink} onClick={closeMenus}>
         {item.label}
       </Link>
     ) : (
       <Link
         to={{ pathname: '/', hash: `#${item.id}` }}
         className={styles.navLink}
-        onClick={closeMenu}
+        onClick={closeMenus}
       >
         {item.label}
       </Link>
     )
+
+  const maisMenu = (
+    <div className={styles.maisGroup} ref={maisRef}>
+      <button
+        type="button"
+        className={`${styles.navLink} ${styles.maisButton}`}
+        aria-expanded={maisOpen}
+        aria-haspopup="menu"
+        aria-controls={maisMenuId}
+        onClick={() => setMaisOpen((open) => !open)}
+      >
+        Mais
+        <span className={styles.maisChevron} aria-hidden="true" />
+      </button>
+      {maisOpen && (
+        <ul id={maisMenuId} className={styles.maisMenu} role="menu">
+          {moreNavigation.map((item) => (
+            <li key={item.id} role="none">
+              {item.path ? (
+                <Link
+                  to={item.path}
+                  className={styles.maisMenuLink}
+                  role="menuitem"
+                  onClick={closeMenus}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <Link
+                  to={{ pathname: '/', hash: `#${item.id}` }}
+                  className={styles.maisMenuLink}
+                  role="menuitem"
+                  onClick={closeMenus}
+                >
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 
   return (
     <>
@@ -60,7 +134,7 @@ export function Header() {
         className={`${styles.header} ${scrolled ? styles.scrolled : ''} ${menuOpen ? styles.menuOpen : ''}`}
       >
         <div className={styles.inner}>
-          <Link to="/" className={styles.brand} onClick={closeMenu} aria-label={site.name}>
+          <Link to="/" className={styles.brand} onClick={closeMenus} aria-label={site.name}>
             <img
               src={images.logoIcon}
               alt=""
@@ -100,11 +174,7 @@ export function Header() {
               {navigation.map((item) => (
                 <li key={item.id}>{renderNavLink(item)}</li>
               ))}
-              <li>
-                <Link to="/backoffice/login" className={styles.navLink} onClick={closeMenu}>
-                  Backoffice
-                </Link>
-              </li>
+              <li className={styles.maisListItem}>{maisMenu}</li>
             </ul>
             <a href={`mailto:${site.email}`} className={styles.cta}>
               Marcar consulta
@@ -115,7 +185,7 @@ export function Header() {
 
       {!isDesktop && menuOpen && (
         <div className={styles.mobileMenu} role="presentation">
-          <div className={styles.backdrop} onClick={closeMenu} aria-hidden="true" />
+          <div className={styles.backdrop} onClick={closeMenus} aria-hidden="true" />
           <nav
             id="mobile-nav"
             className={styles.mobileNav}
@@ -125,13 +195,16 @@ export function Header() {
               {navigation.map((item) => (
                 <li key={item.id}>{renderNavLink(item)}</li>
               ))}
-              <li>
-                <Link to="/backoffice/login" className={styles.navLink} onClick={closeMenu}>
-                  Backoffice
-                </Link>
-              </li>
             </ul>
-            <a href={`mailto:${site.email}`} className={styles.cta} onClick={closeMenu}>
+            <div className={styles.mobileMaisSection}>
+              <p className={styles.mobileMaisLabel}>Mais</p>
+              <ul className={styles.navList}>
+                {moreNavigation.map((item) => (
+                  <li key={item.id}>{renderNavLink(item)}</li>
+                ))}
+              </ul>
+            </div>
+            <a href={`mailto:${site.email}`} className={styles.cta} onClick={closeMenus}>
               Marcar consulta
             </a>
           </nav>
