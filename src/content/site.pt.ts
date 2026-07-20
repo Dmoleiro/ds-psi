@@ -55,12 +55,18 @@ export const social = {
     label: 'Facebook',
     href: 'https://www.facebook.com/daniela.santos.963434',
   },
-  complaintsBook: {
-    label: 'Livro de Reclamações',
-    href: 'https://www.livroreclamacoes.pt/inicio',
-    icon: publicAsset('images/livro-reclamacoes.png'),
-  },
 } as const
+
+export interface Accreditation {
+  id: string
+  label: string
+  href: string
+  image?: string
+  imageAlt?: string
+  caption?: string
+  layout?: 'logo' | 'banner' | 'text'
+  text?: string
+}
 
 export const images = {
   heroExterior: {
@@ -338,5 +344,30 @@ export const legal = {
   cookies: {
     label: 'Política de Cookies',
   },
-  oppDisclaimer: 'Membro da Ordem dos Psicólogos Portugueses — Cédula n.º 022377',
 } as const
+
+export const accreditations: Accreditation[] = [
+  {
+    id: 'opp',
+    label: 'Ordem dos Psicólogos Portugueses',
+    href: 'https://www.ordemdospsicologos.pt/pt',
+    image: publicAsset('images/accreditations/opp-member.png'),
+    imageAlt:
+      'Daniela Santos, Psicóloga, Cédula Profissional 022377 — Ordem dos Psicólogos Portugueses',
+    layout: 'banner',
+  },
+  {
+    id: 'complaints-book',
+    label: 'Livro de Reclamações',
+    href: 'https://www.livroreclamacoes.pt/inicio',
+    image: publicAsset('images/livro-reclamacoes.png'),
+    layout: 'logo',
+  },
+  {
+    id: 'ers',
+    label: 'Entidade Reguladora da Saúde',
+    href: 'https://www.ers.pt/pt/',
+    layout: 'text',
+    text: 'Daniela Santos Psicologia — Registada na ERS com o número de estabelecimento E166638.',
+  },
+]

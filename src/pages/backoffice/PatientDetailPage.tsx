@@ -37,6 +37,7 @@ type PatientDetail = {
   email: string | null
   email2: string | null
   phone: string | null
+  phone2: string | null
   birthDate: string | null
   internalNotes: string | null
   location?: { id: string; name: string }
@@ -66,6 +67,7 @@ export function PatientDetailPage() {
   const [emailDraft, setEmailDraft] = useState('')
   const [email2Draft, setEmail2Draft] = useState('')
   const [phoneDraft, setPhoneDraft] = useState('')
+  const [phone2Draft, setPhone2Draft] = useState('')
   const [birthDateDraft, setBirthDateDraft] = useState('')
   const [internalNotesDraft, setInternalNotesDraft] = useState('')
   const [patientEditError, setPatientEditError] = useState('')
@@ -171,6 +173,7 @@ export function PatientDetailPage() {
     setEmailDraft(patient.email ?? '')
     setEmail2Draft(patient.email2 ?? '')
     setPhoneDraft(patient.phone ?? '')
+    setPhone2Draft(patient.phone2 ?? '')
     setBirthDateDraft(toDateInputValue(patient.birthDate))
     setInternalNotesDraft(patient.internalNotes ?? '')
     setPatientEditError('')
@@ -184,6 +187,7 @@ export function PatientDetailPage() {
     setEmailDraft('')
     setEmail2Draft('')
     setPhoneDraft('')
+    setPhone2Draft('')
     setBirthDateDraft('')
     setInternalNotesDraft('')
     setPatientEditError('')
@@ -201,6 +205,7 @@ export function PatientDetailPage() {
         email: emailDraft,
         email2: email2Draft,
         phone: phoneDraft,
+        phone2: phone2Draft,
         birthDate: birthDateDraft,
         internalNotes: internalNotesDraft,
       })
@@ -212,6 +217,7 @@ export function PatientDetailPage() {
               email: result.patient.email,
               email2: result.patient.email2,
               phone: result.patient.phone,
+              phone2: result.patient.phone2,
               birthDate: result.patient.birthDate,
               internalNotes: result.patient.internalNotes,
               location: result.patient.location,
@@ -307,6 +313,15 @@ export function PatientDetailPage() {
             />
           </div>
           <div className={styles.field}>
+            <label htmlFor="patientPhone2">Telefone 2</label>
+            <input
+              id="patientPhone2"
+              type="tel"
+              value={phone2Draft}
+              onChange={(event) => setPhone2Draft(event.target.value)}
+            />
+          </div>
+          <div className={styles.field}>
             <label htmlFor="patientBirthDate">Data de nascimento</label>
             <input
               id="patientBirthDate"
@@ -354,6 +369,7 @@ export function PatientDetailPage() {
           patient.email,
           patient.email2,
           patient.phone,
+          patient.phone2,
           formatBirthDate(patient.birthDate),
           patient.location?.name,
         ]

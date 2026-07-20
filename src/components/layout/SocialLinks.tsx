@@ -27,23 +27,6 @@ export function SocialLinks() {
           <FacebookIcon className={styles.icon} />
         </a>
       </li>
-      <li>
-        <a
-          href={social.complaintsBook.href}
-          className={`${styles.link} ${styles.complaintsLink}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={social.complaintsBook.label}
-        >
-          <img
-            src={social.complaintsBook.icon}
-            alt=""
-            className={styles.complaintsIcon}
-            width={136}
-            height={54}
-          />
-        </a>
-      </li>
     </ul>
   )
 }

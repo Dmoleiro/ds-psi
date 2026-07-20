@@ -124,6 +124,7 @@ export type PatientSummary = {
   email: string | null
   email2: string | null
   phone: string | null
+  phone2: string | null
   birthDate: string | null
   createdAt: string
   location?: LocationSummary
@@ -196,6 +197,7 @@ export const therapistApi = {
       email?: string
       email2?: string
       phone?: string
+      phone2?: string
       birthDate?: string
       internalNotes?: string
     },

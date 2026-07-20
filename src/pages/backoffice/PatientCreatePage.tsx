@@ -15,6 +15,7 @@ export function PatientCreatePage() {
   const [email, setEmail] = useState('')
   const [email2, setEmail2] = useState('')
   const [phone, setPhone] = useState('')
+  const [phone2, setPhone2] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
   const [error, setError] = useState('')
@@ -42,6 +43,7 @@ export function PatientCreatePage() {
         email,
         email2,
         phone,
+        phone2,
         birthDate,
         internalNotes,
       })
@@ -88,6 +90,10 @@ export function PatientCreatePage() {
         <div className={styles.field}>
           <label htmlFor="phone">Telefone</label>
           <input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="phone2">Telefone 2</label>
+          <input id="phone2" value={phone2} onChange={(e) => setPhone2(e.target.value)} />
         </div>
         <div className={styles.field}>
           <label htmlFor="birthDate">Data de nascimento</label>

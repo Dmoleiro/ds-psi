@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { legal, site, images } from '../../content/site.pt'
 import { Container } from './Container'
+import { FooterAccreditations } from './FooterAccreditations'
 import { SocialLinks } from './SocialLinks'
 import styles from './Footer.module.css'
 
@@ -58,10 +59,11 @@ export function Footer() {
               <li>
                 <Link to="/politica-cookies">{legal.cookies.label}</Link>
               </li>
-              <li>{legal.oppDisclaimer}</li>
             </ul>
           </div>
         </div>
+
+        <FooterAccreditations />
 
         <div className={styles.bottom}>
           <p>© {year} {site.name}. Todos os direitos reservados.</p>

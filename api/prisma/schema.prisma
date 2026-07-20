@@ -61,6 +61,7 @@ model Patient {
   email         String?
   email2        String?   @map("email_2")
   phone         String?
+  phone2        String?   @map("phone_2")
   birthDate     DateTime? @map("birth_date") @db.Date
   internalNotes String?   @map("internal_notes") @db.Text
   createdAt     DateTime  @default(now()) @map("created_at")

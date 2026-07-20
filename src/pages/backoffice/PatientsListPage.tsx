@@ -4,22 +4,21 @@ import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
-import { therapistApi, type PatientSummary } from '../../lib/api'
+import { therapistApi, type LocationSummary, type PatientSummary } from '../../lib/api'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 import { useAuth } from '../../hooks/useAuth'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 function formatPatientContact(patient: PatientSummary): string {
-  const emails = [patient.email, patient.email2].filter(Boolean)
-  if (emails.length > 0) return emails.join(' · ')
-  return patient.phone ?? '—'
+  const contact = [patient.email, patient.email2, patient.phone, patient.phone2].filter(Boolean)
+  return contact.length > 0 ? contact.join(' · ') : '—'
 }
 
 function matchesPatientSearch(patient: PatientSummary, query: string): boolean {
   const normalized = query.trim().toLocaleLowerCase('pt-PT')
   if (!normalized) return true
 
-  const haystack = [patient.fullName, patient.email, patient.email2]
+  const haystack = [patient.fullName, patient.email, patient.email2, patient.phone, patient.phone2]
     .filter(Boolean)
     .join(' ')
     .toLocaleLowerCase('pt-PT')
@@ -30,19 +29,28 @@ function matchesPatientSearch(patient: PatientSummary, query: string): boolean {
 export function PatientsListPage() {
   const { token } = useAuth()
   const [patients, setPatients] = useState<PatientSummary[]>([])
+  const [locations, setLocations] = useState<LocationSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
 
-  const filteredPatients = useMemo(
-    () => patients.filter((patient) => matchesPatientSearch(patient, search)),
-    [patients, search],
-  )
+  const filteredPatients = useMemo(() => {
+    const normalizedSearch = search.trim()
+    const matches = patients.filter((patient) => {
+      if (!matchesPatientSearch(patient, normalizedSearch)) return false
+      if (locationFilter && patient.location?.id !== locationFilter) return false
+      return true
+    })
+    return matches.sort((a, b) => a.fullName.localeCompare(b.fullName, 'pt-PT'))
+  }, [patients, search, locationFilter])
 
   useEffect(() => {
     if (!token) return
-    therapistApi
-      .listPatients(token)
-      .then((data) => setPatients(data.patients))
+    Promise.all([therapistApi.listPatients(token), therapistApi.listLocations(token)])
+      .then(([patientsData, locationsData]) => {
+        setPatients(patientsData.patients)
+        setLocations(locationsData.locations)
+      })
       .finally(() => setLoading(false))
   }, [token])
 
@@ -56,16 +64,33 @@ export function PatientsListPage() {
       </div>
 
       {!loading && patients.length > 0 && (
-        <div className={styles.searchBar}>
-          <label htmlFor="patient-search">Pesquisar</label>
-          <input
-            id="patient-search"
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Nome ou email…"
-            autoComplete="off"
-          />
+        <div className={styles.filterBar}>
+          <div className={styles.searchBar}>
+            <label htmlFor="patient-search">Pesquisar</label>
+            <input
+              id="patient-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Nome ou email…"
+              autoComplete="off"
+            />
+          </div>
+          <div className={styles.filterField}>
+            <label htmlFor="patient-location-filter">Local</label>
+            <select
+              id="patient-location-filter"
+              value={locationFilter}
+              onChange={(event) => setLocationFilter(event.target.value)}
+            >
+              <option value="">Todos os locais</option>
+              {locations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
@@ -74,8 +99,8 @@ export function PatientsListPage() {
       ) : filteredPatients.length === 0 ? (
         <Card>
           <p>
-            {search.trim()
-              ? 'Nenhum paciente corresponde à pesquisa.'
+            {search.trim() || locationFilter
+              ? 'Nenhum paciente corresponde aos filtros.'
               : 'Ainda não existem pacientes. Crie o primeiro perfil para gerar um link de formulários.'}
           </p>
         </Card>

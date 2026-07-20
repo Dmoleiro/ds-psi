@@ -111,7 +111,7 @@ export async function therapistRoutes(app: FastifyInstance) {
   app.get('/api/therapist/patients', { preHandler: therapistOnly }, async (request) => {
     const patients = await prisma.patient.findMany({
       where: { therapistId: request.user.sub },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { fullName: 'asc' },
       include: {
         location: { select: { id: true, name: true } },
         intakeSessions: {
@@ -188,6 +188,7 @@ export async function therapistRoutes(app: FastifyInstance) {
         email: parsed.data.email || null,
         email2: parsed.data.email2 || null,
         phone: parsed.data.phone || null,
+        phone2: parsed.data.phone2 || null,
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
         internalNotes: parsed.data.internalNotes || null,
       },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { legal, services, site, social, therapist } from '../content/site.pt'
+import { accreditations, legal, services, site, social, therapist } from '../content/site.pt'
 
 describe('site content', () => {
   it('has required contact information', () => {
@@ -36,9 +36,24 @@ describe('site content', () => {
     expect(legal.cookies.label).toBe('Política de Cookies')
   })
 
-  it('includes social and complaints book links', () => {
+  it('includes accreditation logos for regulatory bodies', () => {
+    const opp = accreditations.find((item) => item.id === 'opp')
+    expect(opp?.image).toContain('images/accreditations/opp-member.png')
+    expect(opp?.imageAlt).toContain('022377')
+  })
+
+  it('includes social links', () => {
     expect(social.instagram.href).toBe('https://www.instagram.com/danielasantos.psicologia')
     expect(social.facebook.href).toBe('https://www.facebook.com/daniela.santos.963434')
-    expect(social.complaintsBook.href).toBe('https://www.livroreclamacoes.pt/inicio')
+  })
+
+  it('includes accreditation and complaints book entries', () => {
+    const complaintsBook = accreditations.find((item) => item.id === 'complaints-book')
+    expect(complaintsBook?.href).toBe('https://www.livroreclamacoes.pt/inicio')
+    expect(complaintsBook?.image).toContain('livro-reclamacoes.png')
+
+    const ers = accreditations.find((item) => item.id === 'ers')
+    expect(ers?.layout).toBe('text')
+    expect(ers?.text).toContain('E166638')
   })
 })

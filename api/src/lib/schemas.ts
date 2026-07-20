@@ -49,6 +49,7 @@ export const createPatientSchema = z.object({
   email: z.string().email().optional().or(z.literal('')),
   email2: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
+  phone2: z.string().optional().or(z.literal('')),
   birthDate: z.string().optional(),
   internalNotes: z.string().optional(),
 })
@@ -59,6 +60,7 @@ export const updatePatientSchema = z.object({
   email: z.string().email().optional().or(z.literal('')),
   email2: z.string().email().optional().or(z.literal('')),
   phone: z.string().optional(),
+  phone2: z.string().optional().or(z.literal('')),
   birthDate: z.string().optional().or(z.literal('')),
   internalNotes: z.string().optional(),
 })
