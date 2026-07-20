@@ -30,7 +30,7 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
           <nav className={styles.nav} aria-label="Backoffice">
             {user.role === 'therapist' && (
               <>
-                <Link to="/backoffice">Painel</Link>
+                <Link to="/backoffice">Dashboard</Link>
                 <Link to="/backoffice/patients">Pacientes</Link>
                 <Link to="/backoffice/appointments">Consultas</Link>
                 <Link to="/backoffice/attendance">Presenças</Link>
@@ -39,7 +39,7 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
             )}
             {user.role === 'coordinator' && (
               <>
-                <Link to="/backoffice">Painel</Link>
+                <Link to="/backoffice">Dashboard</Link>
                 <Link to="/backoffice/appointments">Consultas</Link>
                 <Link to="/backoffice/attendance">Presenças</Link>
               </>

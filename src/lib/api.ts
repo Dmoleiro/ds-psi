@@ -138,6 +138,55 @@ export type PatientSummary = {
 
 export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'receipt_issued' | 'absent'
 
+export type DashboardAppointment = {
+  id: string
+  patientId: string
+  patientName: string
+  locationName: string
+  date: string
+  time: string
+  durationMinutes: number
+  notes: string | null
+  isPast: boolean
+  isToday: boolean
+}
+
+export type TherapistDashboard = {
+  today: string
+  todayLabel: string
+  greeting: string
+  stats: {
+    patients: number
+    todayAppointments: number
+    weekAppointments: number
+    openFormSessions: number
+    unpaidThisMonth: number
+  }
+  todayAppointments: DashboardAppointment[]
+  upcomingAppointments: DashboardAppointment[]
+  pendingForms: Array<{
+    sessionId: string
+    patientId: string
+    patientName: string
+    status: string
+    createdAt: string
+  }>
+  charts: {
+    weekAppointments: Array<{
+      date: string
+      label: string
+      count: number
+      isToday: boolean
+    }>
+    monthAttendance: Array<{
+      status: string
+      label: string
+      count: number
+    }>
+    monthAttendanceTotal: number
+  }
+}
+
 export type AppointmentSummary = {
   id: string
   patientId: string
@@ -175,6 +224,8 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  getDashboard: (token: string) =>
+    apiRequest<TherapistDashboard>('/api/therapist/dashboard', { token }),
   listPatients: (token: string) =>
     apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
   createPatient: (token: string, body: Record<string, unknown>) =>

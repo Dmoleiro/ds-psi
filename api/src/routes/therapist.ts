@@ -28,9 +28,14 @@ import {
 import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
+import { getTherapistDashboard } from '../services/dashboard.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
+
+  app.get('/api/therapist/dashboard', { preHandler: therapistOnly }, async (request) => {
+    return getTherapistDashboard(request.user.sub)
+  })
 
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
     const profile = await prisma.user.findUniqueOrThrow({

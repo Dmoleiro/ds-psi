@@ -1,12 +1,13 @@
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
+import { TherapistDashboard } from '../../components/backoffice/TherapistDashboard'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { useAuth } from '../../hooks/useAuth'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 export function BackofficeDashboardPage() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
 
   if (user?.role === 'admin') {
     return <Navigate to="/backoffice/admin/therapists" replace />
@@ -40,48 +41,17 @@ export function BackofficeDashboardPage() {
     )
   }
 
+  if (!token || !user) {
+    return (
+      <BackofficeLayout>
+        <p className={styles.muted}>A carregar…</p>
+      </BackofficeLayout>
+    )
+  }
+
   return (
     <BackofficeLayout>
-      <h1 className={styles.pageTitle}>Olá, {user?.name}</h1>
-      <div className={styles.cardGrid}>
-        <Card as="article">
-          <h2>Pacientes</h2>
-          <p className={styles.muted}>Crie perfis e gere links de formulários PICCA.</p>
-          <Button href="/backoffice/patients" style={{ marginTop: 'var(--space-md)' }}>
-            Ver pacientes
-          </Button>
-        </Card>
-        <Card as="article">
-          <h2>Consultas</h2>
-          <p className={styles.muted}>Calendário mensal para agendar consultas com os seus pacientes.</p>
-          <Button href="/backoffice/appointments" style={{ marginTop: 'var(--space-md)' }}>
-            Abrir agenda
-          </Button>
-        </Card>
-        <Card as="article">
-          <h2>Presenças</h2>
-          <p className={styles.muted}>Registo mensal de presenças — por pagar, pagas e faltas.</p>
-          <Button href="/backoffice/attendance" style={{ marginTop: 'var(--space-md)' }}>
-            Abrir calendário
-          </Button>
-        </Card>
-        <Card as="article">
-          <h2>Workshops</h2>
-          <p className={styles.muted}>Publique workshops com flyer, data e local no site público.</p>
-          <Button href="/backoffice/workshops" style={{ marginTop: 'var(--space-md)' }}>
-            Gerir workshops
-          </Button>
-        </Card>
-        <Card as="article">
-          <h2>Formulários PICCA</h2>
-          <p className={styles.muted}>
-            Ficha de inscrição e queixa inicial disponíveis para atribuição a pacientes.
-          </p>
-          <Link to="/formularios-picca" className={styles.muted}>
-            Ver página pública →
-          </Link>
-        </Card>
-      </div>
+      <TherapistDashboard token={token} therapistName={user.name} />
     </BackofficeLayout>
   )
 }
