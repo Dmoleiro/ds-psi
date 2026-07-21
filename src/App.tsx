@@ -12,6 +12,7 @@ import { AdminTherapistsPage } from './pages/backoffice/AdminTherapistsPage'
 import { AppointmentsPage } from './pages/backoffice/AppointmentsPage'
 import { AttendancePage } from './pages/backoffice/AttendancePage'
 import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardPage'
+import { FinancialOverviewPage } from './pages/backoffice/FinancialOverviewPage'
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
 import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
@@ -83,6 +84,7 @@ export function App() {
         <Route path="/backoffice/patients/:id" element={<RequireTherapist><PatientDetailPage /></RequireTherapist>} />
         <Route path="/backoffice/appointments" element={<AppointmentsPage />} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
+        <Route path="/backoffice/financial" element={<RequireTherapist><FinancialOverviewPage /></RequireTherapist>} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/workshops" element={<WorkshopsPage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />

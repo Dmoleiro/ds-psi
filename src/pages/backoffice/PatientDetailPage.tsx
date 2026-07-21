@@ -39,6 +39,7 @@ type PatientDetail = {
   phone: string | null
   phone2: string | null
   birthDate: string | null
+  sessionFee: number | null
   internalNotes: string | null
   location?: { id: string; name: string }
   intakeSessions: SessionRow[]
@@ -69,6 +70,7 @@ export function PatientDetailPage() {
   const [phoneDraft, setPhoneDraft] = useState('')
   const [phone2Draft, setPhone2Draft] = useState('')
   const [birthDateDraft, setBirthDateDraft] = useState('')
+  const [sessionFeeDraft, setSessionFeeDraft] = useState('')
   const [internalNotesDraft, setInternalNotesDraft] = useState('')
   const [patientEditError, setPatientEditError] = useState('')
   const [savingPatient, setSavingPatient] = useState(false)
@@ -175,6 +177,7 @@ export function PatientDetailPage() {
     setPhoneDraft(patient.phone ?? '')
     setPhone2Draft(patient.phone2 ?? '')
     setBirthDateDraft(toDateInputValue(patient.birthDate))
+    setSessionFeeDraft(patient.sessionFee != null ? String(patient.sessionFee) : '')
     setInternalNotesDraft(patient.internalNotes ?? '')
     setPatientEditError('')
     setEditingPatient(true)
@@ -189,6 +192,7 @@ export function PatientDetailPage() {
     setPhoneDraft('')
     setPhone2Draft('')
     setBirthDateDraft('')
+    setSessionFeeDraft('')
     setInternalNotesDraft('')
     setPatientEditError('')
   }
@@ -208,6 +212,7 @@ export function PatientDetailPage() {
         phone2: phone2Draft,
         birthDate: birthDateDraft,
         internalNotes: internalNotesDraft,
+        sessionFee: sessionFeeDraft.trim() ? Number(sessionFeeDraft) : null,
       })
       setPatient((current) =>
         current
@@ -219,6 +224,7 @@ export function PatientDetailPage() {
               phone: result.patient.phone,
               phone2: result.patient.phone2,
               birthDate: result.patient.birthDate,
+              sessionFee: result.patient.sessionFee,
               internalNotes: result.patient.internalNotes,
               location: result.patient.location,
             }
@@ -331,6 +337,21 @@ export function PatientDetailPage() {
             />
           </div>
           <div className={styles.field}>
+            <label htmlFor="patientSessionFee">Valor da consulta (€)</label>
+            <input
+              id="patientSessionFee"
+              type="number"
+              min="0"
+              step="0.01"
+              value={sessionFeeDraft}
+              onChange={(event) => setSessionFeeDraft(event.target.value)}
+              placeholder="Predefinido nas finanças"
+            />
+            <p className={styles.muted}>
+              Opcional. Substitui o valor predefinido do terapeuta ao criar consultas.
+            </p>
+          </div>
+          <div className={styles.field}>
             <label htmlFor="patientInternalNotes">Notas internas</label>
             <textarea
               id="patientInternalNotes"
@@ -371,6 +392,9 @@ export function PatientDetailPage() {
           patient.phone,
           patient.phone2,
           formatBirthDate(patient.birthDate),
+          patient.sessionFee != null
+            ? `Consulta: ${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(patient.sessionFee)}`
+            : null,
           patient.location?.name,
         ]
           .filter(Boolean)

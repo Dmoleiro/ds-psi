@@ -2,6 +2,7 @@ import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
+import { decimalToNumber } from './financialSettings.js'
 
 type SessionWithUrl = {
   status: SessionStatus
@@ -35,9 +36,43 @@ type TherapistPatient = Prisma.PatientGetPayload<{
   }
 }>
 
+export function formatPatientSummary(patient: {
+  id: string
+  fullName: string
+  email: string | null
+  email2: string | null
+  phone: string | null
+  phone2: string | null
+  birthDate: Date | null
+  createdAt: Date
+  sessionFee?: { toString(): string } | null
+  location?: { id: string; name: string } | null
+  intakeSessions?: Array<{
+    id: string
+    status: SessionStatus
+    createdAt: Date
+    completedAt: Date | null
+  }>
+}) {
+  return {
+    id: patient.id,
+    fullName: patient.fullName,
+    email: patient.email,
+    email2: patient.email2,
+    phone: patient.phone,
+    phone2: patient.phone2,
+    birthDate: patient.birthDate,
+    createdAt: patient.createdAt,
+    sessionFee: patient.sessionFee != null ? decimalToNumber(patient.sessionFee) : null,
+    location: patient.location ?? undefined,
+    intakeSessions: patient.intakeSessions,
+  }
+}
+
 export function formatTherapistPatient(patient: TherapistPatient) {
   return {
-    ...patient,
+    ...formatPatientSummary(patient),
+    internalNotes: patient.internalNotes,
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,
       status: session.status,
@@ -164,6 +199,7 @@ export async function updateTherapistPatient(
     phone2?: string
     birthDate?: string
     internalNotes?: string
+    sessionFee?: number | null
   },
 ) {
   const patient = await prisma.patient.findFirst({
@@ -181,7 +217,7 @@ export async function updateTherapistPatient(
     throw new Error('INVALID_LOCATION')
   }
 
-  return prisma.patient.update({
+  const updated = await prisma.patient.update({
     where: { id: patientId },
     data: {
       fullName: data.fullName,
@@ -192,9 +228,15 @@ export async function updateTherapistPatient(
       phone2: data.phone2 || null,
       birthDate: data.birthDate ? new Date(data.birthDate) : null,
       internalNotes: data.internalNotes || null,
+      ...(data.sessionFee !== undefined ? { sessionFee: data.sessionFee } : {}),
     },
     include: {
       location: { select: { id: true, name: true } },
     },
   })
+
+  return {
+    ...formatPatientSummary(updated),
+    internalNotes: updated.internalNotes,
+  }
 }

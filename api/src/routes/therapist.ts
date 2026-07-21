@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js'
 import {
   createPatientSession,
   deleteTherapistPatient,
+  formatPatientSummary,
   formatTherapistPatient,
   getTherapistPatient,
   parseCreatePatientInput,
@@ -25,13 +26,20 @@ import {
   MAX_RECURRING_APPOINTMENTS,
   updateTherapistAppointment,
 } from '../services/appointments.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
+import { requireFinancialOverview } from '../middleware/financial.js'
+import {
+  getTherapistFinancialCharts,
+  getTherapistFinancialOverview,
+} from '../services/financialOverview.js'
+import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
+  const therapistFinancialOnly = [...therapistOnly, requireFinancialOverview]
 
   app.get('/api/therapist/dashboard', { preHandler: therapistOnly }, async (request) => {
     return getTherapistDashboard(request.user.sub)
@@ -40,7 +48,7 @@ export async function therapistRoutes(app: FastifyInstance) {
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
     const profile = await prisma.user.findUniqueOrThrow({
       where: { id: request.user.sub },
-      select: { id: true, email: true, name: true, phone: true, role: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true },
     })
     return { profile }
   })
@@ -75,7 +83,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     const profile = await prisma.user.update({
       where: { id: existing.id },
       data,
-      select: { id: true, email: true, name: true, phone: true, role: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true },
     })
 
     const token = await reply.jwtSign({
@@ -126,7 +134,7 @@ export async function therapistRoutes(app: FastifyInstance) {
         },
       },
     })
-    return { patients }
+    return { patients: patients.map(formatPatientSummary) }
   })
 
   app.get('/api/therapist/locations', { preHandler: therapistOnly }, async () => {
@@ -196,10 +204,11 @@ export async function therapistRoutes(app: FastifyInstance) {
         phone2: parsed.data.phone2 || null,
         birthDate: parsed.data.birthDate ? new Date(parsed.data.birthDate) : null,
         internalNotes: parsed.data.internalNotes || null,
+        ...(parsed.data.sessionFee !== undefined ? { sessionFee: parsed.data.sessionFee } : {}),
       },
     })
 
-    return reply.status(201).send({ patient })
+    return reply.status(201).send({ patient: formatPatientSummary(patient) })
   })
 
   app.get('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
@@ -439,6 +448,11 @@ export async function therapistRoutes(app: FastifyInstance) {
     },
   )
 
+  app.get('/api/therapist/appointments/defaults', { preHandler: therapistOnly }, async (request) => {
+    const settings = await getOrCreateFinancialSettings(request.user.sub)
+    return { defaultSessionFee: settings.defaultSessionFee }
+  })
+
   app.get('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
     const parsed = appointmentMonthQuerySchema.safeParse(request.query)
     if (!parsed.success) {
@@ -551,4 +565,48 @@ export async function therapistRoutes(app: FastifyInstance) {
       }
     },
   )
+
+  app.get('/api/therapist/financial/settings', { preHandler: therapistFinancialOnly }, async (request) => {
+    const settings = await getOrCreateFinancialSettings(request.user.sub)
+    return { settings }
+  })
+
+  app.put('/api/therapist/financial/settings', { preHandler: therapistFinancialOnly }, async (request, reply) => {
+    const parsed = financialSettingsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const settings = await updateFinancialSettings(request.user.sub, parsed.data)
+    return { settings }
+  })
+
+  app.get('/api/therapist/financial/overview', { preHandler: therapistFinancialOnly }, async (request, reply) => {
+    const parsed = financialMonthQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await getTherapistFinancialOverview(
+        request.user.sub,
+        parsed.data.year,
+        parsed.data.month,
+      )
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_MONTH') {
+        return reply.status(400).send({ error: 'Mês inválido' })
+      }
+      throw error
+    }
+  })
+
+  app.get('/api/therapist/financial/charts', { preHandler: therapistFinancialOnly }, async (request, reply) => {
+    const parsed = financialYearQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    return getTherapistFinancialCharts(request.user.sub, parsed.data.year)
+  })
 }

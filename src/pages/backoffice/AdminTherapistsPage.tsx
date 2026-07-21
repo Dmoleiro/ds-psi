@@ -12,6 +12,7 @@ type TherapistRow = {
   email: string
   name: string
   active: boolean
+  financialOverviewEnabled: boolean
   createdAt: string
 }
 
@@ -26,7 +27,12 @@ export function AdminTherapistsPage() {
   async function load() {
     if (!token) return
     const data = await adminApi.listTherapists(token)
-    setTherapists(data.therapists)
+    setTherapists(
+      data.therapists.map((therapist) => ({
+        ...therapist,
+        financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
+      })),
+    )
   }
 
   useEffect(() => {
@@ -46,6 +52,14 @@ export function AdminTherapistsPage() {
     } catch {
       setError('Não foi possível criar o terapeuta')
     }
+  }
+
+  async function toggleFinancialAccess(therapist: TherapistRow) {
+    if (!token) return
+    await adminApi.updateTherapist(token, therapist.id, {
+      financialOverviewEnabled: !therapist.financialOverviewEnabled,
+    })
+    await load()
   }
 
   async function toggleActive(therapist: TherapistRow) {
@@ -92,6 +106,7 @@ export function AdminTherapistsPage() {
               <th>Nome</th>
               <th>Email</th>
               <th>Estado</th>
+              <th>Finanças</th>
               <th />
             </tr>
           </thead>
@@ -101,8 +116,16 @@ export function AdminTherapistsPage() {
                 <td>{therapist.name}</td>
                 <td>{therapist.email}</td>
                 <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
+                <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
                 <td>
                   <div className={styles.rowActions}>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => toggleFinancialAccess(therapist)}
+                    >
+                      {therapist.financialOverviewEnabled ? 'Revogar finanças' : 'Dar acesso finanças'}
+                    </button>
                     <button
                       type="button"
                       className={styles.linkButton}

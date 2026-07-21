@@ -1,4 +1,5 @@
 import { toIsoDate } from './attendance'
+import type { AttendanceStatus } from './api'
 
 export type AppointmentSummary = {
   id: string
@@ -10,8 +11,66 @@ export type AppointmentSummary = {
   time: string
   scheduledAt: string
   durationMinutes: number
+  sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
+}
+
+export type FinancialSettings = {
+  socialSecurityRate: number
+  irsRate: number
+  savingsRate: number
+  defaultSessionFee: number
+}
+
+export type FinancialSummary = {
+  gross: number
+  socialSecurity: number
+  irs: number
+  savings: number
+  totalReserves: number
+  available: number
+}
+
+export type FinancialRow = {
+  id: string
+  kind: 'realized' | 'forecast'
+  date: string
+  patientId: string
+  patientName: string
+  locationName: string
+  attendanceStatus: AttendanceStatus | null
+  appointmentId: string | null
+  notes: string | null
+  missingAppointment: boolean
+  gross: number
+  socialSecurity: number
+  irs: number
+  savings: number
+  totalReserves: number
+  available: number
+}
+
+export type FinancialOverview = {
+  year: number
+  month: number
+  rates: FinancialSettings
+  summary: {
+    realized: FinancialSummary
+    forecast: FinancialSummary
+  }
+  realizedRows: FinancialRow[]
+  forecastRows: FinancialRow[]
+}
+
+export type FinancialYearCharts = {
+  year: number
+  months: Array<{
+    month: number
+    realizedGross: number
+    forecastGross: number
+    realizedAvailable: number
+  }>
 }
 
 export const DURATION_OPTIONS = [30, 45, 50, 60, 90] as const

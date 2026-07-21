@@ -1,5 +1,19 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '')
 
+import type {
+  FinancialOverview,
+  FinancialSettings,
+  FinancialYearCharts,
+} from './appointments'
+
+export type {
+  FinancialOverview,
+  FinancialRow,
+  FinancialSettings,
+  FinancialSummary,
+  FinancialYearCharts,
+} from './appointments'
+
 export const apiBaseUrl = API_URL
 
 export function workshopImageUrl(imagePath: string): string {
@@ -99,6 +113,8 @@ export type StaffUser = {
   name: string
   phone?: string | null
   role: 'admin' | 'therapist' | 'coordinator'
+  financialOverviewEnabled?: boolean
+  active?: boolean
 }
 
 export type LoginResponse = {
@@ -126,6 +142,7 @@ export type PatientSummary = {
   phone: string | null
   phone2: string | null
   birthDate: string | null
+  sessionFee: number | null
   createdAt: string
   location?: LocationSummary
   intakeSessions?: Array<{
@@ -197,6 +214,7 @@ export type AppointmentSummary = {
   time: string
   scheduledAt: string
   durationMinutes: number
+  sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
 }
@@ -251,6 +269,7 @@ export const therapistApi = {
       phone2?: string
       birthDate?: string
       internalNotes?: string
+      sessionFee?: number | null
     },
   ) =>
     apiRequest<{
@@ -323,6 +342,8 @@ export const therapistApi = {
       `/api/therapist/appointments?year=${year}&month=${month}${locationId ? `&locationId=${locationId}` : ''}`,
       { token },
     ),
+  getAppointmentDefaults: (token: string) =>
+    apiRequest<{ defaultSessionFee: number }>('/api/therapist/appointments/defaults', { token }),
   createAppointment: (
     token: string,
     body: {
@@ -331,6 +352,7 @@ export const therapistApi = {
       date: string
       time: string
       durationMinutes: number
+      sessionFee?: number
       notes?: string | null
       recurrence?: {
         cadence: 'weekly' | 'biweekly' | 'monthly'
@@ -356,6 +378,7 @@ export const therapistApi = {
       date: string
       time: string
       durationMinutes: number
+      sessionFee?: number
       notes?: string | null
       scope?: 'single' | 'following' | 'series'
     },
@@ -378,6 +401,21 @@ export const therapistApi = {
       method: 'DELETE',
       token,
     }),
+  getFinancialSettings: (token: string) =>
+    apiRequest<{ settings: FinancialSettings }>('/api/therapist/financial/settings', { token }),
+  updateFinancialSettings: (token: string, body: Partial<FinancialSettings>) =>
+    apiRequest<{ settings: FinancialSettings }>('/api/therapist/financial/settings', {
+      method: 'PUT',
+      token,
+      body,
+    }),
+  getFinancialOverview: (token: string, year: number, month: number) =>
+    apiRequest<FinancialOverview>(
+      `/api/therapist/financial/overview?year=${year}&month=${month}`,
+      { token },
+    ),
+  getFinancialCharts: (token: string, year: number) =>
+    apiRequest<FinancialYearCharts>(`/api/therapist/financial/charts?year=${year}`, { token }),
 }
 
 export const coordinatorApi = {
@@ -443,10 +481,24 @@ export const adminApi = {
   updateTherapist: (
     token: string,
     id: string,
-    body: { name?: string; active?: boolean; password?: string },
+    body: { name?: string; active?: boolean; financialOverviewEnabled?: boolean; password?: string },
   ) =>
-    apiRequest<{ therapist: StaffUser }>(`/api/admin/therapists/${id}`, {
+    apiRequest<{ therapist: StaffUser & { active: boolean; createdAt: string } }>(`/api/admin/therapists/${id}`, {
       method: 'PATCH',
+      token,
+      body,
+    }),
+  getTherapistFinancialSettings: (token: string, therapistId: string) =>
+    apiRequest<{ settings: FinancialSettings }>(`/api/admin/therapists/${therapistId}/financial-settings`, {
+      token,
+    }),
+  updateTherapistFinancialSettings: (
+    token: string,
+    therapistId: string,
+    body: Partial<FinancialSettings>,
+  ) =>
+    apiRequest<{ settings: FinancialSettings }>(`/api/admin/therapists/${therapistId}/financial-settings`, {
+      method: 'PUT',
       token,
       body,
     }),

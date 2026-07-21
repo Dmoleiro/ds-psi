@@ -31,6 +31,7 @@ export const createCoordinatorSchema = createTherapistSchema
 export const updateTherapistSchema = z.object({
   name: z.string().min(2).optional(),
   active: z.boolean().optional(),
+  financialOverviewEnabled: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
 
@@ -52,6 +53,13 @@ export const createPatientSchema = z.object({
   phone2: z.string().optional().or(z.literal('')),
   birthDate: z.string().optional(),
   internalNotes: z.string().optional(),
+  sessionFee: z
+    .union([z.coerce.number().positive().max(10000), z.literal(''), z.null()])
+    .optional()
+    .transform((value) => {
+      if (value === '' || value === null || value === undefined) return undefined
+      return value
+    }),
 })
 
 export const updatePatientSchema = z.object({
@@ -63,6 +71,14 @@ export const updatePatientSchema = z.object({
   phone2: z.string().optional().or(z.literal('')),
   birthDate: z.string().optional().or(z.literal('')),
   internalNotes: z.string().optional(),
+  sessionFee: z
+    .union([z.coerce.number().positive().max(10000), z.literal(''), z.null()])
+    .optional()
+    .transform((value) => {
+      if (value === '') return null
+      if (value === undefined) return undefined
+      return value
+    }),
 })
 
 export const createLocationSchema = z.object({
@@ -128,7 +144,24 @@ export const appointmentBodySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
   durationMinutes: z.coerce.number().int().min(15).max(240),
+  sessionFee: z.coerce.number().positive().max(10000).optional(),
   notes: z.string().max(2000).optional().nullable(),
+})
+
+export const financialSettingsSchema = z.object({
+  socialSecurityRate: z.coerce.number().min(0).max(1).optional(),
+  irsRate: z.coerce.number().min(0).max(1).optional(),
+  savingsRate: z.coerce.number().min(0).max(1).optional(),
+  defaultSessionFee: z.coerce.number().positive().max(10000).optional(),
+})
+
+export const financialMonthQuerySchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+})
+
+export const financialYearQuerySchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
 })
 
 export const appointmentRecurrenceSchema = z.object({

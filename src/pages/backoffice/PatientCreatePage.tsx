@@ -17,6 +17,7 @@ export function PatientCreatePage() {
   const [phone, setPhone] = useState('')
   const [phone2, setPhone2] = useState('')
   const [birthDate, setBirthDate] = useState('')
+  const [sessionFee, setSessionFee] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -46,6 +47,7 @@ export function PatientCreatePage() {
         phone2,
         birthDate,
         internalNotes,
+        ...(sessionFee.trim() ? { sessionFee: Number(sessionFee) } : {}),
       })
       navigate(`/backoffice/patients/${patient.id}`)
     } catch (err) {
@@ -98,6 +100,21 @@ export function PatientCreatePage() {
         <div className={styles.field}>
           <label htmlFor="birthDate">Data de nascimento</label>
           <input id="birthDate" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
+        </div>
+        <div className={styles.field}>
+          <label htmlFor="sessionFee">Valor da consulta (€)</label>
+          <input
+            id="sessionFee"
+            type="number"
+            min="0"
+            step="0.01"
+            value={sessionFee}
+            onChange={(e) => setSessionFee(e.target.value)}
+            placeholder="Predefinido nas finanças"
+          />
+          <p className={styles.muted}>
+            Opcional. Se definido, substitui o valor predefinido do terapeuta ao criar consultas.
+          </p>
         </div>
         <div className={styles.field}>
           <label htmlFor="notes">Notas internas</label>

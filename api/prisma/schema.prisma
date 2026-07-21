@@ -41,6 +41,7 @@ model User {
   role         UserRole
   passwordHash String    @map("password_hash")
   active       Boolean   @default(true)
+  financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
@@ -49,6 +50,7 @@ model User {
   attendanceRecords AttendanceRecord[]
   appointments   Appointment[]
   workshops      Workshop[]
+  financialSettings TherapistFinancialSettings?
 
   @@map("users")
 }
@@ -63,6 +65,7 @@ model Patient {
   phone         String?
   phone2        String?   @map("phone_2")
   birthDate     DateTime? @map("birth_date") @db.Date
+  sessionFee    Decimal?  @map("session_fee") @db.Decimal(10, 2)
   internalNotes String?   @map("internal_notes") @db.Text
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -190,6 +193,7 @@ model Appointment {
   locationId      String   @map("location_id")
   scheduledAt     DateTime @map("scheduled_at")
   durationMinutes Int      @default(60) @map("duration_minutes")
+  sessionFee      Decimal  @default(50) @map("session_fee") @db.Decimal(10, 2)
   notes           String?  @db.Text
   recurrenceGroupId String? @map("recurrence_group_id")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -204,6 +208,21 @@ model Appointment {
   @@index([locationId, scheduledAt])
   @@index([recurrenceGroupId])
   @@map("appointments")
+}
+
+model TherapistFinancialSettings {
+  id                  String   @id @default(uuid())
+  therapistId         String   @unique @map("therapist_id")
+  socialSecurityRate  Decimal  @default(0.15) @map("social_security_rate") @db.Decimal(6, 4)
+  irsRate             Decimal  @default(0.20) @map("irs_rate") @db.Decimal(6, 4)
+  savingsRate         Decimal  @default(0.10) @map("savings_rate") @db.Decimal(6, 4)
+  defaultSessionFee   Decimal  @default(50) @map("default_session_fee") @db.Decimal(10, 2)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  therapist User @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_financial_settings")
 }
 
 model Workshop {

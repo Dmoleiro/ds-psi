@@ -2,8 +2,9 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema, updateCoordinatorSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
+import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   const adminOnly = [requireAuth, requireRole(UserRole.admin)]
@@ -16,6 +17,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        financialOverviewEnabled: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -42,7 +44,7 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.therapist,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
     })
 
     return reply.status(201).send({ therapist })
@@ -62,18 +64,59 @@ export async function adminRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Terapeuta não encontrado' })
     }
 
-    const data: { name?: string; active?: boolean; passwordHash?: string } = {}
+    const data: {
+      name?: string
+      active?: boolean
+      financialOverviewEnabled?: boolean
+      passwordHash?: string
+    } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
     if (parsed.data.active !== undefined) data.active = parsed.data.active
+    if (parsed.data.financialOverviewEnabled !== undefined) {
+      data.financialOverviewEnabled = parsed.data.financialOverviewEnabled
+    }
     if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password)
 
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
     })
 
     return { therapist: updated }
+  })
+
+  app.get('/api/admin/therapists/:id/financial-settings', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const therapist = await prisma.user.findFirst({
+      where: { id, role: UserRole.therapist },
+      select: { id: true },
+    })
+    if (!therapist) {
+      return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+    }
+
+    const settings = await getOrCreateFinancialSettings(id)
+    return { settings }
+  })
+
+  app.put('/api/admin/therapists/:id/financial-settings', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = financialSettingsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    const therapist = await prisma.user.findFirst({
+      where: { id, role: UserRole.therapist },
+      select: { id: true },
+    })
+    if (!therapist) {
+      return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+    }
+
+    const settings = await updateFinancialSettings(id, parsed.data)
+    return { settings }
   })
 
   app.get('/api/admin/coordinators', { preHandler: adminOnly }, async () => {
@@ -84,6 +127,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        financialOverviewEnabled: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -110,7 +154,7 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.coordinator,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
     })
 
     return reply.status(201).send({ coordinator })
@@ -138,7 +182,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
     })
 
     return { coordinator: updated }

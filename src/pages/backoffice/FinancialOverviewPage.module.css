@@ -1,0 +1,269 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.header .pageTitle {
+  margin-bottom: var(--space-sm);
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.navButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: #fff;
+  cursor: pointer;
+}
+
+.navButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.summaryCardLink:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgb(45 90 66 / 0.25);
+}
+
+.summaryCardPrimary {
+  background: linear-gradient(180deg, rgb(45 90 66 / 0.1), var(--color-bg-card));
+}
+
+.summaryCardWarn {
+  background: linear-gradient(180deg, rgb(196 120 74 / 0.1), var(--color-bg-card));
+}
+
+.summaryLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.summaryValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.chartCard,
+.settingsCard,
+.tableCard {
+  margin-bottom: var(--space-xl);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.chartHeader h2,
+.tableTitle,
+.settingsCard h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sectionLink {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.sectionLink:hover {
+  text-decoration: underline;
+}
+
+.yearChart {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-sm);
+  align-items: end;
+  min-height: 12rem;
+}
+
+.yearColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.yearBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.15rem;
+  width: 100%;
+  max-width: 2.5rem;
+  height: 9rem;
+}
+
+.yearBarRealized,
+.yearBarForecast {
+  width: 50%;
+  min-height: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.yearBarRealized {
+  background: linear-gradient(180deg, var(--color-primary), rgb(45 90 66 / 0.7));
+}
+
+.yearBarForecast {
+  background: linear-gradient(180deg, #c4784a, rgb(196 120 74 / 0.65));
+}
+
+.yearLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.legend {
+  display: flex;
+  gap: var(--space-lg);
+  margin-top: var(--space-md);
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.legendRealized,
+.legendForecast {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.15rem;
+}
+
+.legendRealized {
+  background: var(--color-primary);
+}
+
+.legendForecast {
+  background: #c4784a;
+}
+
+.settingsForm {
+  max-width: none;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.settingsField {
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsField label {
+  display: flex;
+  align-items: flex-end;
+  min-height: 3.5rem;
+  margin-bottom: var(--space-xs);
+}
+
+.settingsHint {
+  min-height: 1.25rem;
+  margin-top: var(--space-xs);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.disclaimer {
+  margin: var(--space-md) 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.totalsRow td {
+  font-weight: 700;
+  border-top: 2px solid var(--color-border);
+  background: rgb(45 90 66 / 0.06);
+}
+
+.patientLink {
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.patientLink:hover {
+  color: var(--color-primary);
+}
+
+.warningBadge {
+  display: inline-block;
+  margin-left: var(--space-xs);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-full);
+  background: rgb(196 120 74 / 0.15);
+  color: #8a4f2c;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  .summaryGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .settingsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .settingsGrid {
+    grid-template-columns: 1fr;
+  }
+}

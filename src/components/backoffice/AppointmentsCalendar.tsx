@@ -40,6 +40,7 @@ type FormState = {
   locationId: string
   time: string
   durationMinutes: number
+  sessionFee: number
   notes: string
   appointmentDate: string
   repeatEnabled: boolean
@@ -52,6 +53,7 @@ const EMPTY_FORM: FormState = {
   locationId: '',
   time: '09:00',
   durationMinutes: 60,
+  sessionFee: 50,
   notes: '',
   appointmentDate: '',
   repeatEnabled: false,
@@ -59,12 +61,26 @@ const EMPTY_FORM: FormState = {
   repeatUntil: '',
 }
 
-function initialForm(preferredLocationId = '', startDate = ''): FormState {
+function initialForm(
+  preferredLocationId = '',
+  startDate = '',
+  defaultSessionFee = 50,
+): FormState {
   return {
     ...EMPTY_FORM,
     locationId: preferredLocationId,
+    sessionFee: defaultSessionFee,
     repeatUntil: startDate ? addMonthsToIsoDate(startDate, 2) : '',
   }
+}
+
+function resolveSessionFeeForPatient(
+  patientId: string,
+  patients: PatientSummary[],
+  therapistDefault: number,
+) {
+  const patient = patients.find((entry) => entry.id === patientId)
+  return patient?.sessionFee ?? therapistDefault
 }
 
 function patientsForLocation(patients: PatientSummary[], locationId: string, selectedPatientId = '') {
@@ -99,6 +115,7 @@ export function AppointmentsCalendar({
   const [pendingDelete, setPendingDelete] = useState<AppointmentSummary | null>(null)
   const [deleteScope, setDeleteScope] = useState<AppointmentSeriesScope>('single')
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [defaultSessionFee, setDefaultSessionFee] = useState(50)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState('')
 
@@ -162,9 +179,14 @@ export function AppointmentsCalendar({
       return
     }
 
-    Promise.all([therapistApi.listPatients(token), locationsRequest])
-      .then(([patientsData, locationsData]) => {
+    Promise.all([
+      therapistApi.listPatients(token),
+      therapistApi.getAppointmentDefaults(token),
+      locationsRequest,
+    ])
+      .then(([patientsData, defaultsData, locationsData]) => {
         setPatients(patientsData.patients)
+        setDefaultSessionFee(defaultsData.defaultSessionFee)
         setLocations(locationsData.locations)
       })
       .catch(() => {
@@ -176,7 +198,7 @@ export function AppointmentsCalendar({
   function openDay(date: string) {
     setSelectedDate(date)
     setEditingId(null)
-    setForm(initialForm(locationFilter, date))
+    setForm(initialForm(locationFilter, date, defaultSessionFee))
     setDialogError('')
   }
 
@@ -187,7 +209,7 @@ export function AppointmentsCalendar({
     setEditScope('single')
     setPendingDelete(null)
     setDeleteScope('single')
-    setForm(initialForm(locationFilter))
+    setForm(initialForm(locationFilter, '', defaultSessionFee))
     setDialogError('')
   }
 
@@ -201,6 +223,7 @@ export function AppointmentsCalendar({
       locationId: appointment.locationId,
       time: appointment.time,
       durationMinutes: appointment.durationMinutes,
+      sessionFee: appointment.sessionFee ?? 50,
       notes: appointment.notes ?? '',
       appointmentDate: appointment.date,
       repeatEnabled: false,
@@ -214,7 +237,7 @@ export function AppointmentsCalendar({
     setEditingId(null)
     setEditingAppointment(null)
     setEditScope('single')
-    setForm(initialForm(locationFilter, selectedDate ?? ''))
+    setForm(initialForm(locationFilter, selectedDate ?? '', defaultSessionFee))
     setDialogError('')
   }
 
@@ -223,6 +246,17 @@ export function AppointmentsCalendar({
       ...current,
       locationId,
       patientId: '',
+      sessionFee: defaultSessionFee,
+    }))
+  }
+
+  function handlePatientChange(patientId: string) {
+    setForm((current) => ({
+      ...current,
+      patientId,
+      sessionFee: editingId
+        ? current.sessionFee
+        : resolveSessionFeeForPatient(patientId, patients, defaultSessionFee),
     }))
   }
 
@@ -263,6 +297,7 @@ export function AppointmentsCalendar({
               : selectedDate,
         time: form.time,
         durationMinutes: form.durationMinutes,
+        sessionFee: form.sessionFee,
         notes: form.notes.trim() ? form.notes.trim() : null,
       }
 
@@ -593,9 +628,7 @@ export function AppointmentsCalendar({
                     <select
                       id="appointment-patient"
                       value={form.patientId}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, patientId: event.target.value }))
-                      }
+                      onChange={(event) => handlePatientChange(event.target.value)}
                       disabled={!form.locationId}
                     >
                       <option value="" disabled>
@@ -651,6 +684,22 @@ export function AppointmentsCalendar({
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="appointment-session-fee">Valor da consulta (€)</label>
+                    <input
+                      id="appointment-session-fee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.sessionFee}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          sessionFee: Number(event.target.value),
+                        }))
+                      }
+                    />
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="appointment-notes">Notas (opcional)</label>

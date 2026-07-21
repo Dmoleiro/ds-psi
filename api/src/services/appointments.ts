@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
+import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
 
 export type AppointmentRecurrenceCadence = 'weekly' | 'biweekly' | 'monthly'
@@ -19,6 +20,7 @@ export type AppointmentInput = {
   date: string
   time: string
   durationMinutes: number
+  sessionFee?: number
   notes?: string | null
   recurrence?: AppointmentRecurrence
   scope?: AppointmentSeriesScope
@@ -136,6 +138,7 @@ export function formatAppointment(record: {
   id: string
   scheduledAt: Date
   durationMinutes: number
+  sessionFee: { toString(): string } | number
   notes: string | null
   recurrenceGroupId: string | null
   patient: { id: string; fullName: string }
@@ -151,6 +154,7 @@ export function formatAppointment(record: {
     time: formatAppointmentTime(record.scheduledAt),
     scheduledAt: record.scheduledAt.toISOString(),
     durationMinutes: record.durationMinutes,
+    sessionFee: decimalToNumber(record.sessionFee),
     notes: record.notes,
     recurrenceGroupId: record.recurrenceGroupId,
   }
@@ -216,6 +220,10 @@ export async function createTherapistAppointment(therapistId: string, input: App
 
   const notes = input.notes?.trim() ? input.notes.trim() : null
   const recurrenceGroupId = input.recurrence ? randomUUID() : null
+  const sessionFee = await resolveSessionFee(therapistId, {
+    sessionFee: input.sessionFee,
+    patientId: input.patientId,
+  })
   const appointments = await prisma.$transaction(
     dates.map((date) => {
       const scheduledAt = parseScheduledAt(date, input.time)
@@ -230,6 +238,7 @@ export async function createTherapistAppointment(therapistId: string, input: App
           locationId: input.locationId,
           scheduledAt,
           durationMinutes: input.durationMinutes,
+          sessionFee,
           notes,
           recurrenceGroupId,
         },
@@ -277,6 +286,7 @@ export async function updateTherapistAppointment(
         locationId: input.locationId,
         scheduledAt,
         durationMinutes: input.durationMinutes,
+        sessionFee: input.sessionFee ?? decimalToNumber(existing.sessionFee),
         notes,
       },
       include: appointmentInclude,
@@ -299,6 +309,11 @@ export async function updateTherapistAppointment(
     throw new Error('APPOINTMENT_NOT_FOUND')
   }
 
+  const sessionFee = await resolveSessionFee(therapistId, {
+    sessionFee: input.sessionFee,
+    patientId: input.patientId,
+  })
+
   const appointments = await prisma.$transaction(
     targets.map((target) => {
       const date = formatAppointmentDate(target.scheduledAt)
@@ -314,6 +329,7 @@ export async function updateTherapistAppointment(
           locationId: input.locationId,
           scheduledAt,
           durationMinutes: input.durationMinutes,
+          sessionFee,
           notes,
         },
         include: appointmentInclude,
