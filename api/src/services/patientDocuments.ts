@@ -84,13 +84,13 @@ export async function uploadTherapistPatientDocument(
   file: { buffer: Buffer; mimetype: string; originalName: string },
 ) {
   await assertTherapistPatient(therapistId, patientId)
-  const storagePath = await savePatientDocumentBuffer(patientId, file.buffer, file.mimetype)
+  const { storagePath, mimeType } = await savePatientDocumentBuffer(patientId, file.buffer, file.mimetype)
   const document = await prisma.patientDocument.create({
     data: {
       patientId,
       therapistId,
       originalName: file.originalName,
-      mimeType: 'application/pdf',
+      mimeType,
       sizeBytes: file.buffer.length,
       storagePath,
       uploadedBy: DocumentUploader.therapist,
@@ -105,14 +105,14 @@ export async function uploadPatientSessionDocument(
   sessionId: string,
   file: { buffer: Buffer; mimetype: string; originalName: string },
 ) {
-  const storagePath = await savePatientDocumentBuffer(patientId, file.buffer, file.mimetype)
+  const { storagePath, mimeType } = await savePatientDocumentBuffer(patientId, file.buffer, file.mimetype)
   const document = await prisma.patientDocument.create({
     data: {
       patientId,
       therapistId,
       intakeSessionId: sessionId,
       originalName: file.originalName,
-      mimeType: 'application/pdf',
+      mimeType,
       sizeBytes: file.buffer.length,
       storagePath,
       uploadedBy: DocumentUploader.patient,

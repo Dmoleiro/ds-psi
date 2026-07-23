@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApiError, therapistApi, type PatientDocumentSummary } from '../../lib/api'
+import { isImageMimeType, PATIENT_DOCUMENT_ACCEPT } from '../../lib/patientDocuments'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
@@ -29,6 +30,7 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState('')
+  const [previewMimeType, setPreviewMimeType] = useState('')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
@@ -83,6 +85,7 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
         URL.revokeObjectURL(previewUrl)
       }
       setPreviewTitle(document.originalName)
+      setPreviewMimeType(document.mimeType)
       setPreviewUrl(URL.createObjectURL(blob))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível pré-visualizar o documento')
@@ -126,6 +129,7 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
         URL.revokeObjectURL(previewUrl)
         setPreviewUrl(null)
         setPreviewTitle('')
+        setPreviewMimeType('')
       }
       await loadDocuments()
     } catch (err) {
@@ -141,6 +145,7 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
     }
     setPreviewUrl(null)
     setPreviewTitle('')
+    setPreviewMimeType('')
   }
 
   return (
@@ -148,18 +153,18 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
       <Card as="section" className={layout.sectionSpaced}>
         <h2>Documentos</h2>
         <p className={layout.muted}>
-          PDFs associados a este paciente. Podem ser anexados pelo paciente através do formulário
-          &quot;Anexar documentos&quot; ou carregados aqui pela terapeuta.
+          Documentos associados a este paciente (PDF ou imagens). Podem ser anexados pelo paciente
+          através do formulário &quot;Anexar documentos&quot; ou carregados aqui pela terapeuta.
         </p>
 
         <div className={styles.uploadRow}>
           <input
             type="file"
-            accept="application/pdf,.pdf"
+            accept={PATIENT_DOCUMENT_ACCEPT}
             onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
           />
           <Button type="button" onClick={handleUpload} disabled={!selectedFile || uploading}>
-            {uploading ? 'A carregar…' : 'Carregar PDF'}
+            {uploading ? 'A carregar…' : 'Carregar ficheiro'}
           </Button>
         </div>
 
@@ -252,7 +257,11 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
                 Fechar
               </button>
             </div>
-            <iframe title={previewTitle} src={previewUrl} className={styles.previewFrame} />
+            {isImageMimeType(previewMimeType) ? (
+              <img src={previewUrl} alt={previewTitle} className={styles.previewImage} />
+            ) : (
+              <iframe title={previewTitle} src={previewUrl} className={styles.previewFrame} />
+            )}
           </div>
         </div>
       )}

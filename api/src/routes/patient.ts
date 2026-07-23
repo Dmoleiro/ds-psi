@@ -276,10 +276,10 @@ export async function patientRoutes(app: FastifyInstance) {
       return reply.status(201).send({ document })
     } catch (error) {
       if (error instanceof Error && error.message === 'FILE_REQUIRED') {
-        return reply.status(400).send({ error: 'É necessário enviar um ficheiro PDF' })
+        return reply.status(400).send({ error: 'É necessário enviar um ficheiro' })
       }
       if (error instanceof Error && error.message === 'INVALID_DOCUMENT_TYPE') {
-        return reply.status(400).send({ error: 'Apenas ficheiros PDF são permitidos' })
+        return reply.status(400).send({ error: 'Apenas ficheiros PDF ou imagens são permitidos' })
       }
       if (error instanceof Error && error.message === 'DOCUMENT_TOO_LARGE') {
         return reply.status(400).send({ error: 'O ficheiro excede o tamanho máximo de 10 MB' })

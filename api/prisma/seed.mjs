@@ -20,7 +20,7 @@ const formDefinitions = [
     id: 'anexar-documentos',
     title: 'Anexar documentos',
     description:
-      'Carregue documentos em PDF (por exemplo, relatórios escolares ou exames). Pode voltar a este link quando quiser para anexar mais ficheiros.',
+      'Carregue documentos em PDF ou imagem (por exemplo, relatórios escolares, exames ou fotografias). Pode voltar a este link quando quiser para anexar mais ficheiros.',
   },
 ]
 

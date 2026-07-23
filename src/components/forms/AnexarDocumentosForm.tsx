@@ -12,7 +12,7 @@ export function AnexarDocumentosForm({
       token={patientToken}
       readOnly={readOnly}
       title="Anexar documentos"
-      description="Se tiver documentos para anexar (por exemplo, relatórios escolares ou exames), carregue-os aqui em formato PDF. Pode voltar a esta página quando quiser para adicionar mais ficheiros."
+      description="Se tiver documentos para anexar (por exemplo, relatórios escolares, exames ou fotografias), carregue-os aqui em formato PDF ou imagem. Pode voltar a esta página quando quiser para adicionar mais ficheiros."
     />
   )
 }

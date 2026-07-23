@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApiError, patientApi, type PatientDocumentSummary } from '../../lib/api'
+import { PATIENT_DOCUMENT_ACCEPT } from '../../lib/patientDocuments'
 import { Button } from '../ui/Button'
 import styles from './PatientDocumentAttachments.module.css'
 
@@ -20,7 +21,7 @@ export function PatientDocumentAttachments({
   token,
   readOnly = false,
   title = 'Documentos anexos',
-  description = 'Se tiver documentos para anexar (por exemplo, relatórios escolares ou exames), pode carregá-los aqui em formato PDF.',
+  description = 'Se tiver documentos para anexar (por exemplo, relatórios escolares, exames ou fotografias), pode carregá-los aqui em formato PDF ou imagem.',
 }: PatientDocumentAttachmentsProps) {
   const [documents, setDocuments] = useState<PatientDocumentSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -84,11 +85,11 @@ export function PatientDocumentAttachments({
         <div className={styles.upload}>
           <input
             type="file"
-            accept="application/pdf,.pdf"
+            accept={PATIENT_DOCUMENT_ACCEPT}
             onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
           />
           <Button type="button" onClick={handleUpload} disabled={!selectedFile || uploading}>
-            {uploading ? 'A carregar…' : 'Anexar PDF'}
+            {uploading ? 'A carregar…' : 'Anexar ficheiro'}
           </Button>
         </div>
       )}

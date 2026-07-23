@@ -20,7 +20,7 @@ export async function parseDocumentUpload(
       file = {
         buffer: await part.toBuffer(),
         mimetype: part.mimetype,
-        originalName: part.filename || 'documento.pdf',
+        originalName: part.filename || 'documento',
       }
     } else {
       await part.toBuffer()
