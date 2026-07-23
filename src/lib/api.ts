@@ -311,6 +311,8 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  deleteSession: (token: string, sessionId: string) =>
+    apiRequest<void>(`/api/therapist/sessions/${sessionId}`, { method: 'DELETE', token }),
   listAttendance: (token: string, patientId: string, year: number, month: number) =>
     apiRequest<{ records: AttendanceRecord[] }>(
       `/api/therapist/patients/${patientId}/attendance?year=${year}&month=${month}`,

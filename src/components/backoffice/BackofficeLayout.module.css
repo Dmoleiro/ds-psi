@@ -385,6 +385,16 @@
   text-decoration: underline;
 }
 
+.dangerLinkButton {
+  background: none;
+  border: none;
+  color: #9b2c2c;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+
 .rowActions {
   display: flex;
   flex-wrap: wrap;
@@ -438,6 +448,18 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-xs);
+}
+
+.sessionConfirm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  max-width: 16rem;
+}
+
+.sessionConfirm p {
+  margin: 0;
 }
 
 .checkboxGroup {

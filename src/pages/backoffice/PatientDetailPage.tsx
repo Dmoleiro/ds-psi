@@ -61,6 +61,12 @@ export function PatientDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [sessionAction, setSessionAction] = useState<{
+    type: 'revoke' | 'delete'
+    sessionId: string
+  } | null>(null)
+  const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null)
+  const [sessionActionError, setSessionActionError] = useState('')
   const [copyFeedback, setCopyFeedback] = useState('')
   const [editingPatient, setEditingPatient] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
@@ -103,8 +109,7 @@ export function PatientDetailPage() {
     try {
       const result = await therapistApi.createSession(token, id, selectedForms)
       setGeneratedUrl(result.url)
-      const refreshed = await therapistApi.getPatient(token, id)
-      setPatient(refreshed.patient as unknown as PatientDetail)
+      await refreshPatient()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível gerar o link')
     } finally {
@@ -139,6 +144,63 @@ export function PatientDetailPage() {
       setDeleteError(err instanceof ApiError ? err.message : 'Não foi possível eliminar o paciente')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  function sessionCanRevoke(session: SessionRow) {
+    return sessionIsOpen(session)
+  }
+
+  function sessionCanDelete(session: SessionRow) {
+    return session.status !== 'completed' && !sessionHasSubmissions(session)
+  }
+
+  async function refreshPatient() {
+    if (!token || !id) return
+    const refreshed = await therapistApi.getPatient(token, id)
+    setPatient(refreshed.patient as unknown as PatientDetail)
+  }
+
+  async function handleRevokeSession(sessionId: string) {
+    if (!token) return
+    setSessionActionLoading(sessionId)
+    setSessionActionError('')
+    try {
+      await therapistApi.revokeSession(token, sessionId)
+      setSessionAction(null)
+      if (generatedUrl) {
+        setGeneratedUrl('')
+      }
+      await refreshPatient()
+    } catch (err) {
+      setSessionActionError(
+        err instanceof ApiError ? err.message : 'Não foi possível revogar o link',
+      )
+    } finally {
+      setSessionActionLoading(null)
+    }
+  }
+
+  async function handleDeleteSession(sessionId: string) {
+    if (!token) return
+    setSessionActionLoading(sessionId)
+    setSessionActionError('')
+    try {
+      await therapistApi.deleteSession(token, sessionId)
+      setSessionAction(null)
+      if (submissions?.id === sessionId) {
+        setSubmissions(null)
+      }
+      if (generatedUrl) {
+        setGeneratedUrl('')
+      }
+      await refreshPatient()
+    } catch (err) {
+      setSessionActionError(
+        err instanceof ApiError ? err.message : 'Não foi possível eliminar o conjunto de formulários',
+      )
+    } finally {
+      setSessionActionLoading(null)
     }
   }
 
@@ -449,7 +511,12 @@ export function PatientDetailPage() {
 
       <Card as="section">
         <h2>Formulários</h2>
+        <p className={styles.muted}>
+          Pode revogar links em curso ou eliminar conjuntos criados por engano, desde que ainda não existam
+          respostas submetidas.
+        </p>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
+        {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
         {patient.intakeSessions.length === 0 ? (
           <p className={styles.muted}>Ainda não existem formulários gerados.</p>
         ) : (
@@ -512,6 +579,73 @@ export function PatientDetailPage() {
                         >
                           Ver respostas
                         </button>
+                      )}
+                      {sessionAction?.sessionId === session.id ? (
+                        <div className={styles.sessionConfirm}>
+                          <p className={styles.muted}>
+                            {sessionAction.type === 'revoke'
+                              ? 'O link deixará de funcionar. O registo mantém-se no histórico.'
+                              : 'Eliminar este conjunto de formulários? Esta ação não pode ser desfeita.'}
+                          </p>
+                          <div className={styles.rowActions}>
+                            <button
+                              type="button"
+                              className={styles.dangerLinkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() =>
+                                sessionAction.type === 'revoke'
+                                  ? handleRevokeSession(session.id)
+                                  : handleDeleteSession(session.id)
+                              }
+                            >
+                              {sessionActionLoading === session.id
+                                ? 'A processar…'
+                                : sessionAction.type === 'revoke'
+                                  ? 'Sim, revogar'
+                                  : 'Sim, eliminar'}
+                            </button>
+                            <button
+                              type="button"
+                              className={styles.linkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() => {
+                                setSessionAction(null)
+                                setSessionActionError('')
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {sessionCanRevoke(session) && (
+                            <button
+                              type="button"
+                              className={styles.dangerLinkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() => {
+                                setSessionActionError('')
+                                setSessionAction({ type: 'revoke', sessionId: session.id })
+                              }}
+                            >
+                              Revogar link
+                            </button>
+                          )}
+                          {sessionCanDelete(session) && (
+                            <button
+                              type="button"
+                              className={styles.dangerLinkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() => {
+                                setSessionActionError('')
+                                setSessionAction({ type: 'delete', sessionId: session.id })
+                              }}
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

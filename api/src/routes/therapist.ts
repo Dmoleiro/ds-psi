@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js'
 import {
   createPatientSession,
   deleteTherapistPatient,
+  deleteTherapistSession,
   formatPatientSummary,
   formatTherapistPatient,
   getTherapistPatient,
@@ -398,6 +399,31 @@ export async function therapistRoutes(app: FastifyInstance) {
         data: { status: 'revoked', patientToken: null },
       })
       return { session: updated }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/sessions/:id',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        await deleteTherapistSession(request.user.sub, id)
+        return reply.status(204).send()
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'SESSION_COMPLETED') {
+          return reply.status(400).send({ error: 'Não é possível eliminar uma sessão concluída' })
+        }
+        if (error instanceof Error && error.message === 'SESSION_HAS_SUBMISSIONS') {
+          return reply
+            .status(400)
+            .send({ error: 'Não é possível eliminar uma sessão com formulários submetidos' })
+        }
+        throw error
+      }
     },
   )
 
