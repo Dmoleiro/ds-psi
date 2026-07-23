@@ -2,6 +2,7 @@ import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
+import { shouldCompleteSession } from '../lib/formIds.js'
 import { decimalToNumber } from './financialSettings.js'
 
 type SessionWithUrl = {
@@ -86,9 +87,11 @@ export function formatTherapistPatient(patient: TherapistPatient) {
 }
 
 export async function completeSessionIfReady(sessionId: string) {
-  const forms = await prisma.sessionForm.findMany({ where: { sessionId } })
-  const allSubmitted = forms.length > 0 && forms.every((f) => f.status === FormStatus.submitted)
-  if (!allSubmitted) return
+  const forms = await prisma.sessionForm.findMany({
+    where: { sessionId },
+    select: { formId: true, status: true },
+  })
+  if (!shouldCompleteSession(forms)) return
 
   await prisma.intakeSession.update({
     where: { id: sessionId },

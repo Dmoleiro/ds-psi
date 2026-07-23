@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
+import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
@@ -655,6 +656,8 @@ export function PatientDetailPage() {
           </table>
         )}
       </Card>
+
+      <PatientDocumentsPanel patientId={patient.id} />
 
       {submissions && (
         <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />

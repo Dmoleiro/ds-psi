@@ -33,6 +33,11 @@ enum AttendanceStatus {
   absent
 }
 
+enum DocumentUploader {
+  patient
+  therapist
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -50,6 +55,7 @@ model User {
   attendanceRecords AttendanceRecord[]
   appointments   Appointment[]
   workshops      Workshop[]
+  patientDocuments PatientDocument[]
   financialSettings TherapistFinancialSettings?
 
   @@map("users")
@@ -75,6 +81,7 @@ model Patient {
   intakeSessions    IntakeSession[]
   attendanceRecords AttendanceRecord[]
   appointments      Appointment[]
+  documents         PatientDocument[]
 
   @@index([therapistId])
   @@index([locationId])
@@ -129,10 +136,32 @@ model IntakeSession {
   patient  Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
   therapist User         @relation(fields: [therapistId], references: [id])
   forms    SessionForm[]
+  documents PatientDocument[]
 
   @@index([therapistId])
   @@index([patientId])
   @@map("intake_sessions")
+}
+
+model PatientDocument {
+  id              String           @id @default(uuid())
+  patientId       String           @map("patient_id")
+  therapistId     String           @map("therapist_id")
+  intakeSessionId String?          @map("intake_session_id")
+  originalName    String           @map("original_name")
+  mimeType        String           @map("mime_type")
+  sizeBytes       Int              @map("size_bytes")
+  storagePath     String           @map("storage_path")
+  uploadedBy      DocumentUploader @map("uploaded_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  patient       Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  therapist     User           @relation(fields: [therapistId], references: [id])
+  intakeSession IntakeSession? @relation(fields: [intakeSessionId], references: [id], onDelete: SetNull)
+
+  @@index([patientId])
+  @@index([therapistId])
+  @@map("patient_documents")
 }
 
 model FormDefinition {

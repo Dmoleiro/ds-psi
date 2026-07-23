@@ -7,6 +7,7 @@ import { Container } from '../../components/layout/Container'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { ApiError, patientApi } from '../../lib/api'
+import { isDocumentUploadForm } from '../../lib/formIds'
 import { useDraftAutosave } from '../../hooks/useDraftAutosave'
 import styles from './PatientPortal.module.css'
 
@@ -20,6 +21,7 @@ export function PatientFormPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
 
+  const isDocumentForm = formId ? isDocumentUploadForm(formId) : false
   const hasRenderer = formId ? hasPatientFormRenderer(formId) : false
 
   useEffect(() => {
@@ -41,11 +43,16 @@ export function PatientFormPage() {
       .finally(() => setLoading(false))
   }, [token, formId, navigate])
 
-  useDraftAutosave(token ?? '', formId ?? '', values, Boolean(hasRenderer && !readOnly && token && formId))
+  useDraftAutosave(
+    token ?? '',
+    formId ?? '',
+    values,
+    Boolean(hasRenderer && !readOnly && !isDocumentForm && token && formId),
+  )
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (!token || !formId || readOnly || !hasRenderer) return
+    if (!token || !formId || readOnly || !hasRenderer || isDocumentForm) return
     setSubmitting(true)
     setError('')
     try {
@@ -89,20 +96,33 @@ export function PatientFormPage() {
         <Link to={`/formularios/p/${token}`}>← Voltar aos formulários</Link>
       </p>
       <h1>{title}</h1>
-      {!readOnly && hasRenderer && (
+      {!readOnly && hasRenderer && !isDocumentForm && (
         <p className={styles.intro}>O progresso é guardado automaticamente a cada poucos segundos.</p>
+      )}
+      {isDocumentForm && (
+        <p className={styles.intro}>
+          Pode anexar vários documentos e voltar a esta página quando quiser. O link mantém-se ativo até a
+          sua terapeuta o desativar.
+        </p>
       )}
       <Card>
         {FormRenderer ? (
-          <form onSubmit={handleSubmit}>
-            {FormRenderer({ values, onChange: setValues, readOnly })}
-            {error && <p className={styles.error}>{error}</p>}
-            {!readOnly && (
-              <Button type="submit" disabled={submitting} style={{ marginTop: 'var(--space-lg)' }}>
-                {submitting ? 'A submeter…' : 'Submeter formulário'}
-              </Button>
-            )}
-          </form>
+          isDocumentForm ? (
+            <>
+              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token })}
+              {error && <p className={styles.error}>{error}</p>}
+            </>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token })}
+              {error && <p className={styles.error}>{error}</p>}
+              {!readOnly && (
+                <Button type="submit" disabled={submitting} style={{ marginTop: 'var(--space-lg)' }}>
+                  {submitting ? 'A submeter…' : 'Submeter formulário'}
+                </Button>
+              )}
+            </form>
+          )
         ) : readOnly ? (
           <GenericFormAnswers answers={values} />
         ) : (

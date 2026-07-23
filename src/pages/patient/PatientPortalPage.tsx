@@ -6,6 +6,7 @@ import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import { Container } from '../../components/layout/Container'
 import { formatFormStatus, formStatusBadgeVariant } from '../../lib/intakeStatus'
+import { isDocumentUploadForm } from '../../lib/formIds'
 import styles from './PatientPortal.module.css'
 
 export function PatientPortalPage() {
@@ -101,23 +102,30 @@ export function PatientPortalPage() {
         </Card>
       ) : (
         <div className={styles.grid}>
-          {session.forms.map((form) => (
-            <Card key={form.formId} as="article" className={styles.formCard}>
-              <div className={styles.cardHeader}>
-                <h2>{form.title}</h2>
-                <Badge variant={formStatusBadgeVariant(form.status)}>
-                  {formatFormStatus(form.status)}
-                </Badge>
-              </div>
-              {form.description && <p>{form.description}</p>}
-              <Button
-                href={`/formularios/p/${token}/${form.formId}`}
-                variant={form.status === 'submitted' ? 'outline' : 'primary'}
-              >
-                {form.status === 'submitted' ? 'Ver respostas' : 'Preencher'}
-              </Button>
-            </Card>
-          ))}
+          {session.forms.map((form) => {
+            const isDocumentForm = isDocumentUploadForm(form.formId)
+            return (
+              <Card key={form.formId} as="article" className={styles.formCard}>
+                <div className={styles.cardHeader}>
+                  <h2>{form.title}</h2>
+                  <Badge variant={isDocumentForm ? 'default' : formStatusBadgeVariant(form.status)}>
+                    {isDocumentForm ? 'Sempre disponível' : formatFormStatus(form.status)}
+                  </Badge>
+                </div>
+                {form.description && <p>{form.description}</p>}
+                <Button
+                  href={`/formularios/p/${token}/${form.formId}`}
+                  variant={!isDocumentForm && form.status === 'submitted' ? 'outline' : 'primary'}
+                >
+                  {isDocumentForm
+                    ? 'Anexar documentos'
+                    : form.status === 'submitted'
+                      ? 'Ver respostas'
+                      : 'Preencher'}
+                </Button>
+              </Card>
+            )
+          })}
         </div>
       )}
     </Container>

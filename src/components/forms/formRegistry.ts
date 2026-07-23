@@ -4,6 +4,7 @@ export type PatientFormRendererProps = {
   values: Record<string, unknown>
   onChange: (values: Record<string, unknown>) => void
   readOnly: boolean
+  patientToken?: string
 }
 
 export const patientFormRenderers: Record<

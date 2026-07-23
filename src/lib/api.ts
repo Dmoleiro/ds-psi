@@ -107,6 +107,62 @@ export async function apiFormRequest<T>(
   return data as T
 }
 
+export async function apiPatientFormRequest<T>(
+  path: string,
+  formData: FormData,
+  options: { method?: string; patientToken: string },
+): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: options.method ?? 'POST',
+    headers: {
+      Accept: 'application/json',
+      'X-Patient-Token': options.patientToken,
+    },
+    body: formData,
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    const message =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      'Erro de comunicação'
+    throw new ApiError(message, response.status, data.details)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
+  }
+
+  return data as T
+}
+
+export type PatientDocumentSummary = {
+  id: string
+  originalName: string
+  mimeType: string
+  sizeBytes: number
+  uploadedBy: 'patient' | 'therapist'
+  createdAt: string
+}
+
+async function fetchDocumentBlob(
+  path: string,
+  headers: Record<string, string>,
+): Promise<Blob> {
+  const response = await fetch(`${API_URL}${path}`, { headers })
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
+    const message =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      'Erro de comunicação'
+    throw new ApiError(message, response.status, data.details)
+  }
+  return response.blob()
+}
+
 export type StaffUser = {
   id: string
   email: string
@@ -313,6 +369,35 @@ export const therapistApi = {
     }),
   deleteSession: (token: string, sessionId: string) =>
     apiRequest<void>(`/api/therapist/sessions/${sessionId}`, { method: 'DELETE', token }),
+  listPatientDocuments: (token: string, patientId: string) =>
+    apiRequest<{ documents: PatientDocumentSummary[] }>(
+      `/api/therapist/patients/${patientId}/documents`,
+      { token },
+    ),
+  uploadPatientDocument: (token: string, patientId: string, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiFormRequest<{ document: PatientDocumentSummary }>(
+      `/api/therapist/patients/${patientId}/documents`,
+      formData,
+      { token },
+    )
+  },
+  getPatientDocumentContent: (
+    token: string,
+    patientId: string,
+    documentId: string,
+    disposition: 'inline' | 'attachment' = 'inline',
+  ) =>
+    fetchDocumentBlob(
+      `/api/therapist/patients/${patientId}/documents/${documentId}/content?disposition=${disposition}`,
+      { Authorization: `Bearer ${token}` },
+    ),
+  deletePatientDocument: (token: string, patientId: string, documentId: string) =>
+    apiRequest<void>(`/api/therapist/patients/${patientId}/documents/${documentId}`, {
+      method: 'DELETE',
+      token,
+    }),
   listAttendance: (token: string, patientId: string, year: number, month: number) =>
     apiRequest<{ records: AttendanceRecord[] }>(
       `/api/therapist/patients/${patientId}/attendance?year=${year}&month=${month}`,
@@ -616,4 +701,21 @@ export const patientApi = {
       `/api/patient/session/${token}/forms/${formId}/submit`,
       { method: 'POST', patientToken: token, body: answers },
     ),
+  listDocuments: (token: string) =>
+    apiRequest<{ documents: PatientDocumentSummary[] }>(`/api/patient/session/${token}/documents`, {
+      patientToken: token,
+    }),
+  uploadDocument: (token: string, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return apiPatientFormRequest<{ document: PatientDocumentSummary }>(
+      `/api/patient/session/${token}/documents`,
+      formData,
+      { patientToken: token },
+    )
+  },
+  getDocumentContent: (token: string, documentId: string) =>
+    fetchDocumentBlob(`/api/patient/session/${token}/documents/${documentId}/content`, {
+      'X-Patient-Token': token,
+    }),
 }

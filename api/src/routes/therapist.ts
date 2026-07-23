@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { createReadStream } from 'node:fs'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
@@ -37,6 +38,14 @@ import {
   getTherapistFinancialOverview,
 } from '../services/financialOverview.js'
 import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
+import { parseDocumentUpload } from '../lib/documentMultipart.js'
+import {
+  deleteTherapistPatientDocument,
+  getDocumentAbsolutePath,
+  getTherapistPatientDocument,
+  listTherapistPatientDocuments,
+  uploadTherapistPatientDocument,
+} from '../services/patientDocuments.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -635,4 +644,110 @@ export async function therapistRoutes(app: FastifyInstance) {
 
     return getTherapistFinancialCharts(request.user.sub, parsed.data.year)
   })
+
+  app.get(
+    '/api/therapist/patients/:patientId/documents',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { patientId } = request.params as { patientId: string }
+      try {
+        const documents = await listTherapistPatientDocuments(request.user.sub, patientId)
+        return { documents }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.post(
+    '/api/therapist/patients/:patientId/documents',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { patientId } = request.params as { patientId: string }
+      try {
+        const file = await parseDocumentUpload(request.parts())
+        const document = await uploadTherapistPatientDocument(request.user.sub, patientId, file)
+        return reply.status(201).send({ document })
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'FILE_REQUIRED') {
+          return reply.status(400).send({ error: 'É necessário enviar um ficheiro PDF' })
+        }
+        if (error instanceof Error && error.message === 'INVALID_DOCUMENT_TYPE') {
+          return reply.status(400).send({ error: 'Apenas ficheiros PDF são permitidos' })
+        }
+        if (error instanceof Error && error.message === 'DOCUMENT_TOO_LARGE') {
+          return reply.status(400).send({ error: 'O ficheiro excede o tamanho máximo de 10 MB' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get(
+    '/api/therapist/patients/:patientId/documents/:documentId/content',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { patientId, documentId } = request.params as {
+        patientId: string
+        documentId: string
+      }
+      const disposition =
+        (request.query as { disposition?: string }).disposition === 'attachment'
+          ? 'attachment'
+          : 'inline'
+
+      try {
+        const document = await getTherapistPatientDocument(
+          request.user.sub,
+          patientId,
+          documentId,
+        )
+        const absolutePath = getDocumentAbsolutePath(document)
+        return reply
+          .header('Content-Type', document.mimeType)
+          .header(
+            'Content-Disposition',
+            `${disposition}; filename="${encodeURIComponent(document.originalName)}"`,
+          )
+          .send(createReadStream(absolutePath))
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'DOCUMENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Documento não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/patients/:patientId/documents/:documentId',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { patientId, documentId } = request.params as {
+        patientId: string
+        documentId: string
+      }
+      try {
+        await deleteTherapistPatientDocument(request.user.sub, patientId, documentId)
+        return reply.status(204).send()
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'DOCUMENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Documento não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
 }

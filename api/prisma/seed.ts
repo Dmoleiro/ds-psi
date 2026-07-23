@@ -16,6 +16,12 @@ const formDefinitions = [
     description:
       'Questionário sobre a queixa inicial, sintomas observados e motivo do pedido de consulta.',
   },
+  {
+    id: 'anexar-documentos',
+    title: 'Anexar documentos',
+    description:
+      'Carregue documentos em PDF (por exemplo, relatórios escolares ou exames). Pode voltar a este link quando quiser para anexar mais ficheiros.',
+  },
 ]
 
 async function main() {

@@ -1,0 +1,52 @@
+.uploadRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  margin: var(--space-md) 0;
+}
+
+.uploadRow input[type='file'] {
+  font: inherit;
+}
+
+.previewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.previewPanel {
+  width: min(960px, 100%);
+  height: min(90vh, 900px);
+  background: #fff;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.previewHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.previewFrame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+}

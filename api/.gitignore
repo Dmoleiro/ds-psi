@@ -5,3 +5,5 @@ dist
 !.env.example
 uploads/workshops/*
 !uploads/workshops/.gitkeep
+uploads/patients/*
+!uploads/patients/.gitkeep
