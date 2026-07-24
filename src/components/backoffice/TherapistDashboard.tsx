@@ -5,6 +5,7 @@ import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { DashboardCharts } from './DashboardCharts'
 import { therapistApi, type TherapistDashboard } from '../../lib/api'
+import { useAuth } from '../../hooks/useAuth'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 import { formatAppointmentDayLabel } from '../../lib/dashboard'
 import styles from './TherapistDashboard.module.css'
@@ -54,6 +55,7 @@ function StatCard({
 }
 
 export function TherapistDashboard({ token, therapistName }: TherapistDashboardProps) {
+  const { user } = useAuth()
   const [dashboard, setDashboard] = useState<TherapistDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -258,6 +260,7 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
               <Link to="/backoffice/patients">Pacientes ({dashboard.stats.patients})</Link>
               <Link to="/backoffice/appointments">Consultas</Link>
               <Link to="/backoffice/attendance">Presenças</Link>
+              {user?.financialOverviewEnabled && <Link to="/backoffice/financial">Finanças</Link>}
               <Link to="/backoffice/workshops">Workshops</Link>
               <Link to="/backoffice/profile">O meu perfil</Link>
             </nav>

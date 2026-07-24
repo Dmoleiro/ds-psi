@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ApiError,
   coordinatorApi,
@@ -118,6 +118,15 @@ export function AppointmentsCalendar({
   const [defaultSessionFee, setDefaultSessionFee] = useState(50)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (!editingId) return
+    const frame = requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [editingId])
 
   const cells = useMemo(() => getCalendarCells(viewYear, viewMonth), [viewYear, viewMonth])
   const weeks = useMemo(() => {
@@ -575,7 +584,7 @@ export function AppointmentsCalendar({
               <>
                 <hr className={styles.divider} />
 
-                <form className={styles.form} onSubmit={handleSubmit} noValidate>
+                <form ref={formRef} className={styles.form} onSubmit={handleSubmit} noValidate>
               <h3>{editingId ? 'Editar consulta' : 'Nova consulta'}</h3>
               {editingAppointment?.recurrenceGroupId && (
                 <div className={styles.seriesActionBox}>
