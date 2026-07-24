@@ -1,5 +1,6 @@
 import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { assertTherapistHasLocation } from './therapistLocations.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
 import { shouldCompleteSession } from '../lib/formIds.js'
@@ -240,6 +241,8 @@ export async function updateTherapistPatient(
   if (!location) {
     throw new Error('INVALID_LOCATION')
   }
+
+  await assertTherapistHasLocation(therapistId, data.locationId)
 
   const updated = await prisma.patient.update({
     where: { id: patientId },

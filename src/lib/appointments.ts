@@ -7,6 +7,8 @@ export type AppointmentSummary = {
   patientName: string
   locationId: string
   locationName: string
+  gabineteId: string
+  gabineteName: string
   date: string
   time: string
   scheduledAt: string
@@ -74,6 +76,78 @@ export type FinancialYearCharts = {
 }
 
 export const DURATION_OPTIONS = [30, 45, 50, 60, 90] as const
+
+export type GabineteSummary = {
+  id: string
+  locationId: string
+  locationName?: string
+  name: string
+  active: boolean
+  sortOrder: number
+}
+
+export function gabinetesForLocation(gabinetes: GabineteSummary[], locationId: string) {
+  return gabinetes.filter((gabinete) => gabinete.locationId === locationId)
+}
+
+export function resolveGabineteForLocation(
+  locationId: string,
+  gabinetes: GabineteSummary[],
+  currentGabineteId = '',
+) {
+  const options = gabinetesForLocation(gabinetes, locationId)
+  if (options.length === 1) return options[0].id
+  if (currentGabineteId && options.some((gabinete) => gabinete.id === currentGabineteId)) {
+    return currentGabineteId
+  }
+  return options[0]?.id ?? ''
+}
+
+export type RoomOccupancy = {
+  id: string
+  gabineteId: string
+  gabineteName: string
+  date: string
+  time: string
+  durationMinutes: number
+  therapistName: string
+  patientName: string
+}
+
+function parseTimeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number)
+  return hours * 60 + minutes
+}
+
+export function occupancyOverlaps(
+  slotTime: string,
+  slotDuration: number,
+  otherTime: string,
+  otherDuration: number,
+): boolean {
+  const startA = parseTimeToMinutes(slotTime)
+  const endA = startA + slotDuration
+  const startB = parseTimeToMinutes(otherTime)
+  const endB = startB + otherDuration
+  return startA < endB && startB < endA
+}
+
+export function findRoomConflict(
+  occupancy: RoomOccupancy[],
+  gabineteId: string,
+  time: string,
+  durationMinutes: number,
+  excludeId?: string | null,
+): RoomOccupancy | null {
+  return (
+    occupancy.find(
+      (entry) =>
+        entry.gabineteId === gabineteId &&
+        entry.id !== excludeId &&
+        occupancyOverlaps(time, durationMinutes, entry.time, entry.durationMinutes),
+    ) ?? null
+  )
+}
 
 export const RECURRENCE_CADENCE_OPTIONS = [
   { value: 'weekly', label: 'Semanal' },

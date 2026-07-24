@@ -47,6 +47,7 @@ function buildPrintHtml(
                     <td>${escapeHtml(appointment.time)}</td>
                     <td>${escapeHtml(formatAppointmentRange(appointment.time, appointment.durationMinutes))}</td>
                     <td>${escapeHtml(appointment.patientName)}</td>
+                    <td>${escapeHtml(appointment.gabineteName)}</td>
                     <td>${escapeHtml(appointment.locationName)}</td>
                     <td>${appointment.notes ? nl2br(escapeHtml(appointment.notes)) : '—'}</td>
                   </tr>
@@ -63,6 +64,7 @@ function buildPrintHtml(
                       <th>Hora</th>
                       <th>Duração</th>
                       <th>Paciente</th>
+                      <th>Gabinete</th>
                       <th>Local</th>
                       <th>Notas</th>
                     </tr>

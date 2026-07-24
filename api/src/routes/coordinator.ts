@@ -4,7 +4,8 @@ import { prisma } from '../lib/prisma.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { listTherapistAttendance, toggleCoordinatorReceiptStatus } from '../services/attendance.js'
 import { listTherapistAppointments } from '../services/appointments.js'
-import { coordinatorAppointmentsQuerySchema, coordinatorAttendanceQuerySchema, coordinatorReceiptToggleSchema } from '../lib/schemas.js'
+import { coordinatorAppointmentsQuerySchema, coordinatorAttendanceQuerySchema, coordinatorLocationsQuerySchema, coordinatorReceiptToggleSchema } from '../lib/schemas.js'
+import { listTherapistLocations } from '../services/therapistLocations.js'
 
 export async function coordinatorRoutes(app: FastifyInstance) {
   const coordinatorOnly = [requireAuth, requireRole(UserRole.coordinator)]
@@ -18,12 +19,21 @@ export async function coordinatorRoutes(app: FastifyInstance) {
     return { therapists }
   })
 
-  app.get('/api/coordinator/locations', { preHandler: coordinatorOnly }, async () => {
-    const locations = await prisma.location.findMany({
-      where: { active: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, address: true },
+  app.get('/api/coordinator/locations', { preHandler: coordinatorOnly }, async (request, reply) => {
+    const parsed = coordinatorLocationsQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    const therapist = await prisma.user.findFirst({
+      where: { id: parsed.data.therapistId, role: UserRole.therapist, active: true },
+      select: { id: true },
     })
+    if (!therapist) {
+      return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+    }
+
+    const locations = await listTherapistLocations(therapist.id)
     return { locations }
   })
 
@@ -52,6 +62,9 @@ export async function coordinatorRoutes(app: FastifyInstance) {
     } catch (err) {
       if (err instanceof Error && err.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      if (err instanceof Error && err.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
       }
       if (err instanceof Error && err.message === 'INVALID_MONTH') {
         return reply.status(400).send({ error: 'Mês inválido' })
@@ -89,6 +102,9 @@ export async function coordinatorRoutes(app: FastifyInstance) {
     } catch (err) {
       if (err instanceof Error && err.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      if (err instanceof Error && err.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
       }
       if (err instanceof Error && err.message === 'INVALID_MONTH') {
         return reply.status(400).send({ error: 'Mês inválido' })

@@ -45,7 +45,7 @@ export function AttendancePage() {
     setLoading(true)
     setError('')
     coordinatorApi
-      .listLocations(token)
+      .listLocations(token, selectedTherapist.id)
       .then((data) => setLocations(data.locations))
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar locais'))
       .finally(() => setLoading(false))

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BackofficeLayout, RequireAdmin } from '../../components/backoffice/BackofficeLayout'
 import { AdminPasswordReset } from '../../components/backoffice/AdminPasswordReset'
-import { adminApi } from '../../lib/api'
+import { adminApi, ApiError } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -16,6 +16,102 @@ type TherapistRow = {
   createdAt: string
 }
 
+type TherapistLocationRow = {
+  id: string
+  name: string
+  active: boolean
+  assigned: boolean
+}
+
+function TherapistLocationsPanel({
+  therapist,
+  token,
+  onClose,
+}: {
+  therapist: TherapistRow
+  token: string
+  onClose: () => void
+}) {
+  const [locations, setLocations] = useState<TherapistLocationRow[]>([])
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    setError('')
+    adminApi
+      .getTherapistLocations(token, therapist.id)
+      .then((data) => {
+        setLocations(data.locations)
+        setSelectedIds(data.locations.filter((location) => location.assigned).map((location) => location.id))
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar locais')
+      })
+      .finally(() => setLoading(false))
+  }, [token, therapist.id])
+
+  function toggleLocation(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id],
+    )
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setError('')
+    try {
+      const data = await adminApi.setTherapistLocations(token, therapist.id, selectedIds)
+      setLocations(data.locations)
+      setSelectedIds(data.locations.filter((location) => location.assigned).map((location) => location.id))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível guardar os locais')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card as="section" className={styles.sectionSpaced}>
+      <h2>Locais — {therapist.name}</h2>
+      <p className={styles.muted}>
+        Selecione os locais onde este terapeuta pode trabalhar, criar pacientes e marcar consultas.
+      </p>
+      {error && <p className={styles.error}>{error}</p>}
+      {loading ? (
+        <p className={styles.muted}>A carregar…</p>
+      ) : locations.length === 0 ? (
+        <p className={styles.muted}>Crie locais antes de atribuir acessos.</p>
+      ) : (
+        <div className={styles.form}>
+          {locations.map((location) => (
+            <label key={location.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(location.id)}
+                onChange={() => toggleLocation(location.id)}
+                disabled={!location.active}
+              />
+              {location.name}
+              {!location.active ? ' (inativo)' : ''}
+            </label>
+          ))}
+        </div>
+      )}
+      <div className={styles.rowActions} style={{ marginTop: 'var(--space-md)' }}>
+        <Button type="button" onClick={handleSave} disabled={saving || loading}>
+          {saving ? 'A guardar…' : 'Guardar locais'}
+        </Button>
+        <button type="button" className={styles.linkButton} onClick={onClose}>
+          Fechar
+        </button>
+      </div>
+    </Card>
+  )
+}
+
 export function AdminTherapistsPage() {
   const { token } = useAuth()
   const [therapists, setTherapists] = useState<TherapistRow[]>([])
@@ -23,6 +119,7 @@ export function AdminTherapistsPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [managingLocationsFor, setManagingLocationsFor] = useState<TherapistRow | null>(null)
 
   async function load() {
     if (!token) return
@@ -100,6 +197,14 @@ export function AdminTherapistsPage() {
           </form>
         </Card>
 
+        {managingLocationsFor && token && (
+          <TherapistLocationsPanel
+            therapist={managingLocationsFor}
+            token={token}
+            onClose={() => setManagingLocationsFor(null)}
+          />
+        )}
+
         <table className={styles.table}>
           <thead>
             <tr>
@@ -119,6 +224,13 @@ export function AdminTherapistsPage() {
                 <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
                 <td>
                   <div className={styles.rowActions}>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => setManagingLocationsFor(therapist)}
+                    >
+                      Gerir locais
+                    </button>
                     <button
                       type="button"
                       className={styles.linkButton}

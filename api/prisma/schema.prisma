@@ -57,6 +57,7 @@ model User {
   workshops      Workshop[]
   patientDocuments PatientDocument[]
   financialSettings TherapistFinancialSettings?
+  therapistLocations TherapistLocation[]
 
   @@map("users")
 }
@@ -98,8 +99,40 @@ model Location {
 
   patients Patient[]
   appointments Appointment[]
+  gabinetes Gabinete[]
+  therapistLocations TherapistLocation[]
 
   @@map("locations")
+}
+
+model TherapistLocation {
+  id          String   @id @default(uuid())
+  therapistId String   @map("therapist_id")
+  locationId  String   @map("location_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  therapist User     @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  location  Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId])
+  @@index([locationId])
+  @@map("therapist_locations")
+}
+
+model Gabinete {
+  id         String   @id @default(uuid())
+  locationId String   @map("location_id")
+  name       String
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0) @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  location     Location      @relation(fields: [locationId], references: [id])
+  appointments Appointment[]
+
+  @@index([locationId])
+  @@map("gabinetes")
 }
 
 model AttendanceRecord {
@@ -216,25 +249,28 @@ model FormSubmission {
 }
 
 model Appointment {
-  id              String   @id @default(uuid())
-  therapistId     String   @map("therapist_id")
-  patientId       String   @map("patient_id")
-  locationId      String   @map("location_id")
-  scheduledAt     DateTime @map("scheduled_at")
-  durationMinutes Int      @default(60) @map("duration_minutes")
-  sessionFee      Decimal  @default(50) @map("session_fee") @db.Decimal(10, 2)
-  notes           String?  @db.Text
-  recurrenceGroupId String? @map("recurrence_group_id")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id              String          @id @default(uuid())
+  therapistId     String          @map("therapist_id")
+  patientId       String          @map("patient_id")
+  locationId      String          @map("location_id")
+  gabineteId      String          @map("gabinete_id")
+  scheduledAt     DateTime        @map("scheduled_at")
+  durationMinutes Int             @default(60) @map("duration_minutes")
+  sessionFee      Decimal         @default(50) @map("session_fee") @db.Decimal(10, 2)
+  notes           String?         @db.Text
+  recurrenceGroupId String?       @map("recurrence_group_id")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   therapist User     @relation(fields: [therapistId], references: [id])
   patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   location  Location @relation(fields: [locationId], references: [id])
+  gabinete  Gabinete @relation(fields: [gabineteId], references: [id])
 
   @@index([therapistId, scheduledAt])
   @@index([patientId])
   @@index([locationId, scheduledAt])
+  @@index([gabineteId, scheduledAt])
   @@index([recurrenceGroupId])
   @@map("appointments")
 }

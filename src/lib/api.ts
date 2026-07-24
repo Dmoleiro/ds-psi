@@ -266,6 +266,8 @@ export type AppointmentSummary = {
   patientName: string
   locationId: string
   locationName: string
+  gabineteId: string
+  gabineteName: string
   date: string
   time: string
   scheduledAt: string
@@ -405,6 +407,20 @@ export const therapistApi = {
     ),
   listLocations: (token: string) =>
     apiRequest<{ locations: LocationSummary[] }>('/api/therapist/locations', { token }),
+  listGabinetes: (token: string, locationId?: string) =>
+    apiRequest<{
+      gabinetes: Array<{
+        id: string
+        locationId: string
+        locationName?: string
+        name: string
+        active: boolean
+        sortOrder: number
+      }>
+    }>(
+      `/api/therapist/gabinetes${locationId ? `?locationId=${locationId}` : ''}`,
+      { token },
+    ),
   listAttendanceMatrix: (token: string, year: number, month: number, locationId: string) =>
     apiRequest<{
       year: number
@@ -431,11 +447,25 @@ export const therapistApi = {
     ),
   getAppointmentDefaults: (token: string) =>
     apiRequest<{ defaultSessionFee: number }>('/api/therapist/appointments/defaults', { token }),
+  getDayOccupancy: (token: string, date: string) =>
+    apiRequest<{
+      appointments: Array<{
+        id: string
+        gabineteId: string
+        gabineteName: string
+        date: string
+        time: string
+        durationMinutes: number
+        therapistName: string
+        patientName: string
+      }>
+    }>(`/api/therapist/appointments/occupancy?date=${date}`, { token }),
   createAppointment: (
     token: string,
     body: {
       patientId: string
       locationId: string
+      gabineteId: string
       date: string
       time: string
       durationMinutes: number
@@ -462,6 +492,7 @@ export const therapistApi = {
     body: {
       patientId: string
       locationId: string
+      gabineteId: string
       date: string
       time: string
       durationMinutes: number
@@ -511,8 +542,11 @@ export const coordinatorApi = {
       '/api/coordinator/therapists',
       { token },
     ),
-  listLocations: (token: string) =>
-    apiRequest<{ locations: LocationSummary[] }>('/api/coordinator/locations', { token }),
+  listLocations: (token: string, therapistId: string) =>
+    apiRequest<{ locations: LocationSummary[] }>(
+      `/api/coordinator/locations?therapistId=${therapistId}`,
+      { token },
+    ),
   listAttendanceMatrix: (
     token: string,
     therapistId: string,
@@ -575,6 +609,28 @@ export const adminApi = {
       token,
       body,
     }),
+  getTherapistLocations: (token: string, therapistId: string) =>
+    apiRequest<{
+      locations: Array<{
+        id: string
+        name: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/therapists/${therapistId}/locations`, { token }),
+  setTherapistLocations: (token: string, therapistId: string, locationIds: string[]) =>
+    apiRequest<{
+      locations: Array<{
+        id: string
+        name: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/therapists/${therapistId}/locations`, {
+      method: 'PUT',
+      token,
+      body: { locationIds },
+    }),
   getTherapistFinancialSettings: (token: string, therapistId: string) =>
     apiRequest<{ settings: FinancialSettings }>(`/api/admin/therapists/${therapistId}/financial-settings`, {
       token,
@@ -628,6 +684,52 @@ export const adminApi = {
     body: { name?: string; address?: string | null; active?: boolean },
   ) =>
     apiRequest<{ location: LocationSummary & { active: boolean } }>(`/api/admin/locations/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  listGabinetes: (token: string) =>
+    apiRequest<{
+      gabinetes: Array<{
+        id: string
+        locationId: string
+        locationName?: string
+        name: string
+        active: boolean
+        sortOrder: number
+        appointmentCount: number
+      }>
+    }>('/api/admin/gabinetes', { token }),
+  createGabinete: (token: string, body: { name: string; locationId: string; sortOrder?: number }) =>
+    apiRequest<{
+      gabinete: {
+        id: string
+        locationId: string
+        locationName?: string
+        name: string
+        active: boolean
+        sortOrder: number
+      }
+    }>('/api/admin/gabinetes', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateGabinete: (
+    token: string,
+    id: string,
+    body: { name?: string; locationId?: string; active?: boolean; sortOrder?: number },
+  ) =>
+    apiRequest<{
+      gabinete: {
+        id: string
+        locationId: string
+        locationName?: string
+        name: string
+        active: boolean
+        sortOrder: number
+      }
+    }>(`/api/admin/gabinetes/${id}`, {
       method: 'PATCH',
       token,
       body,

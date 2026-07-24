@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildSeriesWhere, generateRecurrenceDates } from './appointments.js'
+import {
+  appointmentsOverlap,
+  buildSeriesWhere,
+  generateRecurrenceDates,
+} from './appointments.js'
 
 describe('generateRecurrenceDates', () => {
   it('returns only the start date when end date matches', () => {
@@ -33,6 +37,23 @@ describe('generateRecurrenceDates', () => {
 
   it('returns empty when end date is before start date', () => {
     expect(generateRecurrenceDates('2026-07-20', '2026-07-10', 'weekly')).toEqual([])
+  })
+})
+
+describe('appointmentsOverlap', () => {
+  const at = (hours: number, minutes = 0) =>
+    new Date(Date.UTC(2026, 6, 24, hours, minutes, 0))
+
+  it('detects overlapping appointments', () => {
+    expect(appointmentsOverlap(at(10), 60, at(10, 30), 60)).toBe(true)
+  })
+
+  it('allows back-to-back appointments', () => {
+    expect(appointmentsOverlap(at(10), 60, at(11), 60)).toBe(false)
+  })
+
+  it('detects when one appointment wraps another', () => {
+    expect(appointmentsOverlap(at(9), 120, at(10), 30)).toBe(true)
   })
 })
 

@@ -26,9 +26,13 @@ import {
   deleteTherapistAppointment,
   listTherapistAppointments,
   MAX_RECURRING_APPOINTMENTS,
+  RoomConflictError,
+  listDayRoomOccupancy,
   updateTherapistAppointment,
 } from '../services/appointments.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
+import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -147,12 +151,8 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { patients: patients.map(formatPatientSummary) }
   })
 
-  app.get('/api/therapist/locations', { preHandler: therapistOnly }, async () => {
-    const locations = await prisma.location.findMany({
-      where: { active: true },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, address: true },
-    })
+  app.get('/api/therapist/locations', { preHandler: therapistOnly }, async (request) => {
+    const locations = await listTherapistLocations(request.user.sub)
     return { locations }
   })
 
@@ -186,6 +186,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
       }
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
+      }
       throw error
     }
   })
@@ -201,6 +204,15 @@ export async function therapistRoutes(app: FastifyInstance) {
     })
     if (!location) {
       return reply.status(400).send({ error: 'Local inválido' })
+    }
+
+    try {
+      await assertTherapistHasLocation(request.user.sub, parsed.data.locationId)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
+      }
+      throw error
     }
 
     const patient = await prisma.patient.create({
@@ -246,6 +258,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       }
       if (error instanceof Error && error.message === 'INVALID_LOCATION') {
         return reply.status(400).send({ error: 'Local inválido' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
       }
       throw error
     }
@@ -488,6 +503,27 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { defaultSessionFee: settings.defaultSessionFee }
   })
 
+  app.get(
+    '/api/therapist/appointments/occupancy',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const parsed = appointmentDayQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const appointments = await listDayRoomOccupancy(parsed.data.date)
+        return { appointments }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'INVALID_DATE') {
+          return reply.status(400).send({ error: 'Data inválida' })
+        }
+        throw error
+      }
+    },
+  )
+
   app.get('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
     const parsed = appointmentMonthQuerySchema.safeParse(request.query)
     if (!parsed.success) {
@@ -512,6 +548,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       }
       if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
       }
       throw error
     }
@@ -544,6 +583,35 @@ export async function therapistRoutes(app: FastifyInstance) {
       if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
         return reply.status(404).send({ error: 'Local não encontrado' })
       }
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
+      }
+      if (error instanceof Error && error.message === 'GABINETE_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Gabinete não encontrado ou inativo' })
+      }
+      if (error instanceof RoomConflictError) {
+        return reply.status(409).send({ error: error.message })
+      }
+      throw error
+    }
+  })
+
+  app.get('/api/therapist/gabinetes', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = gabineteListQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const gabinetes = await listActiveGabinetesForTherapist(
+        request.user.sub,
+        parsed.data.locationId,
+      )
+      return { gabinetes }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a este local' })
+      }
       throw error
     }
   })
@@ -573,6 +641,15 @@ export async function therapistRoutes(app: FastifyInstance) {
         }
         if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
           return reply.status(404).send({ error: 'Local não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a este local' })
+        }
+        if (error instanceof RoomConflictError) {
+          return reply.status(409).send({ error: error.message })
+        }
+        if (error instanceof Error && error.message === 'GABINETE_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Gabinete não encontrado ou inativo' })
         }
         throw error
       }

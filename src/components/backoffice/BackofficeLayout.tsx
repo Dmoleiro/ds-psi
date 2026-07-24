@@ -60,6 +60,7 @@ function BackofficeNavLinks({
           {link('/backoffice/admin/therapists', 'Terapeutas')}
           {link('/backoffice/admin/coordinators', 'Administrativos')}
           {link('/backoffice/admin/locations', 'Locais')}
+          {link('/backoffice/admin/gabinetes', 'Gabinetes')}
           {link('/backoffice/workshops', 'Workshops')}
         </>
       )}

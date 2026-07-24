@@ -1,5 +1,6 @@
 import { AttendanceStatus } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { assertTherapistHasLocation } from './therapistLocations.js'
 
 export function parseYearMonth(year: number, month: number) {
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
@@ -91,6 +92,8 @@ export async function listTherapistAttendance(
   if (!location) {
     throw new Error('LOCATION_NOT_FOUND')
   }
+
+  await assertTherapistHasLocation(therapistId, locationId)
 
   const [patients, records, appointments] = await Promise.all([
     prisma.patient.findMany({

@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
+import { getActiveGabineteOrThrow } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
+import { assertTherapistHasLocation } from './therapistLocations.js'
 import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
 
 export type AppointmentRecurrenceCadence = 'weekly' | 'biweekly' | 'monthly'
@@ -17,6 +19,7 @@ export const MAX_RECURRING_APPOINTMENTS = 104
 export type AppointmentInput = {
   patientId: string
   locationId: string
+  gabineteId: string
   date: string
   time: string
   durationMinutes: number
@@ -24,6 +27,13 @@ export type AppointmentInput = {
   notes?: string | null
   recurrence?: AppointmentRecurrence
   scope?: AppointmentSeriesScope
+}
+
+export class RoomConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'RoomConflictError'
+  }
 }
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -123,6 +133,112 @@ export function parseAppointmentMonth(year: number, month: number) {
   return { from, to }
 }
 
+export function getAppointmentEnd(scheduledAt: Date, durationMinutes: number): Date {
+  return new Date(scheduledAt.getTime() + durationMinutes * 60_000)
+}
+
+export function appointmentsOverlap(
+  startA: Date,
+  durationA: number,
+  startB: Date,
+  durationB: number,
+): boolean {
+  const endA = getAppointmentEnd(startA, durationA)
+  const endB = getAppointmentEnd(startB, durationB)
+  return startA < endB && startB < endA
+}
+
+function getUtcDayRange(date: string) {
+  const day = parseDateOnly(date)
+  if (!day) return null
+  const dayStart = new Date(
+    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 0, 0, 0),
+  )
+  const dayEnd = new Date(
+    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate() + 1, 0, 0, 0),
+  )
+  return { dayStart, dayEnd }
+}
+
+async function assertRoomAvailable(
+  gabineteId: string,
+  gabineteName: string,
+  scheduledAt: Date,
+  durationMinutes: number,
+  excludeIds: string[] = [],
+) {
+  const date = formatAppointmentDate(scheduledAt)
+  const range = getUtcDayRange(date)
+  if (!range) {
+    throw new Error('INVALID_SCHEDULE')
+  }
+
+  const candidates = await prisma.appointment.findMany({
+    where: {
+      gabineteId,
+      ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+      scheduledAt: { gte: range.dayStart, lt: range.dayEnd },
+    },
+    select: {
+      id: true,
+      scheduledAt: true,
+      durationMinutes: true,
+      therapist: { select: { name: true } },
+    },
+  })
+
+  const conflict = candidates.find((candidate) =>
+    appointmentsOverlap(scheduledAt, durationMinutes, candidate.scheduledAt, candidate.durationMinutes),
+  )
+
+  if (conflict) {
+    const timeLabel = formatAppointmentTime(scheduledAt)
+    const dateLabel = new Intl.DateTimeFormat('pt-PT', {
+      timeZone: 'UTC',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(scheduledAt)
+    throw new RoomConflictError(
+      `${gabineteName} já está ocupado em ${dateLabel} às ${timeLabel} (${conflict.therapist.name}).`,
+    )
+  }
+}
+
+export async function listDayRoomOccupancy(date: string) {
+  const range = getUtcDayRange(date)
+  if (!range) {
+    throw new Error('INVALID_DATE')
+  }
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      scheduledAt: { gte: range.dayStart, lt: range.dayEnd },
+    },
+    select: {
+      id: true,
+      gabineteId: true,
+      scheduledAt: true,
+      durationMinutes: true,
+      gabinete: { select: { name: true } },
+      therapist: { select: { name: true } },
+      patient: { select: { fullName: true } },
+    },
+    orderBy: { scheduledAt: 'asc' },
+  })
+
+  return appointments.map((appointment) => ({
+    id: appointment.id,
+    gabineteId: appointment.gabineteId,
+    gabineteName: appointment.gabinete.name,
+    date: formatAppointmentDate(appointment.scheduledAt),
+    time: formatAppointmentTime(appointment.scheduledAt),
+    durationMinutes: appointment.durationMinutes,
+    therapistName: appointment.therapist.name,
+    patientName: appointment.patient.fullName,
+  }))
+}
+
 export async function getActiveLocationOrThrow(locationId: string) {
   const location = await prisma.location.findFirst({
     where: { id: locationId, active: true },
@@ -136,6 +252,7 @@ export async function getActiveLocationOrThrow(locationId: string) {
 
 export function formatAppointment(record: {
   id: string
+  gabineteId: string
   scheduledAt: Date
   durationMinutes: number
   sessionFee: { toString(): string } | number
@@ -143,6 +260,7 @@ export function formatAppointment(record: {
   recurrenceGroupId: string | null
   patient: { id: string; fullName: string }
   location: { id: string; name: string }
+  gabinete: { id: string; name: string }
 }) {
   return {
     id: record.id,
@@ -150,6 +268,8 @@ export function formatAppointment(record: {
     patientName: record.patient.fullName,
     locationId: record.location.id,
     locationName: record.location.name,
+    gabineteId: record.gabinete.id,
+    gabineteName: record.gabinete.name,
     date: formatAppointmentDate(record.scheduledAt),
     time: formatAppointmentTime(record.scheduledAt),
     scheduledAt: record.scheduledAt.toISOString(),
@@ -173,6 +293,12 @@ const appointmentInclude = {
       name: true,
     },
   },
+  gabinete: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 } as const
 
 export async function listTherapistAppointments(
@@ -188,6 +314,7 @@ export async function listTherapistAppointments(
 
   if (locationId) {
     await getActiveLocationOrThrow(locationId)
+    await assertTherapistHasLocation(therapistId, locationId)
   }
 
   const appointments = await prisma.appointment.findMany({
@@ -206,6 +333,8 @@ export async function listTherapistAppointments(
 export async function createTherapistAppointment(therapistId: string, input: AppointmentInput) {
   await getTherapistPatientOrThrow(therapistId, input.patientId)
   await getActiveLocationOrThrow(input.locationId)
+  await assertTherapistHasLocation(therapistId, input.locationId)
+  const gabinete = await getActiveGabineteOrThrow(input.gabineteId, input.locationId)
 
   const dates = input.recurrence
     ? generateRecurrenceDates(input.date, input.recurrence.until, input.recurrence.cadence)
@@ -224,27 +353,41 @@ export async function createTherapistAppointment(therapistId: string, input: App
     sessionFee: input.sessionFee,
     patientId: input.patientId,
   })
-  const appointments = await prisma.$transaction(
-    dates.map((date) => {
-      const scheduledAt = parseScheduledAt(date, input.time)
-      if (!scheduledAt) {
-        throw new Error('INVALID_SCHEDULE')
-      }
 
-      return prisma.appointment.create({
+  const scheduledSlots = dates.map((date) => {
+    const scheduledAt = parseScheduledAt(date, input.time)
+    if (!scheduledAt) {
+      throw new Error('INVALID_SCHEDULE')
+    }
+    return { date, scheduledAt }
+  })
+
+  for (const slot of scheduledSlots) {
+    await assertRoomAvailable(
+      gabinete.id,
+      gabinete.name,
+      slot.scheduledAt,
+      input.durationMinutes,
+    )
+  }
+
+  const appointments = await prisma.$transaction(
+    scheduledSlots.map((slot) =>
+      prisma.appointment.create({
         data: {
           therapistId,
           patientId: input.patientId,
           locationId: input.locationId,
-          scheduledAt,
+          gabineteId: input.gabineteId,
+          scheduledAt: slot.scheduledAt,
           durationMinutes: input.durationMinutes,
           sessionFee,
           notes,
           recurrenceGroupId,
         },
         include: appointmentInclude,
-      })
-    }),
+      }),
+    ),
   )
 
   const formatted = appointments.map(formatAppointment)
@@ -269,6 +412,8 @@ export async function updateTherapistAppointment(
 
   await getTherapistPatientOrThrow(therapistId, input.patientId)
   await getActiveLocationOrThrow(input.locationId)
+  await assertTherapistHasLocation(therapistId, input.locationId)
+  const gabinete = await getActiveGabineteOrThrow(input.gabineteId, input.locationId)
 
   const scope = input.scope ?? 'single'
   const notes = input.notes?.trim() ? input.notes.trim() : null
@@ -279,11 +424,20 @@ export async function updateTherapistAppointment(
       throw new Error('INVALID_SCHEDULE')
     }
 
+    await assertRoomAvailable(
+      gabinete.id,
+      gabinete.name,
+      scheduledAt,
+      input.durationMinutes,
+      [appointmentId],
+    )
+
     const appointment = await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
         patientId: input.patientId,
         locationId: input.locationId,
+        gabineteId: input.gabineteId,
         scheduledAt,
         durationMinutes: input.durationMinutes,
         sessionFee: input.sessionFee ?? decimalToNumber(existing.sessionFee),
@@ -314,27 +468,42 @@ export async function updateTherapistAppointment(
     patientId: input.patientId,
   })
 
-  const appointments = await prisma.$transaction(
-    targets.map((target) => {
-      const date = formatAppointmentDate(target.scheduledAt)
-      const scheduledAt = parseScheduledAt(date, input.time)
-      if (!scheduledAt) {
-        throw new Error('INVALID_SCHEDULE')
-      }
+  const excludeIds = targets.map((target) => target.id)
+  const updateSlots = targets.map((target) => {
+    const date = formatAppointmentDate(target.scheduledAt)
+    const scheduledAt = parseScheduledAt(date, input.time)
+    if (!scheduledAt) {
+      throw new Error('INVALID_SCHEDULE')
+    }
+    return { target, scheduledAt }
+  })
 
-      return prisma.appointment.update({
+  for (const slot of updateSlots) {
+    await assertRoomAvailable(
+      gabinete.id,
+      gabinete.name,
+      slot.scheduledAt,
+      input.durationMinutes,
+      excludeIds,
+    )
+  }
+
+  const appointments = await prisma.$transaction(
+    updateSlots.map(({ target, scheduledAt }) =>
+      prisma.appointment.update({
         where: { id: target.id },
         data: {
           patientId: input.patientId,
           locationId: input.locationId,
+          gabineteId: input.gabineteId,
           scheduledAt,
           durationMinutes: input.durationMinutes,
           sessionFee,
           notes,
         },
         include: appointmentInclude,
-      })
-    }),
+      }),
+    ),
   )
 
   const formatted = appointments.map(formatAppointment)

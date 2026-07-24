@@ -11,17 +11,22 @@ import {
   addMonthsToIsoDate,
   APPOINTMENT_SERIES_SCOPE_OPTIONS,
   DURATION_OPTIONS,
+  findRoomConflict,
   RECURRENCE_CADENCE_OPTIONS,
   WEEKDAY_LABELS,
   formatAppointmentRange,
   formatDayLabel,
   formatMonthTitle,
+  gabinetesForLocation,
   getCalendarCells,
   groupAppointmentsByDate,
   isToday,
+  resolveGabineteForLocation,
   shiftMonth,
   type AppointmentSeriesScope,
+  type GabineteSummary,
   type RecurrenceCadence,
+  type RoomOccupancy,
 } from '../../lib/appointments'
 import { exportAppointmentsPdf } from '../../lib/exportAppointmentsPdf'
 import { Button } from '../ui/Button'
@@ -38,6 +43,7 @@ type Props = {
 type FormState = {
   patientId: string
   locationId: string
+  gabineteId: string
   time: string
   durationMinutes: number
   sessionFee: number
@@ -51,6 +57,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   patientId: '',
   locationId: '',
+  gabineteId: '',
   time: '09:00',
   durationMinutes: 60,
   sessionFee: 50,
@@ -63,12 +70,14 @@ const EMPTY_FORM: FormState = {
 
 function initialForm(
   preferredLocationId = '',
+  preferredGabineteId = '',
   startDate = '',
   defaultSessionFee = 50,
 ): FormState {
   return {
     ...EMPTY_FORM,
     locationId: preferredLocationId,
+    gabineteId: preferredGabineteId,
     sessionFee: defaultSessionFee,
     repeatUntil: startDate ? addMonthsToIsoDate(startDate, 2) : '',
   }
@@ -105,6 +114,7 @@ export function AppointmentsCalendar({
   const [appointments, setAppointments] = useState<AppointmentSummary[]>([])
   const [patients, setPatients] = useState<PatientSummary[]>([])
   const [locations, setLocations] = useState<LocationSummary[]>([])
+  const [gabinetes, setGabinetes] = useState<GabineteSummary[]>([])
   const [locationFilter, setLocationFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -119,6 +129,7 @@ export function AppointmentsCalendar({
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
+  const [dayOccupancy, setDayOccupancy] = useState<RoomOccupancy[]>([])
 
   useEffect(() => {
     if (!editingId) return
@@ -127,6 +138,51 @@ export function AppointmentsCalendar({
     })
     return () => cancelAnimationFrame(frame)
   }, [editingId])
+
+  useEffect(() => {
+    if (!token || !selectedDate || readOnly) {
+      setDayOccupancy([])
+      return
+    }
+    therapistApi
+      .getDayOccupancy(token, selectedDate)
+      .then((data) => setDayOccupancy(data.appointments))
+      .catch(() => setDayOccupancy([]))
+  }, [token, selectedDate, readOnly])
+
+  const gabinetesForSelectedLocation = useMemo(
+    () => gabinetesForLocation(gabinetes, form.locationId),
+    [gabinetes, form.locationId],
+  )
+
+  const roomConflict = useMemo(() => {
+    if (!form.time || !form.gabineteId) return null
+    const checkDate =
+      editingId && editingAppointment?.recurrenceGroupId && editScope !== 'single'
+        ? null
+        : editingId
+          ? form.appointmentDate
+          : selectedDate
+    if (!checkDate) return null
+    const relevantOccupancy = dayOccupancy.filter((entry) => entry.date === checkDate)
+    return findRoomConflict(
+      relevantOccupancy,
+      form.gabineteId,
+      form.time,
+      form.durationMinutes,
+      editingId,
+    )
+  }, [
+    dayOccupancy,
+    editScope,
+    editingAppointment,
+    editingId,
+    form.appointmentDate,
+    form.durationMinutes,
+    form.gabineteId,
+    form.time,
+    selectedDate,
+  ])
 
   const cells = useMemo(() => getCalendarCells(viewYear, viewMonth), [viewYear, viewMonth])
   const weeks = useMemo(() => {
@@ -177,37 +233,47 @@ export function AppointmentsCalendar({
   }, [loadMonth])
 
   useEffect(() => {
-    const locationsRequest = readOnly
-      ? coordinatorApi.listLocations(token)
-      : therapistApi.listLocations(token)
-
-    if (readOnly) {
-      locationsRequest
-        .then((data) => setLocations(data.locations))
-        .catch(() => setLocations([]))
-      return
-    }
+    if (!token || readOnly) return
 
     Promise.all([
       therapistApi.listPatients(token),
       therapistApi.getAppointmentDefaults(token),
-      locationsRequest,
+      therapistApi.listLocations(token),
+      therapistApi.listGabinetes(token),
     ])
-      .then(([patientsData, defaultsData, locationsData]) => {
+      .then(([patientsData, defaultsData, locationsData, gabinetesData]) => {
         setPatients(patientsData.patients)
         setDefaultSessionFee(defaultsData.defaultSessionFee)
         setLocations(locationsData.locations)
+        setGabinetes(gabinetesData.gabinetes)
       })
       .catch(() => {
         setPatients([])
         setLocations([])
+        setGabinetes([])
       })
   }, [token, readOnly])
+
+  useEffect(() => {
+    if (!token || !readOnly || !therapistId) {
+      if (readOnly) {
+        setLocations([])
+      }
+      return
+    }
+
+    coordinatorApi
+      .listLocations(token, therapistId)
+      .then((data) => setLocations(data.locations))
+      .catch(() => setLocations([]))
+  }, [token, readOnly, therapistId])
 
   function openDay(date: string) {
     setSelectedDate(date)
     setEditingId(null)
-    setForm(initialForm(locationFilter, date, defaultSessionFee))
+    const locationId = locationFilter || locations[0]?.id || ''
+    const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
+    setForm(initialForm(locationId, gabineteId, date, defaultSessionFee))
     setDialogError('')
   }
 
@@ -218,7 +284,9 @@ export function AppointmentsCalendar({
     setEditScope('single')
     setPendingDelete(null)
     setDeleteScope('single')
-    setForm(initialForm(locationFilter, '', defaultSessionFee))
+    const locationId = locationFilter || locations[0]?.id || ''
+    const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
+    setForm(initialForm(locationId, gabineteId, '', defaultSessionFee))
     setDialogError('')
   }
 
@@ -230,6 +298,7 @@ export function AppointmentsCalendar({
     setForm({
       patientId: appointment.patientId,
       locationId: appointment.locationId,
+      gabineteId: appointment.gabineteId,
       time: appointment.time,
       durationMinutes: appointment.durationMinutes,
       sessionFee: appointment.sessionFee ?? 50,
@@ -246,7 +315,12 @@ export function AppointmentsCalendar({
     setEditingId(null)
     setEditingAppointment(null)
     setEditScope('single')
-    setForm(initialForm(locationFilter, selectedDate ?? '', defaultSessionFee))
+    setForm(initialForm(
+      locationFilter || locations[0]?.id || '',
+      resolveGabineteForLocation(locationFilter || locations[0]?.id || '', gabinetes),
+      selectedDate ?? '',
+      defaultSessionFee,
+    ))
     setDialogError('')
   }
 
@@ -256,6 +330,7 @@ export function AppointmentsCalendar({
       locationId,
       patientId: '',
       sessionFee: defaultSessionFee,
+      gabineteId: resolveGabineteForLocation(locationId, gabinetes),
     }))
   }
 
@@ -279,8 +354,14 @@ export function AppointmentsCalendar({
       setDialogError('Selecione um dia no calendário.')
       return
     }
-    if (!form.patientId || !form.locationId) {
-      setDialogError('Selecione o local e o paciente.')
+    if (!form.patientId || !form.locationId || !form.gabineteId) {
+      setDialogError('Selecione o local, o gabinete e o paciente.')
+      return
+    }
+    if (roomConflict) {
+      setDialogError(
+        `${roomConflict.gabineteName} já está ocupado neste horário (${roomConflict.therapistName}).`,
+      )
       return
     }
     if (form.repeatEnabled && !form.repeatUntil) {
@@ -298,6 +379,7 @@ export function AppointmentsCalendar({
       const body = {
         patientId: form.patientId,
         locationId: form.locationId,
+        gabineteId: form.gabineteId,
         date:
           editingId && editingAppointment?.recurrenceGroupId && editScope !== 'single'
             ? editingAppointment.date
@@ -316,6 +398,10 @@ export function AppointmentsCalendar({
           scope: editingAppointment?.recurrenceGroupId ? editScope : undefined,
         })
         await loadMonth()
+        if (selectedDate) {
+          const occupancy = await therapistApi.getDayOccupancy(token, selectedDate)
+          setDayOccupancy(occupancy.appointments)
+        }
         if (result.updatedCount > 1) {
           window.alert(`${result.updatedCount} consultas atualizadas com sucesso.`)
         }
@@ -462,7 +548,9 @@ export function AppointmentsCalendar({
                             <span>
                               {appointment.time} {appointment.patientName}
                             </span>
-                            <span className={styles.appointmentChipLocation}>{appointment.locationName}</span>
+                            <span className={styles.appointmentChipLocation}>
+                              {appointment.gabineteName} · {appointment.locationName}
+                            </span>
                           </span>
                         ))}
                         {hiddenCount > 0 && (
@@ -503,7 +591,7 @@ export function AppointmentsCalendar({
                   >
                     <p className={styles.existingMeta}>
                       {formatAppointmentRange(appointment.time, appointment.durationMinutes)} ·{' '}
-                      {appointment.locationName}
+                      {appointment.gabineteName} · {appointment.locationName}
                     </p>
                     <h3 className={styles.existingTitle}>
                       {appointment.patientName}
@@ -631,6 +719,37 @@ export function AppointmentsCalendar({
                         </option>
                       ))}
                     </select>
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="appointment-gabinete">Gabinete</label>
+                    <select
+                      id="appointment-gabinete"
+                      value={form.gabineteId}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          gabineteId: event.target.value,
+                        }))
+                      }
+                      disabled={!form.locationId || gabinetesForSelectedLocation.length === 0}
+                    >
+                      {!form.locationId ? (
+                        <option value="">Selecione um local primeiro</option>
+                      ) : gabinetesForSelectedLocation.length === 0 ? (
+                        <option value="">Sem gabinetes neste local</option>
+                      ) : (
+                        gabinetesForSelectedLocation.map((gabinete) => (
+                          <option key={gabinete.id} value={gabinete.id}>
+                            {gabinete.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    {roomConflict && (
+                      <p className={layout.error}>
+                        Ocupado por {roomConflict.therapistName} ({roomConflict.patientName}) neste horário.
+                      </p>
+                    )}
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="appointment-patient">Paciente</label>
@@ -784,6 +903,8 @@ export function AppointmentsCalendar({
                         submitting ||
                         !form.patientId ||
                         !form.locationId ||
+                        !form.gabineteId ||
+                        Boolean(roomConflict) ||
                         (form.repeatEnabled && !form.repeatUntil)
                       }
                     >

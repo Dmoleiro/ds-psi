@@ -2,9 +2,11 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createGabineteSchema, updateGabineteSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema, setTherapistLocationsSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
+import { createGabinete, listGabinetes, updateGabinete } from '../services/gabinetes.js'
+import { listTherapistLocationsForAdmin, setTherapistLocations } from '../services/therapistLocations.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   const adminOnly = [requireAuth, requireRole(UserRole.admin)]
@@ -84,6 +86,41 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return { therapist: updated }
+  })
+
+  app.get('/api/admin/therapists/:id/locations', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+
+    try {
+      const data = await listTherapistLocationsForAdmin(id)
+      return data
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put('/api/admin/therapists/:id/locations', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = setTherapistLocationsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const data = await setTherapistLocations(id, parsed.data.locationIds)
+      return data
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_LOCATION') {
+        return reply.status(400).send({ error: 'Local inválido' })
+      }
+      throw error
+    }
   })
 
   app.get('/api/admin/therapists/:id/financial-settings', { preHandler: adminOnly }, async (request, reply) => {
@@ -251,5 +288,48 @@ export async function adminRoutes(app: FastifyInstance) {
       },
     })
     return { location }
+  })
+
+  app.get('/api/admin/gabinetes', { preHandler: adminOnly }, async () => {
+    const gabinetes = await listGabinetes()
+    return { gabinetes }
+  })
+
+  app.post('/api/admin/gabinetes', { preHandler: adminOnly }, async (request, reply) => {
+    const parsed = createGabineteSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const gabinete = await createGabinete(parsed.data)
+      return reply.status(201).send({ gabinete })
+    } catch (error) {
+      if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.patch('/api/admin/gabinetes/:id', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = updateGabineteSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const gabinete = await updateGabinete(id, parsed.data)
+      return { gabinete }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'GABINETE_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Gabinete não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Local não encontrado' })
+      }
+      throw error
+    }
   })
 }
