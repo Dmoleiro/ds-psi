@@ -127,6 +127,10 @@ export const createPiccaSessionSchema = z.object({
   moduleIds: z.array(z.string().min(1)).min(1),
 })
 
+export const createPiccaInteractiveSessionSchema = z.object({
+  formIds: z.array(z.string().min(1)).min(1),
+})
+
 export const draftSchema = z.object({
   answers: z.record(z.unknown()),
 })

@@ -26,6 +26,8 @@ import { PatientFormPage } from './pages/patient/PatientFormPage'
 import { PatientPortalPage } from './pages/patient/PatientPortalPage'
 import { PiccaPortalPage } from './pages/patient/PiccaPortalPage'
 import { PiccaModulePage } from './pages/patient/PiccaModulePage'
+import { PiccaInteractivePortalPage } from './pages/patient/PiccaInteractivePortalPage'
+import { PiccaInteractiveFormPage } from './pages/patient/PiccaInteractiveFormPage'
 import './styles/global.css'
 
 function getBasename(): string {
@@ -83,6 +85,11 @@ export function App() {
         <Route path="/formularios/p/:token/:formId" element={<PatientFormPage />} />
         <Route path="/formularios/picca/:token" element={<PiccaPortalPage />} />
         <Route path="/formularios/picca/:token/:moduleId" element={<PiccaModulePage />} />
+        <Route path="/formularios/picca-interativo/:token" element={<PiccaInteractivePortalPage />} />
+        <Route
+          path="/formularios/picca-interativo/:token/:formId"
+          element={<PiccaInteractiveFormPage />}
+        />
         <Route path="/backoffice/login" element={<BackofficeLoginPage />} />
         <Route path="/backoffice" element={<BackofficeDashboardPage />} />
         <Route path="/backoffice/patients" element={<RequireTherapist><PatientsListPage /></RequireTherapist>} />

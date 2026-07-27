@@ -17,3 +17,8 @@ export function buildPiccaPatientUrl(token: string, frontendUrl: string): string
   const base = frontendUrl.replace(/\/$/, '')
   return `${base}/formularios/picca/${token}`
 }
+
+export function buildPiccaInteractivePatientUrl(token: string, frontendUrl: string): string {
+  const base = frontendUrl.replace(/\/$/, '')
+  return `${base}/formularios/picca-interativo/${token}`
+}

@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
 import { PiccaPatientSection, type PiccaSessionRow } from '../../components/backoffice/PiccaPatientSection'
+import {
+  PiccaInteractivePatientSection,
+  type PiccaInteractiveSessionRow,
+} from '../../components/backoffice/PiccaInteractivePatientSection'
 import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
@@ -49,6 +53,7 @@ type PatientDetail = {
   location?: { id: string; name: string }
   intakeSessions: SessionRow[]
   piccaSessions?: PiccaSessionRow[]
+  piccaInteractiveSessions?: PiccaInteractiveSessionRow[]
 }
 
 export function PatientDetailPage() {
@@ -797,12 +802,20 @@ export function PatientDetailPage() {
       )}
 
       {activeTab === 'picca' && user?.piccaEnabled && token && id && (
-        <PiccaPatientSection
-          token={token}
-          patientId={id}
-          sessions={patient.piccaSessions ?? []}
-          onRefresh={refreshPatient}
-        />
+        <>
+          <PiccaPatientSection
+            token={token}
+            patientId={id}
+            sessions={patient.piccaSessions ?? []}
+            onRefresh={refreshPatient}
+          />
+          <PiccaInteractivePatientSection
+            token={token}
+            patientId={id}
+            sessions={patient.piccaInteractiveSessions ?? []}
+            onRefresh={refreshPatient}
+          />
+        </>
       )}
 
       {activeTab === 'documentos' && <PatientDocumentsPanel patientId={patient.id} />}

@@ -437,6 +437,58 @@ export const therapistApi = {
       token,
       body: { answers },
     }),
+  listPiccaInteractiveForms: (token: string) =>
+    apiRequest<{
+      forms: Array<{
+        id: string
+        kind: 'daily_sono' | 'weekly_estrategias'
+        title: string
+        description: string | null
+      }>
+    }>('/api/therapist/picca-interactive/forms', { token }),
+  createPiccaInteractiveSession: (token: string, patientId: string, formIds: string[]) =>
+    apiRequest<{ sessionId: string; url: string }>(
+      `/api/therapist/patients/${patientId}/picca-interactive-sessions`,
+      { method: 'POST', token, body: { formIds } },
+    ),
+  revokePiccaInteractiveSession: (token: string, sessionId: string) =>
+    apiRequest<{ session: unknown }>(`/api/therapist/picca-interactive-sessions/${sessionId}/revoke`, {
+      method: 'POST',
+      token,
+    }),
+  getPiccaInteractiveSessionEntries: (token: string, sessionId: string) =>
+    apiRequest<{
+      session: {
+        id: string
+        status: string
+        patient: { id: string; fullName: string }
+        forms: Array<{
+          formId: string
+          title: string
+          kind: 'daily_sono' | 'weekly_estrategias'
+        }>
+        entries: Array<{
+          id: string
+          formId: string
+          formTitle: string
+          kind: 'daily_sono' | 'weekly_estrategias'
+          periodKey: string
+          answers: Record<string, unknown>
+          submittedAt: string
+          updatedAt: string
+        }>
+      }
+    }>(`/api/therapist/picca-interactive-sessions/${sessionId}/entries`, { token }),
+  updatePiccaInteractiveEntry: (
+    token: string,
+    sessionId: string,
+    entryId: string,
+    answers: Record<string, unknown>,
+  ) =>
+    apiRequest<{ id: string; answers: Record<string, unknown>; updatedAt: string }>(
+      `/api/therapist/picca-interactive-sessions/${sessionId}/entries/${entryId}`,
+      { method: 'PUT', token, body: { answers } },
+    ),
   listPatientDocuments: (token: string, patientId: string) =>
     apiRequest<{ documents: PatientDocumentSummary[] }>(
       `/api/therapist/patients/${patientId}/documents`,
@@ -959,5 +1011,75 @@ export const piccaPatientApi = {
     apiRequest<{ ok: boolean; allSubmitted: boolean }>(
       `/api/picca/patient/session/${token}/modules/${moduleId}/submit`,
       { method: 'POST', patientToken: token, body: { answers } },
+    ),
+}
+
+export type PiccaInteractivePatientForm = {
+  formId: string
+  title: string
+  description?: string | null
+  kind: 'daily_sono' | 'weekly_estrategias'
+}
+
+export type PiccaInteractivePatientSession = {
+  id: string
+  status: string
+  consentAt: string | null
+  patientFirstName: string
+  currentWeekStart: string
+  today: string
+  forms: PiccaInteractivePatientForm[]
+}
+
+export const piccaInteractivePatientApi = {
+  getSession: (token: string) =>
+    apiRequest<{ session: PiccaInteractivePatientSession }>(
+      `/api/picca-interactive/patient/session/${token}`,
+      { patientToken: token },
+    ),
+  acceptConsent: (token: string) =>
+    apiRequest<{ consentAt: string }>(`/api/picca-interactive/patient/session/${token}/consent`, {
+      method: 'POST',
+      patientToken: token,
+      body: { accepted: true },
+    }),
+  getForm: (token: string, formId: string, periodKey?: string) =>
+    apiRequest<{
+      form: {
+        formId: string
+        title: string
+        kind: 'daily_sono' | 'weekly_estrategias'
+        periodKey: string
+        weekStart: string
+        readOnly: boolean
+        answers: Record<string, unknown>
+        submittedAt: string | null
+      }
+    }>(
+      `/api/picca-interactive/patient/session/${token}/forms/${formId}${periodKey ? `?periodKey=${periodKey}` : ''}`,
+      { patientToken: token },
+    ),
+  getWeekEntries: (token: string, formId: string, weekStart?: string) =>
+    apiRequest<{
+      weekStart: string
+      entries: Array<{
+        periodKey: string
+        answers: Record<string, unknown>
+        submittedAt: string
+        updatedAt: string
+      }>
+    }>(
+      `/api/picca-interactive/patient/session/${token}/forms/${formId}/week${weekStart ? `?weekStart=${weekStart}` : ''}`,
+      { patientToken: token },
+    ),
+  saveEntry: (
+    token: string,
+    formId: string,
+    periodKey: string,
+    answers: Record<string, unknown>,
+  ) =>
+    apiRequest<{ id: string; periodKey: string; submittedAt: string; updatedAt: string }>(
+      `/api/picca-interactive/patient/session/${token}/forms/${formId}/entries/${periodKey}`,
+      { method: 'PUT', patientToken: token, body: { answers } },
     ),
 }

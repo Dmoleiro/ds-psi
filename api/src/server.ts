@@ -14,6 +14,8 @@ import { adminRoutes } from './routes/admin.js'
 import { coordinatorRoutes } from './routes/coordinator.js'
 import { therapistRoutes } from './routes/therapist.js'
 import { patientRoutes } from './routes/patient.js'
+import { piccaInteractivePatientRoutes } from './routes/piccaInteractivePatient.js'
+import { piccaInteractiveTherapistRoutes } from './routes/piccaInteractiveTherapist.js'
 import { piccaPatientRoutes } from './routes/piccaPatient.js'
 import { piccaTherapistRoutes } from './routes/piccaTherapist.js'
 import { workshopRoutes } from './routes/workshops.js'
@@ -73,6 +75,7 @@ export async function buildApp() {
   await app.register(coordinatorRoutes)
   await app.register(therapistRoutes)
   await app.register(piccaTherapistRoutes)
+  await app.register(piccaInteractiveTherapistRoutes)
   await app.register(workshopRoutes)
 
   await app.register(
@@ -89,6 +92,7 @@ export async function buildApp() {
       })
       await patientApp.register(patientRoutes)
       await patientApp.register(piccaPatientRoutes)
+      await patientApp.register(piccaInteractivePatientRoutes)
     },
   )
 

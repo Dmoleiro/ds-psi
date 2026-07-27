@@ -1,0 +1,126 @@
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.fieldGrid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.note {
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+}
+
+.gridTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.gridTable th,
+.gridTable td {
+  border: 1px solid var(--color-border-soft);
+  padding: 0.45rem 0.5rem;
+  vertical-align: top;
+  text-align: left;
+}
+
+.gridTable thead th {
+  background: var(--color-brain);
+  font-weight: 700;
+}
+
+.gridTable tbody th {
+  font-weight: 600;
+  min-width: 10rem;
+}
+
+.checkboxPair {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.checkboxPair label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.inactiveCell {
+  text-align: center;
+  color: var(--color-ink-muted);
+  background: #faf8f5;
+}
+
+.objectiveCell {
+  min-width: 14rem;
+  color: var(--color-ink-muted);
+}
+
+.readonlyBlock {
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-warm, #faf8f6);
+  border: 1px solid var(--color-border-soft);
+}
+
+.readonlyBlock h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 1rem;
+}
+
+.readonlyBlock ul,
+.readonlyBlock ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+}
+
+.readonlyBlock li + li {
+  margin-top: 0.35rem;
+}
+
+.weekList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.weekDayButton {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  background: var(--color-bg-card);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.weekDayButtonActive {
+  background: var(--color-brain);
+  font-weight: 700;
+}
+
+.weekDayButtonFilled {
+  border-color: var(--color-accent);
+}
+
+.weekDayButton:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
