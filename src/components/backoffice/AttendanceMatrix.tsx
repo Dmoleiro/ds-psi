@@ -123,11 +123,27 @@ export function AttendanceMatrix({
     setSavingKey(key)
     setError('')
     try {
-      await therapistApi.upsertAttendance(token, patientId, {
+      const { record } = await therapistApi.upsertAttendance(token, patientId, {
         date: isoDate,
         status: nextStatus,
       })
-      await loadMonth()
+      setRecords((prev) => {
+        const existing = prev.find((r) => r.patientId === patientId && r.date === isoDate)
+        const withoutCell = prev.filter((r) => !(r.patientId === patientId && r.date === isoDate))
+        if (record.status === null) return withoutCell
+
+        const patient = patients.find((p) => p.id === patientId)
+        return [
+          ...withoutCell,
+          {
+            patientId,
+            patientName: patient?.fullName ?? existing?.patientName ?? '',
+            date: isoDate,
+            status: record.status,
+            sessionFee: existing?.sessionFee ?? 0,
+          },
+        ]
+      })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
     } finally {
@@ -145,12 +161,16 @@ export function AttendanceMatrix({
     setSavingKey(key)
     setError('')
     try {
-      await coordinatorApi.toggleReceiptStatus(token, {
+      const { record } = await coordinatorApi.toggleReceiptStatus(token, {
         therapistId,
         patientId,
         date: isoDate,
       })
-      await loadMonth()
+      setRecords((prev) =>
+        prev.map((r) =>
+          r.patientId === patientId && r.date === isoDate ? { ...r, status: record.status } : r,
+        ),
+      )
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
     } finally {
