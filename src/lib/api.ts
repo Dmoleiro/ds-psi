@@ -278,6 +278,23 @@ export type AppointmentSummary = {
   recurrenceGroupId: string | null
 }
 
+export type LocationDaySchedule = {
+  date: string
+  location: LocationSummary
+  gabinetes: Array<{ id: string; name: string; sortOrder: number }>
+  appointments: Array<{
+    id: string
+    gabineteId: string
+    gabineteName: string
+    date: string
+    time: string
+    durationMinutes: number
+    therapistId: string
+    therapistName: string
+    patientName: string
+  }>
+}
+
 export type AttendanceRecord = {
   date: string
   status: AttendanceStatus
@@ -515,6 +532,11 @@ export const therapistApi = {
         patientName: string
       }>
     }>(`/api/therapist/appointments/occupancy?date=${date}`, { token }),
+  getLocationDaySchedule: (token: string, date: string, locationId: string) =>
+    apiRequest<LocationDaySchedule>(
+      `/api/therapist/appointments/location-day?date=${date}&locationId=${locationId}`,
+      { token },
+    ),
   createAppointment: (
     token: string,
     body: {

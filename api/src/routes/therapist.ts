@@ -28,11 +28,12 @@ import {
   MAX_RECURRING_APPOINTMENTS,
   RoomConflictError,
   listDayRoomOccupancy,
+  listLocationDaySchedule,
   updateTherapistAppointment,
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -518,6 +519,37 @@ export async function therapistRoutes(app: FastifyInstance) {
       } catch (error) {
         if (error instanceof Error && error.message === 'INVALID_DATE') {
           return reply.status(400).send({ error: 'Data inválida' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get(
+    '/api/therapist/appointments/location-day',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const parsed = locationDayScheduleQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const schedule = await listLocationDaySchedule(
+          request.user.sub,
+          parsed.data.locationId,
+          parsed.data.date,
+        )
+        return schedule
+      } catch (error) {
+        if (error instanceof Error && error.message === 'INVALID_DATE') {
+          return reply.status(400).send({ error: 'Data inválida' })
+        }
+        if (error instanceof Error && error.message === 'LOCATION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Local não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'LOCATION_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a este local' })
         }
         throw error
       }

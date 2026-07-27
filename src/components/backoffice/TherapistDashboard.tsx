@@ -4,6 +4,7 @@ import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { DashboardCharts } from './DashboardCharts'
+import { LocationDayCalendar } from './LocationDayCalendar'
 import { therapistApi, type TherapistDashboard } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
@@ -267,6 +268,8 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
           </Card>
         </aside>
       </div>
+
+      <LocationDayCalendar token={token} />
     </div>
   )
 }

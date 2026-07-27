@@ -174,6 +174,10 @@ export const appointmentDayQuerySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 })
 
+export const locationDayScheduleQuerySchema = appointmentDayQuerySchema.extend({
+  locationId: z.string().uuid(),
+})
+
 export const appointmentBodySchema = z.object({
   patientId: z.string().uuid(),
   locationId: z.string().uuid(),

@@ -114,7 +114,7 @@ export type RoomOccupancy = {
   patientName: string
 }
 
-function parseTimeToMinutes(time: string): number {
+export function parseTimeToMinutes(time: string): number {
   const [hours, minutes] = time.split(':').map(Number)
   return hours * 60 + minutes
 }
@@ -260,3 +260,34 @@ export function isToday(date: string) {
   const today = new Date()
   return date === toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
 }
+
+const THERAPIST_SCHEDULE_COLORS = [
+  { bg: '#e8f4fc', border: '#4a90d9', text: '#1a4d7a' },
+  { bg: '#f3e8fc', border: '#9b6dd4', text: '#4a2d6e' },
+  { bg: '#e8fcef', border: '#4caf7a', text: '#1a5c38' },
+  { bg: '#fcf3e8', border: '#d49b4a', text: '#6e4a1a' },
+  { bg: '#fce8ec', border: '#d46a7a', text: '#6e1a2d' },
+  { bg: '#e8fcf7', border: '#4ad4b8', text: '#1a6e5c' },
+  { bg: '#f0e8fc', border: '#7a6ad4', text: '#2d1a6e' },
+  { bg: '#fcf8e8', border: '#c4b84a', text: '#5c521a' },
+] as const
+
+export type TherapistScheduleColor = (typeof THERAPIST_SCHEDULE_COLORS)[number]
+
+export function therapistScheduleColor(therapistId: string): TherapistScheduleColor {
+  let hash = 0
+  for (let index = 0; index < therapistId.length; index += 1) {
+    hash = (hash + therapistId.charCodeAt(index) * (index + 1)) % THERAPIST_SCHEDULE_COLORS.length
+  }
+  return THERAPIST_SCHEDULE_COLORS[hash]
+}
+
+export function shiftIsoDate(date: string, days: number): string {
+  const [year, month, day] = date.split('-').map(Number)
+  const next = new Date(year, month - 1, day + days)
+  return toIsoDate(next.getFullYear(), next.getMonth() + 1, next.getDate())
+}
+
+export const LOCATION_DAY_GRID_START_MINUTES = 8 * 60
+export const LOCATION_DAY_GRID_END_MINUTES = 20 * 60
+export const LOCATION_DAY_PIXELS_PER_MINUTE = 1.25

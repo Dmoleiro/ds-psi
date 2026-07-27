@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
-import { getActiveGabineteOrThrow } from './gabinetes.js'
+import { getActiveGabineteOrThrow, listActiveGabinetes } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
@@ -257,6 +257,60 @@ export async function listDayRoomOccupancy(date: string) {
     therapistName: appointment.therapist.name,
     patientName: appointment.patient.fullName,
   }))
+}
+
+export async function listLocationDaySchedule(
+  therapistId: string,
+  locationId: string,
+  date: string,
+) {
+  const range = getUtcDayRange(date)
+  if (!range) {
+    throw new Error('INVALID_DATE')
+  }
+
+  await assertTherapistHasLocation(therapistId, locationId)
+
+  const location = await getActiveLocationOrThrow(locationId)
+  const gabinetes = await listActiveGabinetes(locationId)
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      locationId,
+      scheduledAt: { gte: range.dayStart, lt: range.dayEnd },
+    },
+    select: {
+      id: true,
+      gabineteId: true,
+      scheduledAt: true,
+      durationMinutes: true,
+      gabinete: { select: { name: true } },
+      therapist: { select: { id: true, name: true } },
+      patient: { select: { fullName: true } },
+    },
+    orderBy: { scheduledAt: 'asc' },
+  })
+
+  return {
+    date,
+    location,
+    gabinetes: gabinetes.map((g) => ({
+      id: g.id,
+      name: g.name,
+      sortOrder: g.sortOrder,
+    })),
+    appointments: appointments.map((appointment) => ({
+      id: appointment.id,
+      gabineteId: appointment.gabineteId,
+      gabineteName: appointment.gabinete.name,
+      date: formatAppointmentDate(appointment.scheduledAt),
+      time: formatAppointmentTime(appointment.scheduledAt),
+      durationMinutes: appointment.durationMinutes,
+      therapistId: appointment.therapist.id,
+      therapistName: appointment.therapist.name,
+      patientName: appointment.patient.fullName,
+    })),
+  }
 }
 
 export async function getActiveLocationOrThrow(locationId: string) {
