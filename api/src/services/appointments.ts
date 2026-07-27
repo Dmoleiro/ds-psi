@@ -36,7 +36,7 @@ export class RoomConflictError extends Error {
   }
 }
 
-export async function updateFutureAppointmentFeesForPatient(
+export async function updatePatientAppointmentFees(
   therapistId: string,
   patientId: string,
   patientSessionFee: number | null,
@@ -49,7 +49,6 @@ export async function updateFutureAppointmentFeesForPatient(
     where: {
       therapistId,
       patientId,
-      scheduledAt: { gte: new Date() },
     },
     data: { sessionFee },
   })

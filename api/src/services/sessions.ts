@@ -5,7 +5,7 @@ import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
 import { shouldCompleteSession } from '../lib/formIds.js'
 import { decimalToNumber } from './financialSettings.js'
-import { updateFutureAppointmentFeesForPatient } from './appointments.js'
+import { updatePatientAppointmentFees } from './appointments.js'
 
 type SessionWithUrl = {
   status: SessionStatus
@@ -265,7 +265,7 @@ export async function updateTherapistPatient(
     })
 
     if (data.sessionFee !== undefined) {
-      await updateFutureAppointmentFeesForPatient(
+      await updatePatientAppointmentFees(
         therapistId,
         patientId,
         data.sessionFee,
