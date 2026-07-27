@@ -5,6 +5,7 @@ import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
 import { shouldCompleteSession } from '../lib/formIds.js'
 import { decimalToNumber } from './financialSettings.js'
+import { updateFutureAppointmentFeesForPatient } from './appointments.js'
 
 type SessionWithUrl = {
   status: SessionStatus
@@ -244,22 +245,35 @@ export async function updateTherapistPatient(
 
   await assertTherapistHasLocation(therapistId, data.locationId)
 
-  const updated = await prisma.patient.update({
-    where: { id: patientId },
-    data: {
-      fullName: data.fullName,
-      locationId: data.locationId,
-      email: data.email || null,
-      email2: data.email2 || null,
-      phone: data.phone || null,
-      phone2: data.phone2 || null,
-      birthDate: data.birthDate ? new Date(data.birthDate) : null,
-      internalNotes: data.internalNotes || null,
-      ...(data.sessionFee !== undefined ? { sessionFee: data.sessionFee } : {}),
-    },
-    include: {
-      location: { select: { id: true, name: true } },
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const patient = await tx.patient.update({
+      where: { id: patientId },
+      data: {
+        fullName: data.fullName,
+        locationId: data.locationId,
+        email: data.email || null,
+        email2: data.email2 || null,
+        phone: data.phone || null,
+        phone2: data.phone2 || null,
+        birthDate: data.birthDate ? new Date(data.birthDate) : null,
+        internalNotes: data.internalNotes || null,
+        ...(data.sessionFee !== undefined ? { sessionFee: data.sessionFee } : {}),
+      },
+      include: {
+        location: { select: { id: true, name: true } },
+      },
+    })
+
+    if (data.sessionFee !== undefined) {
+      await updateFutureAppointmentFeesForPatient(
+        therapistId,
+        patientId,
+        data.sessionFee,
+        tx,
+      )
+    }
+
+    return patient
   })
 
   return {

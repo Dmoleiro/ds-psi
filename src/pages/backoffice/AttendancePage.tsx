@@ -160,6 +160,9 @@ export function AttendancePage() {
             <AttendanceMatrix
               token={token}
               location={selectedLocation}
+              therapistName={
+                isCoordinator ? (selectedTherapist?.name ?? '') : (user?.name ?? '')
+              }
               editLock={editLock}
               mode={isCoordinator ? 'coordinator' : 'therapist'}
               therapistId={selectedTherapist?.id}

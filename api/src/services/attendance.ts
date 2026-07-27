@@ -1,6 +1,43 @@
 import { AttendanceStatus } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { formatAppointmentDate } from './appointments.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
+import { decimalToNumber, getOrCreateFinancialSettings } from './financialSettings.js'
+
+function appointmentFeeKey(patientId: string, date: string) {
+  return `${patientId}:${date}`
+}
+
+function buildAppointmentFeeLookup(
+  appointments: Array<{
+    patientId: string
+    scheduledAt: Date
+    sessionFee: { toString(): string }
+  }>,
+) {
+  const map = new Map<string, number>()
+  for (const appointment of appointments) {
+    const key = appointmentFeeKey(appointment.patientId, formatAppointmentDate(appointment.scheduledAt))
+    if (!map.has(key)) {
+      map.set(key, decimalToNumber(appointment.sessionFee))
+    }
+  }
+  return map
+}
+
+export function resolveAttendanceSessionFee(
+  patientId: string,
+  date: string,
+  appointmentFees: Map<string, number>,
+  patientSessionFee: number | null,
+  defaultSessionFee: number,
+) {
+  return (
+    appointmentFees.get(appointmentFeeKey(patientId, date)) ??
+    patientSessionFee ??
+    defaultSessionFee
+  )
+}
 
 export function parseYearMonth(year: number, month: number) {
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
@@ -95,11 +132,14 @@ export async function listTherapistAttendance(
 
   await assertTherapistHasLocation(therapistId, locationId)
 
-  const [patients, records, appointments] = await Promise.all([
+  const monthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0))
+  const monthEndExclusive = new Date(Date.UTC(year, month, 1, 0, 0, 0))
+
+  const [patients, records, appointments, settings] = await Promise.all([
     prisma.patient.findMany({
       where: { therapistId, locationId },
       orderBy: { fullName: 'asc' },
-      select: { id: true, fullName: true },
+      select: { id: true, fullName: true, sessionFee: true },
     }),
     prisma.attendanceRecord.findMany({
       where: {
@@ -113,26 +153,46 @@ export async function listTherapistAttendance(
         therapistId,
         locationId,
         scheduledAt: {
-          gte: new Date(Date.UTC(year, month - 1, 1, 0, 0, 0)),
-          lt: new Date(Date.UTC(year, month, 1, 0, 0, 0)),
+          gte: monthStart,
+          lt: monthEndExclusive,
         },
       },
-      select: { patientId: true, scheduledAt: true },
+      select: { patientId: true, scheduledAt: true, sessionFee: true },
       orderBy: { scheduledAt: 'asc' },
     }),
+    getOrCreateFinancialSettings(therapistId),
   ])
+
+  const patientMap = new Map(patients.map((patient) => [patient.id, patient]))
+  const appointmentFees = buildAppointmentFeeLookup(appointments)
 
   return {
     year,
     month,
     daysInMonth: range.to.getUTCDate(),
     location: { id: location.id, name: location.name },
-    patients,
-    records: records.map((record) => ({
-      patientId: record.patientId,
-      date: formatDateOnly(record.sessionDate),
-      status: record.status,
-    })),
+    patients: patients.map(({ id, fullName }) => ({ id, fullName })),
+    records: records
+      .filter((record) => patientMap.has(record.patientId))
+      .map((record) => {
+        const patient = patientMap.get(record.patientId)!
+        const date = formatDateOnly(record.sessionDate)
+        const patientFee =
+          patient.sessionFee != null ? decimalToNumber(patient.sessionFee) : null
+        return {
+          patientId: record.patientId,
+          patientName: patient.fullName,
+          date,
+          status: record.status,
+          sessionFee: resolveAttendanceSessionFee(
+            record.patientId,
+            date,
+            appointmentFees,
+            patientFee,
+            settings.defaultSessionFee,
+          ),
+        }
+      }),
     scheduledAppointments: appointments.map((appointment) => ({
       patientId: appointment.patientId,
       date: formatDateOnly(appointment.scheduledAt),

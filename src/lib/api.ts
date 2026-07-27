@@ -428,7 +428,13 @@ export const therapistApi = {
       daysInMonth: number
       location: LocationSummary
       patients: Array<{ id: string; fullName: string }>
-      records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+      records: Array<{
+        patientId: string
+        patientName: string
+        date: string
+        status: AttendanceStatus
+        sessionFee: number
+      }>
       scheduledAppointments: Array<{ patientId: string; date: string }>
     }>(`/api/therapist/attendance?year=${year}&month=${month}&locationId=${locationId}`, { token }),
   upsertAttendance: (
@@ -560,7 +566,13 @@ export const coordinatorApi = {
       daysInMonth: number
       location: LocationSummary
       patients: Array<{ id: string; fullName: string }>
-      records: Array<{ patientId: string; date: string; status: AttendanceStatus }>
+      records: Array<{
+        patientId: string
+        patientName: string
+        date: string
+        status: AttendanceStatus
+        sessionFee: number
+      }>
       scheduledAppointments: Array<{ patientId: string; date: string }>
     }>(
       `/api/coordinator/attendance?therapistId=${therapistId}&year=${year}&month=${month}&locationId=${locationId}`,

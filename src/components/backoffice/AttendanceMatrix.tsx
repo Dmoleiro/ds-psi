@@ -10,14 +10,18 @@ import {
   toIsoDate,
 } from '../../lib/attendance'
 import type { useEditLock } from '../../hooks/useEditLock'
+import { Button } from '../ui/Button'
+import { exportAttendanceList } from '../../lib/exportAttendanceList'
 import styles from './AttendanceMatrix.module.css'
 
 type PatientRow = { id: string; fullName: string }
 
 type MatrixRecord = {
   patientId: string
+  patientName: string
   date: string
   status: AttendanceStatus
+  sessionFee: number
 }
 
 type ScheduledAppointment = {
@@ -30,6 +34,7 @@ type EditLock = ReturnType<typeof useEditLock>
 type Props = {
   token: string
   location: LocationSummary
+  therapistName: string
   editLock?: EditLock
   mode?: 'therapist' | 'coordinator'
   therapistId?: string
@@ -38,6 +43,7 @@ type Props = {
 export function AttendanceMatrix({
   token,
   location,
+  therapistName,
   editLock,
   mode = 'therapist',
   therapistId,
@@ -117,15 +123,11 @@ export function AttendanceMatrix({
     setSavingKey(key)
     setError('')
     try {
-      const { record } = await therapistApi.upsertAttendance(token, patientId, {
+      await therapistApi.upsertAttendance(token, patientId, {
         date: isoDate,
         status: nextStatus,
       })
-      setRecords((prev) => {
-        const without = prev.filter((r) => !(r.patientId === patientId && r.date === isoDate))
-        if (record.status === null) return without
-        return [...without, { patientId, date: isoDate, status: record.status as AttendanceStatus }]
-      })
+      await loadMonth()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
     } finally {
@@ -143,15 +145,12 @@ export function AttendanceMatrix({
     setSavingKey(key)
     setError('')
     try {
-      const { record } = await coordinatorApi.toggleReceiptStatus(token, {
+      await coordinatorApi.toggleReceiptStatus(token, {
         therapistId,
         patientId,
         date: isoDate,
       })
-      setRecords((prev) => {
-        const without = prev.filter((r) => !(r.patientId === patientId && r.date === isoDate))
-        return [...without, { patientId, date: isoDate, status: record.status }]
-      })
+      await loadMonth()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar')
     } finally {
@@ -182,19 +181,32 @@ export function AttendanceMatrix({
 
   const todayIso = toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
 
+  function handleExport() {
+    try {
+      exportAttendanceList(viewYear, viewMonth, therapistName, location.name, records)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar a lista')
+    }
+  }
+
   return (
     <section className={styles.matrix}>
       <div className={styles.toolbar}>
-        <button type="button" className={styles.navButton} onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
-          ←
-        </button>
-        <div className={styles.titleBlock}>
-          <h2 className={styles.monthTitle}>{monthLabel}</h2>
-          <p className={styles.locationLabel}>{location.name}</p>
+        <div className={styles.monthNav}>
+          <button type="button" className={styles.navButton} onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
+            ←
+          </button>
+          <div className={styles.titleBlock}>
+            <h2 className={styles.monthTitle}>{monthLabel}</h2>
+            <p className={styles.locationLabel}>{location.name}</p>
+          </div>
+          <button type="button" className={styles.navButton} onClick={() => shiftMonth(1)} aria-label="Mês seguinte">
+            →
+          </button>
         </div>
-        <button type="button" className={styles.navButton} onClick={() => shiftMonth(1)} aria-label="Mês seguinte">
-          →
-        </button>
+        <Button type="button" variant="outline" onClick={handleExport} disabled={loading || records.length === 0}>
+          Imprimir / guardar PDF
+        </Button>
       </div>
 
       <div className={styles.editBar}>

@@ -411,7 +411,7 @@ export function PatientDetailPage() {
               placeholder="Predefinido nas finanças"
             />
             <p className={styles.muted}>
-              Opcional. Substitui o valor predefinido do terapeuta ao criar consultas.
+              Opcional. Substitui o valor predefinido do terapeuta e atualiza todas as consultas futuras deste paciente.
             </p>
           </div>
           <div className={styles.field}>

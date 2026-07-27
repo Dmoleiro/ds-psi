@@ -36,6 +36,27 @@ export class RoomConflictError extends Error {
   }
 }
 
+export async function updateFutureAppointmentFeesForPatient(
+  therapistId: string,
+  patientId: string,
+  patientSessionFee: number | null,
+  db: Pick<typeof prisma, 'appointment'> = prisma,
+) {
+  const sessionFee =
+    patientSessionFee ?? (await resolveSessionFee(therapistId, undefined))
+
+  const result = await db.appointment.updateMany({
+    where: {
+      therapistId,
+      patientId,
+      scheduledAt: { gte: new Date() },
+    },
+    data: { sessionFee },
+  })
+
+  return result.count
+}
+
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
 
 function addDays(date: Date, days: number): Date {
