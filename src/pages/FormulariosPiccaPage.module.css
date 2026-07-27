@@ -18,21 +18,16 @@
 }
 
 .header {
-  max-width: 42rem;
+  max-width: 44rem;
   margin-bottom: var(--space-2xl);
 }
 
-.comingSoon {
-  display: inline-block;
-  margin: 0 0 var(--space-md);
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.acronym {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--color-primary);
-  background: var(--color-bg-warm);
-  border-radius: var(--radius-full);
+  line-height: 1.5;
 }
 
 .title {
@@ -44,22 +39,52 @@
   font-size: 1.0625rem;
   color: var(--color-ink-muted);
   line-height: 1.7;
+  margin: 0 0 var(--space-md);
+}
+
+.intro:last-child {
+  margin-bottom: 0;
+}
+
+.catalog {
+  max-width: 52rem;
+}
+
+.catalogTitle {
+  font-size: 1.375rem;
+  margin: 0 0 var(--space-sm);
+}
+
+.catalogIntro {
+  margin: 0 0 var(--space-xl);
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+}
+
+.volume + .volume {
+  margin-top: var(--space-xl);
+}
+
+.volumeTitle {
+  margin: 0 0 var(--space-md);
+  font-size: 1.125rem;
+}
+
+.moduleList {
+  list-style: none;
   margin: 0;
-}
-
-.grid {
+  padding: 0;
   display: grid;
-  gap: var(--space-lg);
-  max-width: 56rem;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
   gap: var(--space-md);
 }
 
-.cardHeader {
+.moduleCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.moduleHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -67,39 +92,37 @@
   flex-wrap: wrap;
 }
 
-.cardTitle {
-  font-size: 1.0625rem;
+.moduleTitle {
+  margin: 0;
   font-weight: 700;
-  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
-.cardDescription {
+.moduleDescription {
+  margin: 0;
   font-size: 0.9375rem;
   color: var(--color-ink-muted);
-  margin: 0;
-  flex: 1;
+  line-height: 1.6;
 }
 
-.stubButton {
-  align-self: flex-start;
-  opacity: 0.6;
-  cursor: not-allowed;
-  pointer-events: none;
+.statusAvailable,
+.statusSoon {
+  flex-shrink: 0;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: var(--radius-full);
 }
 
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.statusAvailable {
+  color: #1f5c3a;
+  background: #e8f5ee;
 }
 
-.note {
-  margin-top: var(--space-2xl);
-  font-size: 0.9375rem;
+.statusSoon {
   color: var(--color-ink-muted);
-}
-
-.note a {
-  color: var(--color-primary);
-  font-weight: 600;
+  background: var(--color-bg-warm);
 }

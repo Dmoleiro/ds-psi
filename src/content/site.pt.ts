@@ -315,13 +315,70 @@ export const therapist = {
   ] satisfies TimelineEntry[],
 }
 
-export const piccaFormDefinitions = [] satisfies FormStub[]
+export type PiccaModuleStatus = 'available' | 'coming_soon'
+
+export interface PiccaCatalogModule {
+  number: number
+  title: string
+  description?: string
+  status: PiccaModuleStatus
+}
+
+export interface PiccaCatalogVolume {
+  volume: number
+  title: string
+  modules: PiccaCatalogModule[]
+}
+
+/** Public catalogue of PICCA volumes/modules — keep in sync with api/prisma seed & piccaModuleIds. */
+export const piccaCatalog = [
+  {
+    volume: 1,
+    title: 'Volume I',
+    modules: [
+      {
+        number: 1,
+        title: 'A publicar',
+        status: 'coming_soon',
+      },
+      {
+        number: 2,
+        title: 'História Familiar e Contexto Familiar',
+        description:
+          'Contexto familiar, fatores predisponentes e protetores, e acontecimentos relevantes para a conceptualização clínica.',
+        status: 'available',
+      },
+      {
+        number: 3,
+        title: 'Gestação, Parto e Período Neonatal',
+        description:
+          'Fatores pré-natais, peri-natais e neonatais relevantes para o neurodesenvolvimento.',
+        status: 'available',
+      },
+      {
+        number: 4,
+        title: 'História do Desenvolvimento',
+        description: 'Marcos do desenvolvimento, competências, sinais de alerta e áreas de vulnerabilidade.',
+        status: 'available',
+      },
+    ],
+  },
+] satisfies PiccaCatalogVolume[]
 
 export const piccaFormsPage = {
   title: 'Formulários PICCA',
+  acronym: 'Protocolo Integrado de Conceptualização Clínica e Avaliação',
   intro:
-    'Área reservada para pacientes com acesso autorizado. Cada paciente receberá um link único da sua terapeuta para preencher os formulários de forma segura.',
-  comingSoon: 'Brevemente',
+    'O PICCA é uma plataforma desenvolvida internamente na Daniela Santos Psicologia para apoiar a avaliação clínica de crianças e adolescentes, recolhendo informação estruturada de forma segura e organizada por módulos.',
+  patientAccess:
+    'O acesso aos formulários é reservado a famílias com link autorizado, enviado pela terapeuta responsável. Cada utente recebe um link único para preencher os módulos indicados.',
+  catalogTitle: 'Volumes e módulos',
+  catalogIntro:
+    'O protocolo está organizado em volumes temáticos. Novos módulos serão publicados aqui à medida que forem disponibilizados na clínica.',
+  moduleStatus: {
+    available: 'Disponível',
+    coming_soon: 'Em desenvolvimento',
+  } satisfies Record<PiccaModuleStatus, string>,
 } as const
 
 export const workshopsPage = {

@@ -13,6 +13,7 @@ type TherapistRow = {
   name: string
   active: boolean
   financialOverviewEnabled: boolean
+  piccaEnabled: boolean
   createdAt: string
 }
 
@@ -128,6 +129,7 @@ export function AdminTherapistsPage() {
       data.therapists.map((therapist) => ({
         ...therapist,
         financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
+        piccaEnabled: therapist.piccaEnabled ?? false,
       })),
     )
   }
@@ -155,6 +157,14 @@ export function AdminTherapistsPage() {
     if (!token) return
     await adminApi.updateTherapist(token, therapist.id, {
       financialOverviewEnabled: !therapist.financialOverviewEnabled,
+    })
+    await load()
+  }
+
+  async function togglePiccaAccess(therapist: TherapistRow) {
+    if (!token) return
+    await adminApi.updateTherapist(token, therapist.id, {
+      piccaEnabled: !therapist.piccaEnabled,
     })
     await load()
   }
@@ -212,6 +222,7 @@ export function AdminTherapistsPage() {
               <th>Email</th>
               <th>Estado</th>
               <th>Finanças</th>
+              <th>PICCA</th>
               <th />
             </tr>
           </thead>
@@ -222,6 +233,7 @@ export function AdminTherapistsPage() {
                 <td>{therapist.email}</td>
                 <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
                 <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
+                <td>{therapist.piccaEnabled ? 'Ativo' : '—'}</td>
                 <td>
                   <div className={styles.rowActions}>
                     <button
@@ -237,6 +249,13 @@ export function AdminTherapistsPage() {
                       onClick={() => toggleFinancialAccess(therapist)}
                     >
                       {therapist.financialOverviewEnabled ? 'Revogar finanças' : 'Dar acesso finanças'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => togglePiccaAccess(therapist)}
+                    >
+                      {therapist.piccaEnabled ? 'Revogar PICCA' : 'Dar acesso PICCA'}
                     </button>
                     <button
                       type="button"

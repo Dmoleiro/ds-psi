@@ -45,6 +45,7 @@ function BackofficeNavLinks({
           {link('/backoffice/appointments', 'Consultas')}
           {link('/backoffice/attendance', 'Presenças')}
           {user.financialOverviewEnabled && link('/backoffice/financial', 'Finanças')}
+          {user.piccaEnabled && link('/backoffice/picca', 'PICCA')}
           {link('/backoffice/workshops', 'Workshops')}
         </>
       )}

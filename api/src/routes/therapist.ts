@@ -62,7 +62,7 @@ export async function therapistRoutes(app: FastifyInstance) {
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
     const profile = await prisma.user.findUniqueOrThrow({
       where: { id: request.user.sub },
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true },
     })
     return { profile }
   })
@@ -97,7 +97,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     const profile = await prisma.user.update({
       where: { id: existing.id },
       data,
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true },
     })
 
     const token = await reply.jwtSign({

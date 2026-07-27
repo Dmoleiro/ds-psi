@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
+import { PiccaPatientSection, type PiccaSessionRow } from '../../components/backoffice/PiccaPatientSection'
 import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
@@ -16,6 +17,9 @@ import {
   formStatusBadgeVariant,
   sessionStatusBadgeVariant,
 } from '../../lib/intakeStatus'
+import tabStyles from './PatientDetailPage.module.css'
+
+type PatientTab = 'dados' | 'intake' | 'picca' | 'documentos'
 
 type SessionRow = {
   id: string
@@ -44,12 +48,14 @@ type PatientDetail = {
   internalNotes: string | null
   location?: { id: string; name: string }
   intakeSessions: SessionRow[]
+  piccaSessions?: PiccaSessionRow[]
 }
 
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const [activeTab, setActiveTab] = useState<PatientTab>('dados')
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
   const [availableForms, setAvailableForms] = useState<FormOption[]>([])
@@ -303,6 +309,15 @@ export function PatientDetailPage() {
     }
   }
 
+  function formatDetailValue(value: string | null | undefined): string {
+    return value?.trim() ? value : '—'
+  }
+
+  function formatSessionFee(value: number | null): string {
+    if (value == null) return 'Predefinido nas finanças'
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value)
+  }
+
   if (loading) {
     return (
       <BackofficeLayout>
@@ -465,13 +480,131 @@ export function PatientDetailPage() {
         {' · '}
         <Link to="/backoffice/attendance">Ver presenças</Link>
       </p>
-      {!editingPatient && patient.internalNotes && (
-        <Card as="section" className={styles.sectionSpaced}>
-          <h2>Notas internas</h2>
-          <p>{patient.internalNotes}</p>
-        </Card>
+
+      <div className={tabStyles.tabs} role="tablist" aria-label="Secções do utente">
+        {(
+          [
+            ['dados', 'Dados'],
+            ['intake', 'Formulários'],
+            ...(user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
+            ['documentos', 'Documentos'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === id}
+            className={activeTab === id ? `${tabStyles.tab} ${tabStyles.tabActive}` : tabStyles.tab}
+            onClick={() => setActiveTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className={tabStyles.tabPanel}>
+      {activeTab === 'dados' && !editingPatient && (
+        <>
+          <Card as="section" className={tabStyles.detailCard}>
+            <h2>Dados do utente</h2>
+            <dl className={tabStyles.detailList}>
+              <div className={tabStyles.detailItem}>
+                <dt>Nome completo</dt>
+                <dd>{patient.fullName}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Local de consulta</dt>
+                <dd>{formatDetailValue(patient.location?.name)}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Email</dt>
+                <dd>{formatDetailValue(patient.email)}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Email 2</dt>
+                <dd>{formatDetailValue(patient.email2)}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Telefone</dt>
+                <dd>{formatDetailValue(patient.phone)}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Telefone 2</dt>
+                <dd>{formatDetailValue(patient.phone2)}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Data de nascimento</dt>
+                <dd>{formatBirthDate(patient.birthDate) ?? '—'}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
+                <dt>Valor da consulta</dt>
+                <dd>{formatSessionFee(patient.sessionFee)}</dd>
+              </div>
+            </dl>
+            <div className={tabStyles.detailFooter}>
+              <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
+                Editar dados
+              </button>
+              {' · '}
+              <Link to="/backoffice/attendance">Ver presenças</Link>
+            </div>
+          </Card>
+
+          {patient.internalNotes && (
+            <Card as="section">
+              <h2>Notas internas</h2>
+              <p className={tabStyles.internalNotes}>{patient.internalNotes}</p>
+            </Card>
+          )}
+
+          <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
+            <h2>Zona de perigo</h2>
+            <p className={styles.muted}>
+              Eliminar este paciente remove permanentemente o perfil, todos os formulários gerados, respostas
+              submetidas, rascunhos e registos de presença. Esta ação não pode ser desfeita.
+            </p>
+            {!confirmDelete ? (
+              <Button type="button" variant="outline" onClick={() => setConfirmDelete(true)}>
+                Eliminar paciente…
+              </Button>
+            ) : (
+              <>
+                <p className={styles.error}>
+                  Tem a certeza que pretende eliminar <strong>{patient.fullName}</strong>?
+                  {sessionCount > 0 && (
+                    <>
+                      {' '}
+                      Serão apagados {sessionCount} conjunto{sessionCount === 1 ? '' : 's'} de formulários e todos os
+                      dados associados.
+                    </>
+                  )}
+                </p>
+                {deleteError && <p className={styles.error}>{deleteError}</p>}
+                <div className={styles.dangerActions}>
+                  <Button type="button" onClick={handleDeletePatient} disabled={deleting}>
+                    {deleting ? 'A eliminar…' : 'Sim, eliminar tudo'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setConfirmDelete(false)
+                      setDeleteError('')
+                    }}
+                    disabled={deleting}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </>
+            )}
+          </section>
+        </>
       )}
 
+      {activeTab === 'intake' && (
+      <>
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link de formulários</h2>
         <p className={styles.muted}>Selecione os formulários a incluir no link único do paciente.</p>
@@ -657,54 +790,23 @@ export function PatientDetailPage() {
         )}
       </Card>
 
-      <PatientDocumentsPanel patientId={patient.id} />
-
       {submissions && (
         <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />
       )}
+      </>
+      )}
 
-      <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
-        <h2>Zona de perigo</h2>
-        <p className={styles.muted}>
-          Eliminar este paciente remove permanentemente o perfil, todos os formulários gerados, respostas
-          submetidas, rascunhos e registos de presença. Esta ação não pode ser desfeita.
-        </p>
-        {!confirmDelete ? (
-          <Button type="button" variant="outline" onClick={() => setConfirmDelete(true)}>
-            Eliminar paciente…
-          </Button>
-        ) : (
-          <>
-            <p className={styles.error}>
-              Tem a certeza que pretende eliminar <strong>{patient.fullName}</strong>?
-              {sessionCount > 0 && (
-                <>
-                  {' '}
-                  Serão apagados {sessionCount} conjunto{sessionCount === 1 ? '' : 's'} de formulários e todos os
-                  dados associados.
-                </>
-              )}
-            </p>
-            {deleteError && <p className={styles.error}>{deleteError}</p>}
-            <div className={styles.dangerActions}>
-              <Button type="button" onClick={handleDeletePatient} disabled={deleting}>
-                {deleting ? 'A eliminar…' : 'Sim, eliminar tudo'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setConfirmDelete(false)
-                  setDeleteError('')
-                }}
-                disabled={deleting}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </>
-        )}
-      </section>
+      {activeTab === 'picca' && user?.piccaEnabled && token && id && (
+        <PiccaPatientSection
+          token={token}
+          patientId={id}
+          sessions={patient.piccaSessions ?? []}
+          onRefresh={refreshPatient}
+        />
+      )}
+
+      {activeTab === 'documentos' && <PatientDocumentsPanel patientId={patient.id} />}
+      </div>
     </BackofficeLayout>
   )
 }

@@ -4,6 +4,7 @@ import { assertTherapistHasLocation } from './therapistLocations.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
 import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
 import { shouldCompleteSession } from '../lib/formIds.js'
+import { formatTherapistPatientWithPicca } from './piccaSessions.js'
 import { decimalToNumber } from './financialSettings.js'
 import { updatePatientAppointmentFees } from './appointments.js'
 
@@ -31,6 +32,15 @@ type TherapistPatient = Prisma.PatientGetPayload<{
       include: {
         forms: {
           include: { definition: true; submission: true }
+          orderBy: { sortOrder: 'asc' }
+        }
+      }
+      orderBy: { createdAt: 'desc' }
+    }
+    piccaSessions: {
+      include: {
+        modules: {
+          include: { module: true }
           orderBy: { sortOrder: 'asc' }
         }
       }
@@ -85,6 +95,7 @@ export function formatTherapistPatient(patient: TherapistPatient) {
       forms: session.forms,
       url: getAccessibleSessionUrl(session),
     })),
+    ...formatTherapistPatientWithPicca(patient),
   }
 }
 
@@ -167,6 +178,15 @@ export async function getTherapistPatient(therapistId: string, patientId: string
         include: {
           forms: {
             include: { definition: true, submission: true },
+            orderBy: { sortOrder: 'asc' },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+      piccaSessions: {
+        include: {
+          modules: {
+            include: { module: true },
             orderBy: { sortOrder: 'asc' },
           },
         },

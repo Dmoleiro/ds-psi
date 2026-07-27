@@ -20,6 +20,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         financialOverviewEnabled: true,
+        piccaEnabled: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -46,7 +47,7 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.therapist,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
     })
 
     return reply.status(201).send({ therapist })
@@ -70,6 +71,7 @@ export async function adminRoutes(app: FastifyInstance) {
       name?: string
       active?: boolean
       financialOverviewEnabled?: boolean
+      piccaEnabled?: boolean
       passwordHash?: string
     } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
@@ -77,12 +79,15 @@ export async function adminRoutes(app: FastifyInstance) {
     if (parsed.data.financialOverviewEnabled !== undefined) {
       data.financialOverviewEnabled = parsed.data.financialOverviewEnabled
     }
+    if (parsed.data.piccaEnabled !== undefined) {
+      data.piccaEnabled = parsed.data.piccaEnabled
+    }
     if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password)
 
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
     })
 
     return { therapist: updated }
@@ -165,6 +170,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         financialOverviewEnabled: true,
+        piccaEnabled: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -191,7 +197,7 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.coordinator,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
     })
 
     return reply.status(201).send({ coordinator })
@@ -219,7 +225,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, createdAt: true },
+      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
     })
 
     return { coordinator: updated }

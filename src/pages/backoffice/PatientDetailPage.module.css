@@ -1,0 +1,72 @@
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin: var(--space-lg) 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-xs);
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: var(--space-sm) var(--space-md);
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: var(--color-ink-muted);
+}
+
+.tabActive {
+  background: var(--color-surface-muted, #f6f6f6);
+  color: var(--color-ink, #1a1a1a);
+  font-weight: 600;
+}
+
+.detailCard h2 {
+  margin: 0 0 var(--space-md);
+}
+
+.detailList {
+  margin: 0;
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 600px) {
+  .detailList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.detailItem {
+  margin: 0;
+}
+
+.detailItem dt {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.detailItem dd {
+  margin: 0;
+}
+
+.detailFooter {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-soft, #e8e8e8);
+}
+
+.internalNotes {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.tabPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}

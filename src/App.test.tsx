@@ -57,7 +57,7 @@ describe('App', () => {
     )
   })
 
-  it('shows PICCA forms coming soon on the dedicated page', async () => {
+  it('shows PICCA forms information on the dedicated page', async () => {
     const user = userEvent.setup()
     render(<App />)
 
@@ -66,7 +66,11 @@ describe('App', () => {
     await user.click(piccaLinks[0])
 
     expect(screen.getByRole('heading', { level: 1, name: /Formulários PICCA/i })).toBeInTheDocument()
-    expect(screen.getByText('Brevemente')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Protocolo Integrado de Conceptualização Clínica e Avaliação/i),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: /Volumes e módulos/i })).toBeInTheDocument()
+    expect(screen.getByText(/História Familiar e Contexto Familiar/i)).toBeInTheDocument()
     expect(screen.queryByText('Formulário de Admissão')).not.toBeInTheDocument()
   })
 

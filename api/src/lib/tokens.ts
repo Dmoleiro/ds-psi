@@ -12,3 +12,8 @@ export function buildPatientUrl(token: string, frontendUrl: string): string {
   const base = frontendUrl.replace(/\/$/, '')
   return `${base}/formularios/p/${token}`
 }
+
+export function buildPiccaPatientUrl(token: string, frontendUrl: string): string {
+  const base = frontendUrl.replace(/\/$/, '')
+  return `${base}/formularios/picca/${token}`
+}

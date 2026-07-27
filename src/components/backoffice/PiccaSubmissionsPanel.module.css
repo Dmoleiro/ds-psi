@@ -1,0 +1,82 @@
+.panel {
+  margin-top: var(--space-xl);
+}
+
+.scrollAnchor {
+  scroll-margin-top: var(--space-lg);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.meta {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-ink-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.empty {
+  color: var(--color-ink-muted);
+}
+
+.modules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.moduleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.moduleHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  align-items: baseline;
+}
+
+.moduleHeader h3,
+.moduleHeader h4,
+.moduleTitle {
+  margin: 0;
+}
+
+.moduleHeader time {
+  color: var(--color-ink-muted);
+  font-size: 0.9rem;
+}
+
+.rawJson {
+  background: #f6f6f6;
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+
+.error {
+  color: var(--color-primary);
+}

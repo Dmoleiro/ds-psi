@@ -32,6 +32,7 @@ export const updateTherapistSchema = z.object({
   name: z.string().min(2).optional(),
   active: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
+  piccaEnabled: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
 
@@ -122,9 +123,15 @@ export const createSessionSchema = z.object({
   expiresAt: z.string().datetime().optional(),
 })
 
+export const createPiccaSessionSchema = z.object({
+  moduleIds: z.array(z.string().min(1)).min(1),
+})
+
 export const draftSchema = z.object({
   answers: z.record(z.unknown()),
 })
+
+export const piccaDraftSchema = draftSchema
 
 export const consentSchema = z.object({
   accepted: z.literal(true),

@@ -14,6 +14,7 @@ import { AppointmentsPage } from './pages/backoffice/AppointmentsPage'
 import { AttendancePage } from './pages/backoffice/AttendancePage'
 import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardPage'
 import { FinancialOverviewPage } from './pages/backoffice/FinancialOverviewPage'
+import { PiccaLibraryPage } from './pages/backoffice/PiccaLibraryPage'
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
 import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
@@ -23,6 +24,8 @@ import { WorkshopsPage } from './pages/backoffice/WorkshopsPage'
 import { PatientCompletePage } from './pages/patient/PatientCompletePage'
 import { PatientFormPage } from './pages/patient/PatientFormPage'
 import { PatientPortalPage } from './pages/patient/PatientPortalPage'
+import { PiccaPortalPage } from './pages/patient/PiccaPortalPage'
+import { PiccaModulePage } from './pages/patient/PiccaModulePage'
 import './styles/global.css'
 
 function getBasename(): string {
@@ -78,6 +81,8 @@ export function App() {
         <Route path="/formularios/p/:token" element={<PatientPortalPage />} />
         <Route path="/formularios/p/:token/concluido" element={<PatientCompletePage />} />
         <Route path="/formularios/p/:token/:formId" element={<PatientFormPage />} />
+        <Route path="/formularios/picca/:token" element={<PiccaPortalPage />} />
+        <Route path="/formularios/picca/:token/:moduleId" element={<PiccaModulePage />} />
         <Route path="/backoffice/login" element={<BackofficeLoginPage />} />
         <Route path="/backoffice" element={<BackofficeDashboardPage />} />
         <Route path="/backoffice/patients" element={<RequireTherapist><PatientsListPage /></RequireTherapist>} />
@@ -86,6 +91,7 @@ export function App() {
         <Route path="/backoffice/appointments" element={<AppointmentsPage />} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/financial" element={<RequireTherapist><FinancialOverviewPage /></RequireTherapist>} />
+        <Route path="/backoffice/picca" element={<RequireTherapist><PiccaLibraryPage /></RequireTherapist>} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/workshops" element={<WorkshopsPage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />

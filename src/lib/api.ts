@@ -170,6 +170,7 @@ export type StaffUser = {
   phone?: string | null
   role: 'admin' | 'therapist' | 'coordinator'
   financialOverviewEnabled?: boolean
+  piccaEnabled?: boolean
   active?: boolean
 }
 
@@ -371,6 +372,54 @@ export const therapistApi = {
     }),
   deleteSession: (token: string, sessionId: string) =>
     apiRequest<void>(`/api/therapist/sessions/${sessionId}`, { method: 'DELETE', token }),
+  listPiccaModules: (token: string) =>
+    apiRequest<{
+      modules: Array<{
+        id: string
+        volume: number
+        moduleNumber: number
+        title: string
+        description: string | null
+      }>
+    }>('/api/therapist/picca/modules', { token }),
+  createPiccaSession: (token: string, patientId: string, moduleIds: string[]) =>
+    apiRequest<{ sessionId: string; url: string }>(
+      `/api/therapist/patients/${patientId}/picca-sessions`,
+      { method: 'POST', token, body: { moduleIds } },
+    ),
+  revokePiccaSession: (token: string, sessionId: string) =>
+    apiRequest<{ session: unknown }>(`/api/therapist/picca-sessions/${sessionId}/revoke`, {
+      method: 'POST',
+      token,
+    }),
+  getPiccaSessionSubmissions: (token: string, sessionId: string) =>
+    apiRequest<{
+      session: {
+        id: string
+        status: string
+        patient: { id: string; fullName: string }
+        location: { name: string }
+        modules: Array<{
+          moduleId: string
+          title: string
+          volume?: number
+          moduleNumber?: number
+          submittedAt: string
+          answers: Record<string, unknown>
+        }>
+      }
+    }>(`/api/therapist/picca-sessions/${sessionId}/submissions`, { token }),
+  updatePiccaModuleAnswers: (
+    token: string,
+    sessionId: string,
+    moduleId: string,
+    answers: Record<string, unknown>,
+  ) =>
+    apiRequest<{ status: string }>(`/api/therapist/picca-sessions/${sessionId}/modules/${moduleId}`, {
+      method: 'PUT',
+      token,
+      body: { answers },
+    }),
   listPatientDocuments: (token: string, patientId: string) =>
     apiRequest<{ documents: PatientDocumentSummary[] }>(
       `/api/therapist/patients/${patientId}/documents`,
@@ -614,7 +663,7 @@ export const adminApi = {
   updateTherapist: (
     token: string,
     id: string,
-    body: { name?: string; active?: boolean; financialOverviewEnabled?: boolean; password?: string },
+    body: { name?: string; active?: boolean; financialOverviewEnabled?: boolean; piccaEnabled?: boolean; password?: string },
   ) =>
     apiRequest<{ therapist: StaffUser & { active: boolean; createdAt: string } }>(`/api/admin/therapists/${id}`, {
       method: 'PATCH',
@@ -832,4 +881,61 @@ export const patientApi = {
     fetchDocumentBlob(`/api/patient/session/${token}/documents/${documentId}/content`, {
       'X-Patient-Token': token,
     }),
+}
+
+export type PiccaPatientModule = {
+  moduleId: string
+  title: string
+  description?: string | null
+  volume: number
+  moduleNumber: number
+  status: 'not_started' | 'in_progress' | 'submitted'
+  accessible: boolean
+  readOnly: boolean
+}
+
+export type PiccaPatientSession = {
+  id: string
+  status: string
+  consentAt: string | null
+  patientFirstName: string
+  totalModules: number
+  completedModules: number
+  currentModuleIndex: number
+  modules: PiccaPatientModule[]
+}
+
+export const piccaPatientApi = {
+  getSession: (token: string) =>
+    apiRequest<{ session: PiccaPatientSession }>(`/api/picca/patient/session/${token}`, {
+      patientToken: token,
+    }),
+  acceptConsent: (token: string) =>
+    apiRequest<{ consentAt: string }>(`/api/picca/patient/session/${token}/consent`, {
+      method: 'POST',
+      patientToken: token,
+      body: { accepted: true },
+    }),
+  getModule: (token: string, moduleId: string) =>
+    apiRequest<{
+      module: {
+        moduleId: string
+        title: string
+        description?: string | null
+        status: string
+        readOnly: boolean
+        answers: unknown
+      }
+    }>(`/api/picca/patient/session/${token}/modules/${moduleId}`, { patientToken: token }),
+  saveDraft: (token: string, moduleId: string, answers: Record<string, unknown>) =>
+    apiRequest<{ ok: boolean }>(`/api/picca/patient/session/${token}/modules/${moduleId}/draft`, {
+      method: 'PUT',
+      patientToken: token,
+      body: { answers },
+    }),
+  submitModule: (token: string, moduleId: string, answers: Record<string, unknown>) =>
+    apiRequest<{ ok: boolean; allSubmitted: boolean }>(
+      `/api/picca/patient/session/${token}/modules/${moduleId}/submit`,
+      { method: 'POST', patientToken: token, body: { answers } },
+    ),
 }
