@@ -13,6 +13,7 @@ export function PiccaModulePage() {
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [readOnly, setReadOnly] = useState(false)
+  const [moduleStatus, setModuleStatus] = useState<string>('not_started')
   const [values, setValues] = useState<Record<string, unknown>>({})
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -27,6 +28,7 @@ export function PiccaModulePage() {
       .then(({ module }) => {
         setTitle(module.title)
         setReadOnly(module.readOnly)
+        setModuleStatus(module.status)
         const defaults = getPiccaModuleDefaults(moduleId)
         setValues({ ...defaults, ...(module.answers as Record<string, unknown>) })
       })
@@ -93,7 +95,13 @@ export function PiccaModulePage() {
         <p className={styles.intro}>O progresso é guardado automaticamente a cada poucos segundos.</p>
       )}
       {readOnly && (
-        <p className={styles.intro}>Este módulo já foi submetido — pode consultar as respostas abaixo.</p>
+        <p className={styles.intro}>Este envio foi concluído — pode consultar as respostas abaixo.</p>
+      )}
+      {!readOnly && moduleStatus === 'submitted' && (
+        <p className={styles.intro}>
+          Este módulo já foi submetido, mas ainda pode alterar as respostas até concluir o envio final
+          na lista de módulos.
+        </p>
       )}
       {error && <p className={styles.error}>{error}</p>}
       {ModuleForm ? (
@@ -102,7 +110,11 @@ export function PiccaModulePage() {
           {!readOnly && (
             <div style={{ marginTop: 'var(--space-lg)' }}>
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'A submeter…' : 'Submeter módulo'}
+                {submitting
+                  ? 'A guardar…'
+                  : moduleStatus === 'submitted'
+                    ? 'Guardar alterações'
+                    : 'Submeter módulo'}
               </Button>
             </div>
           )}

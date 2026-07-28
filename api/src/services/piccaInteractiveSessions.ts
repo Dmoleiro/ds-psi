@@ -1,5 +1,6 @@
 import { PiccaInteractiveFormKind, PiccaSessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
+import { isDailyPiccaInteractiveKind } from '../lib/piccaInteractiveKinds.js'
 import { sortPiccaInteractiveFormIds } from '../lib/piccaInteractiveFormIds.js'
 import {
   getWeekStartMonday,
@@ -175,6 +176,20 @@ export async function revokePiccaInteractiveSession(therapistId: string, session
   })
 }
 
+export async function deletePiccaInteractiveSession(therapistId: string, sessionId: string) {
+  await assertTherapistPiccaEnabled(therapistId)
+
+  const session = await prisma.piccaInteractiveSession.findFirst({
+    where: { id: sessionId, therapistId },
+    select: { id: true },
+  })
+  if (!session) {
+    throw new Error('SESSION_NOT_FOUND')
+  }
+
+  await prisma.piccaInteractiveSession.delete({ where: { id: sessionId } })
+}
+
 export async function getPiccaInteractiveEntriesForTherapist(
   therapistId: string,
   sessionId: string,
@@ -263,7 +278,7 @@ export async function getPiccaInteractivePatientForm(
   const today = todayIsoLisbon()
   const resolvedPeriodKey =
     periodKey ??
-    (sessionForm.form.kind === PiccaInteractiveFormKind.daily_sono
+    (isDailyPiccaInteractiveKind(sessionForm.form.kind)
       ? today
       : getWeekStartMonday(today))
 
@@ -277,20 +292,18 @@ export async function getPiccaInteractivePatientForm(
     },
   })
 
-  const readOnly =
-    sessionForm.form.kind === PiccaInteractiveFormKind.daily_sono
-      ? !isDayEditable(resolvedPeriodKey, today)
-      : !isWeekEditable(resolvedPeriodKey, today)
+  const readOnly = isDailyPiccaInteractiveKind(sessionForm.form.kind)
+    ? !isDayEditable(resolvedPeriodKey, today)
+    : !isWeekEditable(resolvedPeriodKey, today)
 
   return {
     formId: sessionForm.formId,
     title: sessionForm.form.title,
     kind: sessionForm.form.kind,
     periodKey: resolvedPeriodKey,
-    weekStart:
-      sessionForm.form.kind === PiccaInteractiveFormKind.daily_sono
-        ? getWeekStartMonday(resolvedPeriodKey)
-        : resolvedPeriodKey,
+    weekStart: isDailyPiccaInteractiveKind(sessionForm.form.kind)
+      ? getWeekStartMonday(resolvedPeriodKey)
+      : resolvedPeriodKey,
     readOnly,
     answers: (entry?.answersJson as Record<string, unknown> | undefined) ?? {},
     submittedAt: entry?.submittedAt ?? null,
@@ -303,7 +316,7 @@ export async function listPiccaInteractivePatientWeekEntries(
   weekStart: string,
 ) {
   const sessionForm = await getSessionFormOrThrow(sessionId, formId)
-  if (sessionForm.form.kind !== PiccaInteractiveFormKind.daily_sono) {
+  if (!isDailyPiccaInteractiveKind(sessionForm.form.kind)) {
     throw new Error('INVALID_FORM_KIND')
   }
 
@@ -339,7 +352,7 @@ export async function savePiccaInteractivePatientEntry(
   const sessionForm = await getSessionFormOrThrow(sessionId, formId)
   const today = todayIsoLisbon()
 
-  if (sessionForm.form.kind === PiccaInteractiveFormKind.daily_sono) {
+  if (isDailyPiccaInteractiveKind(sessionForm.form.kind)) {
     if (!isDayEditable(periodKey, today)) {
       throw new Error('ENTRY_NOT_EDITABLE')
     }

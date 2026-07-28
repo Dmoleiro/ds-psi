@@ -1,6 +1,38 @@
+import { mergePiccaModulo1Answers } from '../components/picca/modules/piccaModulo1'
 import { mergePiccaModulo2Answers } from '../components/picca/modules/piccaModulo2'
 import { mergePiccaModulo3Answers } from '../components/picca/modules/piccaModulo3'
 import { mergePiccaModulo4Answers } from '../components/picca/modules/piccaModulo4'
+import {
+  mergePiccaModulo5Answers,
+  PICCA_MOD5_INSTRUMENTS,
+} from '../components/picca/modules/piccaModulo5'
+import {
+  mergePiccaModulo6Answers,
+  PICCA_MOD6_ACADEMIC_ROWS,
+} from '../components/picca/modules/piccaModulo6'
+import {
+  mergePiccaModulo7Answers,
+  PICCA_MOD7_AFETO,
+  PICCA_MOD7_ATENCAO,
+  PICCA_MOD7_BRINCADEIRA,
+  PICCA_MOD7_COMUNICACAO,
+  PICCA_MOD7_IMPRESSAO_GERAL,
+  PICCA_MOD7_INTERACAO,
+} from '../components/picca/modules/piccaModulo7'
+import {
+  mergePiccaModulo8Answers,
+  PICCA_MOD8_INSTRUMENTS,
+} from '../components/picca/modules/piccaModulo8'
+import {
+  mergePiccaModulo9Answers,
+  PICCA_MOD9_INDICADOR_COLUMNS,
+  PICCA_MOD9_THERAPY_AREAS,
+} from '../components/picca/modules/piccaModulo9'
+import {
+  mergePiccaModulo10Answers,
+  PICCA_MOD10_FOLLOWUP_COLUMNS,
+  PICCA_MOD10_INSTRUMENTS,
+} from '../components/picca/modules/piccaModulo10'
 
 export type PiccaPresentationField = {
   label: string
@@ -24,6 +56,31 @@ const GRAVIDADE_LABELS: Record<string, string> = {
   ligeiro: 'Ligeiro',
   moderado: 'Moderado',
   grave: 'Grave',
+}
+
+const ANSIEDADE_LABELS: Record<string, string> = {
+  ausente: 'Ausente',
+  ligeira: 'Ligeira',
+  moderada: 'Moderada',
+  grave: 'Grave',
+}
+
+const SEGUE_INSTRUCOES_LABELS: Record<string, string> = {
+  sim: 'Sim',
+  parcialmente: 'Parcialmente',
+  nao: 'Não',
+}
+
+const ADAPTACAO_LABELS: Record<string, string> = {
+  facil: 'Fácil',
+  moderada: 'Moderada',
+  dificil: 'Difícil',
+}
+
+const ACADEMIC_LABELS: Record<string, string> = {
+  sem: 'Sem dificuldade',
+  alguma: 'Alguma dificuldade',
+  significativa: 'Dificuldade significativa',
 }
 
 const ANTECEDENTES_COLUMNS = [
@@ -456,13 +513,519 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
   ].filter((s): s is PiccaPresentationSection => s !== null)
 }
 
+function formatCaregiver(
+  label: string,
+  info: {
+    nome: string
+    idade: string
+    escolaridade: string
+    profissao: string
+    contacto: string
+  },
+): string {
+  const parts = [
+    info.nome && `Nome: ${info.nome}`,
+    info.idade && `Idade: ${info.idade}`,
+    info.escolaridade && `Escolaridade: ${info.escolaridade}`,
+    info.profissao && `Profissão: ${info.profissao}`,
+    info.contacto && `Contacto: ${info.contacto}`,
+  ].filter(Boolean)
+  return parts.length ? `${label}: ${parts.join(' · ')}` : EM_DASH
+}
+
+function formatInstrumentTable(
+  value: Record<string, { resultados?: string; integracao?: string }>,
+  instruments: ReadonlyArray<{ id: string; label: string }>,
+): string {
+  const lines: string[] = []
+  for (const inst of instruments) {
+    const row = value[inst.id]
+    if (!row?.resultados?.trim() && !row?.integracao?.trim()) continue
+    const parts = [
+      row.resultados?.trim() && `Resultados: ${row.resultados.trim()}`,
+      row.integracao?.trim() && `Integração: ${row.integracao.trim()}`,
+    ].filter(Boolean)
+    lines.push(`${inst.label}: ${parts.join(' · ')}`)
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatClinicalObservationTable(
+  value: Record<string, { observacao?: string; alerta?: boolean; integracao5Ps?: string }>,
+  rows: ReadonlyArray<{ id: string; label: string }>,
+): string {
+  const lines: string[] = []
+  for (const row of rows) {
+    const entry = value[row.id]
+    if (!entry) continue
+    const parts = [
+      entry.observacao?.trim() && `Obs.: ${entry.observacao.trim()}`,
+      entry.alerta && 'Alerta',
+      entry.integracao5Ps?.trim() && `5 P's: ${entry.integracao5Ps.trim()}`,
+    ].filter(Boolean)
+    if (parts.length) lines.push(`${row.label}: ${parts.join(' · ')}`)
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatAcademicMatrix(
+  value: Record<string, string>,
+  rows: ReadonlyArray<{ id: string; label: string }>,
+): string {
+  const lines = rows
+    .map((row) => {
+      const level = value[row.id]
+      if (!level) return null
+      return `${row.label}: ${ACADEMIC_LABELS[level] ?? level}`
+    })
+    .filter(Boolean) as string[]
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatModulo1(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo1Answers(answers)
+
+  return [
+    section('1. Dados da Criança', [
+      field('Nome completo', text(a.nomeCompleto)),
+      field('Data de nascimento', text(a.dataNascimento)),
+      field('Idade', text(a.idade)),
+      field('Sexo', text(a.sexo)),
+      field('Ano de escolaridade', text(a.anoEscolaridade)),
+      field('Escola', text(a.escola)),
+      field('Turma', text(a.turma)),
+      field('Professor(a)/DT', text(a.professor)),
+      field('Morada', text(a.morada)),
+      field('Contacto', text(a.contacto)),
+      field('NIF', text(a.nif)),
+      field('N.º SNS', text(a.sns)),
+    ]),
+    section('2. Pais/Cuidadores', [
+      field('Mãe', formatCaregiver('Mãe', a.mae)),
+      field('Pai', formatCaregiver('Pai', a.pai)),
+      field('Outros cuidadores', text(a.outrosCuidadores)),
+    ]),
+    section('3. Motivo da Referenciação', [
+      field(
+        'Quem encaminhou',
+        labelsFromIds(a.encaminhado, {
+          pais: 'Pais',
+          escola: 'Escola',
+          pediatra: 'Pediatra',
+          neuropediatra: 'Neuropediatra',
+          psicologo: 'Psicólogo',
+          medico_familia: 'Médico de Família',
+          outro: 'Outro',
+        }),
+      ),
+      field('Outro (especificar)', text(a.encaminhadoOutro)),
+      field('Motivo principal', text(a.motivoPrincipal)),
+    ]),
+    section('4. Objetivos da Avaliação', [
+      field(
+        'Objetivos',
+        labelsFromIds(a.objetivos, {
+          desenvolvimento: 'Desenvolvimento',
+          aprendizagem: 'Aprendizagem',
+          phda: 'PHDA',
+          pea: 'PEA',
+          linguagem: 'Linguagem',
+          emocoes: 'Emoções',
+          comportamento: 'Comportamento',
+          outro: 'Outro',
+        }),
+      ),
+      field('Outro objetivo', text(a.objetivosOutro)),
+    ]),
+    section('Síntese Clínica Inicial', [
+      field('Principais preocupações', text(a.sintesePreocupacoes)),
+      field('Fatores predisponentes', text(a.sintesePredisponentes)),
+      field('Fatores protetores', text(a.sinteseProtetores)),
+      field('Hipóteses clínicas iniciais', text(a.sinteseHipoteses)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatModulo5(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo5Answers(answers)
+
+  return [
+    section('Atenção e Funções Executivas', [
+      field(
+        'Mantém a atenção nas tarefas',
+        a.mantemAtencao ? FREQUENCY_LABELS[a.mantemAtencao] ?? a.mantemAtencao : EM_DASH,
+      ),
+      field(
+        'Segue instruções',
+        a.segueInstrucoes ? SEGUE_INSTRUCOES_LABELS[a.segueInstrucoes] ?? a.segueInstrucoes : EM_DASH,
+      ),
+      field('Planeamento/organização', text(a.planeamentoOrganizacao)),
+      field('Flexibilidade cognitiva', text(a.flexibilidadeCognitiva)),
+    ]),
+    section('Memória e Aprendizagem', [
+      field('Memória imediata', text(a.memoriaImediata)),
+      field('Memória de trabalho', text(a.memoriaTrabalho)),
+      field('Leitura', text(a.leitura)),
+      field('Escrita', text(a.escrita)),
+      field('Matemática', text(a.matematica)),
+    ]),
+    section('Linguagem', [
+      field('Compreensão verbal', text(a.compreensaoVerbal)),
+      field('Expressão verbal', text(a.expressaoVerbal)),
+      field('Pragmática', text(a.pragmatica)),
+    ]),
+    section('Funcionamento Emocional', [
+      field('Reconhecimento emocional', text(a.reconhecimentoEmocional)),
+      field('Regulação emocional', text(a.regulacaoEmocional)),
+      field(
+        'Ansiedade',
+        a.ansiedade ? ANSIEDADE_LABELS[a.ansiedade] ?? a.ansiedade : EM_DASH,
+      ),
+      field('Autoestima', text(a.autoestima)),
+    ]),
+    section('Comportamento', [
+      field('Impulsividade', text(a.impulsividade)),
+      field('Agressividade', text(a.agressividade)),
+      field('Oposição', text(a.oposicao)),
+      field('Rigidez', text(a.rigidez)),
+    ]),
+    section('Competências Sociais', [
+      field('Relação com pares', text(a.relacaoPares)),
+      field('Relação com adultos', text(a.relacaoAdultos)),
+      field('Empatia', text(a.empatia)),
+      field('Bullying', text(a.bullying)),
+    ]),
+    section('Autonomia', [
+      field('Higiene pessoal', text(a.higienePessoal)),
+      field('Gestão de rotinas', text(a.gestaoRotinas)),
+      field('Trabalhos de casa', text(a.trabalhosCasa)),
+    ]),
+    section('Sono e Alimentação', [
+      field('Qualidade do sono', text(a.qualidadeSono)),
+      field('Hábitos alimentares', text(a.habitosAlimentares)),
+    ]),
+    section('Integração com Instrumentos de Avaliação', [
+      field('Instrumentos', formatInstrumentTable(a.instrumentos, PICCA_MOD5_INSTRUMENTS)),
+    ]),
+    section('Síntese Clínica do Funcionamento Atual', [
+      field('Áreas fortes', text(a.sinteseFortes)),
+      field('Principais dificuldades', text(a.sinteseDificuldades)),
+      field('Impacto funcional', text(a.sinteseImpacto)),
+      field('Fatores de manutenção', text(a.sinteseManutencao)),
+      field('Objetivos prioritários', text(a.sinteseObjetivos)),
+      field('Notas clínicas', text(a.notasClinicas)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatModulo6(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo6Answers(answers)
+
+  return [
+    section('Creche e Pré-Escolar', [
+      field('Idade de ingresso', text(a.crecheIngresso)),
+      field(
+        'Adaptação',
+        a.crecheAdaptacao ? ADAPTACAO_LABELS[a.crecheAdaptacao] ?? a.crecheAdaptacao : EM_DASH,
+      ),
+      field('Relação com educadores', text(a.crecheEducadores)),
+      field('Relação com pares', text(a.crechePares)),
+      field('Principais observações', text(a.crecheObs)),
+    ]),
+    section('1.º Ciclo', [
+      field('Adaptação ao 1.º ciclo', text(a.ciclo1Adaptacao)),
+      field('Dificuldades de leitura', text(a.ciclo1Leitura)),
+      field('Dificuldades de escrita', text(a.ciclo1Escrita)),
+      field('Dificuldades de matemática', text(a.ciclo1Matematica)),
+      field('Comportamento em sala', text(a.ciclo1Comportamento)),
+    ]),
+    section('2.º/3.º Ciclo e Secundário', [
+      field('Adaptação às mudanças de ciclo', text(a.ciclo23Adaptacao)),
+      field('Organização do estudo', text(a.ciclo23Organizacao)),
+      field('Motivação escolar', text(a.ciclo23Motivacao)),
+      field('Relação com professores', text(a.ciclo23Professores)),
+      field('Relação com colegas', text(a.ciclo23Colegas)),
+    ]),
+    section('Funcionamento Académico Atual', [
+      field('Domínios', formatAcademicMatrix(a.academicoAtual, PICCA_MOD6_ACADEMIC_ROWS)),
+    ]),
+    section('Apoios Educativos', [
+      field(
+        'Apoios',
+        labelsFromIds(a.apoiosEducativos, {
+          medidas_universais: 'Medidas Universais',
+          medidas_seletivas: 'Medidas Seletivas',
+          medidas_adicionais: 'Medidas Adicionais',
+          terapia_fala: 'Terapia da Fala',
+          psicologia: 'Psicologia',
+          educacao_especial: 'Educação Especial',
+          outro: 'Outro',
+        }),
+      ),
+      field('Outro apoio', text(a.apoiosOutro)),
+    ]),
+    section('Participação Escolar', [
+      field('Assiduidade', text(a.assiduidade)),
+      field('Pontualidade', text(a.pontualidade)),
+      field('Participação em sala', text(a.participacaoSala)),
+      field('Autonomia nas tarefas', text(a.autonomiaTarefas)),
+    ]),
+    section('Integração Clínica', [
+      field('Fatores protetores escolares', text(a.integracaoProtetores)),
+      field('Fatores de risco escolares', text(a.integracaoRiscos)),
+      field('Impacto funcional', text(a.integracaoImpacto)),
+      field('Necessidades educativas', text(a.integracaoNecessidades)),
+      field('Recomendações iniciais', text(a.integracaoRecomendacoes)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatModulo7(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo7Answers(answers)
+
+  return [
+    section('1. Impressão Geral', [
+      field('Observações', formatClinicalObservationTable(a.impressaoGeral, PICCA_MOD7_IMPRESSAO_GERAL)),
+    ]),
+    section('2. Comunicação e Linguagem', [
+      field('Observações', formatClinicalObservationTable(a.comunicacao, PICCA_MOD7_COMUNICACAO)),
+    ]),
+    section('3. Atenção e Atividade Motora', [
+      field('Observações', formatClinicalObservationTable(a.atencaoMotora, PICCA_MOD7_ATENCAO)),
+    ]),
+    section('4. Afeto e Humor', [
+      field('Observações', formatClinicalObservationTable(a.afetoHumor, PICCA_MOD7_AFETO)),
+    ]),
+    section('5. Interação Social', [
+      field('Observações', formatClinicalObservationTable(a.interacaoSocial, PICCA_MOD7_INTERACAO)),
+    ]),
+    section('6. Brincadeira e Exploração', [
+      field('Observações', formatClinicalObservationTable(a.brincadeira, PICCA_MOD7_BRINCADEIRA)),
+    ]),
+    section('Texto para Relatório', [field('Observação clínica', text(a.textoRelatorio))]),
+    section('Síntese Clínica', [
+      field('Pontos fortes', text(a.sinteseFortes)),
+      field('Vulnerabilidades', text(a.sinteseVulnerabilidades)),
+      field('Hipóteses diferenciais', text(a.sinteseHipoteses)),
+      field('Provas complementares sugeridas', text(a.sinteseProvas)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatObjectiveList(items: string[]): string {
+  const filled = items.map((item) => item.trim()).filter(Boolean)
+  return filled.length ? filled.map((item, i) => `${i + 1}. ${item}`).join('\n') : EM_DASH
+}
+
+function formatTherapyPlanTable(
+  value: Record<string, Record<string, string>>,
+  areas: ReadonlyArray<{ id: string; label: string }>,
+  columns: ReadonlyArray<{ key: string; label: string }>,
+): string {
+  const lines: string[] = []
+  for (const area of areas) {
+    const row = value[area.id]
+    if (!row) continue
+    const parts = columns
+      .map((col) => {
+        const val = row[col.key]?.trim()
+        return val ? `${col.label}: ${val}` : null
+      })
+      .filter(Boolean)
+    if (parts.length) lines.push(`${area.label}: ${parts.join(' · ')}`)
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatDynamicTable(
+  rows: Array<Record<string, string>>,
+  columns: ReadonlyArray<{ key: string; label: string }>,
+): string {
+  const lines = rows
+    .map((row, index) => {
+      const parts = columns
+        .map((col) => {
+          const val = row[col.key]?.trim()
+          return val ? `${col.label}: ${val}` : null
+        })
+        .filter(Boolean)
+      return parts.length ? `${index + 1}. ${parts.join(' · ')}` : null
+    })
+    .filter(Boolean) as string[]
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatInstrumentReportTable(
+  value: Record<string, { data?: string; conclusoes?: string }>,
+  instruments: ReadonlyArray<{ id: string; label: string }>,
+): string {
+  const lines: string[] = []
+  for (const inst of instruments) {
+    const row = value[inst.id]
+    if (!row?.data?.trim() && !row?.conclusoes?.trim()) continue
+    const parts = [
+      row.data?.trim() && `Data: ${row.data.trim()}`,
+      row.conclusoes?.trim() && `Conclusões: ${row.conclusoes.trim()}`,
+    ].filter(Boolean)
+    lines.push(`${inst.label}: ${parts.join(' · ')}`)
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatModulo8(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo8Answers(answers)
+
+  return [
+    section('1. Motivo Principal da Avaliação', [field('Motivo principal', text(a.motivoPrincipal))]),
+    section('2. Síntese da Informação Recolhida', [
+      field('Síntese', text(a.sinteseInformacao)),
+    ]),
+    section('3. Integração dos Instrumentos de Avaliação', [
+      field('Instrumentos', formatInstrumentTable(a.instrumentos, PICCA_MOD8_INSTRUMENTS)),
+    ]),
+    section('4. Formulação Clínica (Modelo dos 5 P\'s)', [
+      field('Problema Principal', text(a.cincoPsProblema)),
+      field('Fatores Predisponentes', text(a.cincoPsPredisponentes)),
+      field('Fatores Precipitantes', text(a.cincoPsPrecipitantes)),
+      field('Fatores Perpetuantes', text(a.cincoPsPerpetuantes)),
+      field('Fatores Protetores', text(a.cincoPsProtetores)),
+    ]),
+    section('5. Formulação Cognitivo-Comportamental', [
+      field('Situação desencadeante', text(a.cbtSituacaoDesencadeante)),
+      field('Pensamentos automáticos', text(a.cbtPensamentosAutomaticos)),
+      field('Emoções', text(a.cbtEmocoes)),
+      field('Respostas fisiológicas', text(a.cbtRespostasFisiologicas)),
+      field('Comportamentos', text(a.cbtComportamentos)),
+      field('Consequências', text(a.cbtConsequencias)),
+      field('Manutenção do problema', text(a.cbtManutencao)),
+    ]),
+    section('6. Áreas Fortes', [field('Áreas fortes', text(a.areasFortes))]),
+    section('7. Vulnerabilidades', [field('Vulnerabilidades', text(a.vulnerabilidades))]),
+    section('8. Hipóteses Clínicas', [field('Hipóteses clínicas', text(a.hipotesesClinicas))]),
+    section('9. Impacto Funcional', [field('Impacto funcional', text(a.impactoFuncional))]),
+    section('10. Objetivos Prioritários da Intervenção', [
+      field('Curto prazo', formatObjectiveList(a.objetivosCurtoPrazo)),
+      field('Médio prazo', formatObjectiveList(a.objetivosMedioPrazo)),
+      field('Longo prazo', formatObjectiveList(a.objetivosLongoPrazo)),
+    ]),
+    section('11. Recomendações Iniciais', [
+      field('Recomendações', text(a.recomendacoesIniciais)),
+    ]),
+    section('12. Impressão Clínica Global', [
+      field('Impressão clínica global', text(a.impressaoClinicaGlobal)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatModulo9(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo9Answers(answers)
+  const therapyColumns = [
+    { key: 'objetivo', label: 'Objetivo' },
+    { key: 'estrategias', label: 'Estratégias' },
+    { key: 'responsavel', label: 'Responsável' },
+    { key: 'prazo', label: 'Prazo' },
+  ]
+
+  return [
+    section('1. Diagnóstico Clínico / Hipóteses Diagnósticas', [
+      field('Diagnóstico / hipóteses', text(a.diagnosticoHipoteses)),
+    ]),
+    section('2. Prioridades de Intervenção', [
+      field('Prioridades', text(a.prioridadesIntervencao)),
+    ]),
+    section('3. Objetivos SMART', [field('Objetivos SMART', text(a.objetivosSmart))]),
+    section('4. Plano Terapêutico por Área', [
+      field(
+        'Plano',
+        formatTherapyPlanTable(a.planoTerapeutico, PICCA_MOD9_THERAPY_AREAS, therapyColumns),
+      ),
+    ]),
+    section('5. Estratégias para a Família', [field('Estratégias', text(a.estrategiasFamilia))]),
+    section('6. Estratégias para a Escola', [field('Estratégias', text(a.estrategiasEscola))]),
+    section('7. Articulação Multidisciplinar', [
+      field('Articulação', text(a.articulacaoMultidisciplinar)),
+    ]),
+    section('8. Indicadores de Evolução', [
+      field(
+        'Indicadores',
+        formatDynamicTable(a.indicadoresEvolucao, PICCA_MOD9_INDICADOR_COLUMNS),
+      ),
+    ]),
+    section('9. Cronograma de Reavaliação', [
+      field(
+        'Prazos',
+        labelsFromIds(a.reavaliacao, {
+          '3_meses': '3 meses',
+          '6_meses': '6 meses',
+          '12_meses': '12 meses',
+          outro: 'Outro',
+        }),
+      ),
+      field('Outro prazo', text(a.reavaliacaoOutro)),
+    ]),
+    section('10. Critérios de Alta / Continuidade', [field('Critérios', text(a.criteriosAlta))]),
+    section('11. Notas Clínicas', [field('Notas', text(a.notasClinicas))]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatModulo10(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaModulo10Answers(answers)
+
+  return [
+    section('1. Identificação do Caso', [field('Identificação', text(a.identificacaoCaso))]),
+    section('2. Motivo da Avaliação', [field('Motivo', text(a.motivoAvaliacao))]),
+    section('3. Instrumentos Aplicados', [
+      field(
+        'Instrumentos',
+        formatInstrumentReportTable(a.instrumentosAplicados, PICCA_MOD10_INSTRUMENTS),
+      ),
+    ]),
+    section('4. Síntese dos Resultados', [field('Síntese', text(a.sinteseResultados))]),
+    section('5. Formulação Clínica Integrada', [
+      field('Formulação', text(a.formulacaoClinica)),
+    ]),
+    section('6. Hipóteses Diagnósticas (DSM-5-TR / CID-11)', [
+      field('Hipóteses diagnósticas', text(a.hipotesesDiagnosticas)),
+    ]),
+    section('7. Diagnóstico Diferencial', [
+      field('Diagnóstico diferencial', text(a.diagnosticoDiferencial)),
+    ]),
+    section('8. Recomendações', [field('Recomendações', text(a.recomendacoes))]),
+    section('9. Plano de Follow-up', [
+      field('Plano', formatDynamicTable(a.planoFollowup, PICCA_MOD10_FOLLOWUP_COLUMNS)),
+    ]),
+    section('10. Registo da Devolução aos Cuidadores/Escola', [
+      field(
+        'Devolução',
+        labelsFromIds(a.devolucao, {
+          pais: 'Devolução aos pais/cuidadores',
+          escola: 'Devolução à escola',
+          relatorio: 'Relatório entregue',
+          plano: 'Plano explicado',
+        }),
+      ),
+      field('Observações', text(a.devolucaoObservacoes)),
+    ]),
+    section('11. Assinatura do Psicólogo', [
+      field('Assinatura', text(a.assinaturaPsicologo)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
 const MODULE_FORMATTERS: Record<
   string,
   (answers: Record<string, unknown>) => PiccaPresentationSection[]
 > = {
+  'picca-vol1-mod1': formatModulo1,
   'picca-vol1-mod2': formatModulo2,
   'picca-vol1-mod3': formatModulo3,
   'picca-vol1-mod4': formatModulo4,
+  'picca-vol1-mod5': formatModulo5,
+  'picca-vol1-mod6': formatModulo6,
+  'picca-vol1-mod7': formatModulo7,
+  'picca-vol1-mod8': formatModulo8,
+  'picca-vol1-mod9': formatModulo9,
+  'picca-vol1-mod10': formatModulo10,
 }
 
 export function formatPiccaModuleAnswers(

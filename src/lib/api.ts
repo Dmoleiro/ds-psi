@@ -5,6 +5,7 @@ import type {
   FinancialSettings,
   FinancialYearCharts,
 } from './appointments'
+import type { PiccaInteractiveFormKind } from './piccaInteractiveKinds'
 
 export type {
   FinancialOverview,
@@ -409,6 +410,8 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  deletePiccaSession: (token: string, sessionId: string) =>
+    apiRequest<void>(`/api/therapist/picca-sessions/${sessionId}`, { method: 'DELETE', token }),
   getPiccaSessionSubmissions: (token: string, sessionId: string) =>
     apiRequest<{
       session: {
@@ -421,7 +424,9 @@ export const therapistApi = {
           title: string
           volume?: number
           moduleNumber?: number
-          submittedAt: string
+          therapistOnly?: boolean
+          status?: string
+          submittedAt: string | null
           answers: Record<string, unknown>
         }>
       }
@@ -441,7 +446,7 @@ export const therapistApi = {
     apiRequest<{
       forms: Array<{
         id: string
-        kind: 'daily_sono' | 'weekly_estrategias'
+        kind: PiccaInteractiveFormKind
         title: string
         description: string | null
       }>
@@ -456,6 +461,11 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  deletePiccaInteractiveSession: (token: string, sessionId: string) =>
+    apiRequest<void>(`/api/therapist/picca-interactive-sessions/${sessionId}`, {
+      method: 'DELETE',
+      token,
+    }),
   getPiccaInteractiveSessionEntries: (token: string, sessionId: string) =>
     apiRequest<{
       session: {
@@ -465,13 +475,13 @@ export const therapistApi = {
         forms: Array<{
           formId: string
           title: string
-          kind: 'daily_sono' | 'weekly_estrategias'
+          kind: PiccaInteractiveFormKind
         }>
         entries: Array<{
           id: string
           formId: string
           formTitle: string
-          kind: 'daily_sono' | 'weekly_estrategias'
+          kind: PiccaInteractiveFormKind
           periodKey: string
           answers: Record<string, unknown>
           submittedAt: string
@@ -976,6 +986,8 @@ export type PiccaPatientSession = {
   totalModules: number
   completedModules: number
   currentModuleIndex: number
+  locked: boolean
+  canFinalize: boolean
   modules: PiccaPatientModule[]
 }
 
@@ -1012,13 +1024,19 @@ export const piccaPatientApi = {
       `/api/picca/patient/session/${token}/modules/${moduleId}/submit`,
       { method: 'POST', patientToken: token, body: { answers } },
     ),
+  completeSession: (token: string) =>
+    apiRequest<{ status: string }>(`/api/picca/patient/session/${token}/complete`, {
+      method: 'POST',
+      patientToken: token,
+      body: { accepted: true },
+    }),
 }
 
 export type PiccaInteractivePatientForm = {
   formId: string
   title: string
   description?: string | null
-  kind: 'daily_sono' | 'weekly_estrategias'
+  kind: PiccaInteractiveFormKind
 }
 
 export type PiccaInteractivePatientSession = {
@@ -1048,7 +1066,7 @@ export const piccaInteractivePatientApi = {
       form: {
         formId: string
         title: string
-        kind: 'daily_sono' | 'weekly_estrategias'
+        kind: PiccaInteractiveFormKind
         periodKey: string
         weekStart: string
         readOnly: boolean

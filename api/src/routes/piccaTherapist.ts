@@ -8,6 +8,7 @@ import {
   getPiccaSubmissionsForTherapist,
   listPiccaModules,
   revokePiccaSession,
+  deletePiccaSession,
   updatePiccaModuleAnswers,
 } from '../services/piccaSessions.js'
 
@@ -23,6 +24,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
         moduleNumber: m.moduleNumber,
         title: m.title,
         description: m.description,
+        therapistOnly: m.therapistOnly,
       })),
     }
   })
@@ -73,6 +75,23 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
         }
         if (error instanceof Error && error.message === 'SESSION_ALREADY_REVOKED') {
           return reply.status(400).send({ error: 'Sessão já revogada' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/picca-sessions/:id',
+    piccaTherapist,
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        await deletePiccaSession(request.user.sub, id)
+        return reply.status(204).send()
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
         }
         throw error
       }

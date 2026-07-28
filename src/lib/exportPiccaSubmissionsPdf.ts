@@ -1,4 +1,5 @@
 import { piccaFullModuleLabel } from './piccaModuleIds'
+import { formatFormStatus } from './intakeStatus'
 import { formatPiccaModuleAnswers } from './piccaPresentation'
 
 export type PiccaModuleSubmissionView = {
@@ -6,7 +7,9 @@ export type PiccaModuleSubmissionView = {
   title: string
   volume?: number
   moduleNumber?: number
-  submittedAt: string
+  therapistOnly?: boolean
+  status?: string
+  submittedAt: string | null
   answers: Record<string, unknown>
 }
 
@@ -34,7 +37,9 @@ function buildPrintHtml(session: PiccaSessionSubmissionsView): string {
   const generatedAt = new Date().toLocaleString('pt-PT')
   const modulesHtml = session.modules
     .map((mod) => {
-      const submittedAt = new Date(mod.submittedAt).toLocaleString('pt-PT')
+      const submittedAt = mod.submittedAt
+        ? new Date(mod.submittedAt).toLocaleString('pt-PT')
+        : formatFormStatus(mod.status ?? 'not_started')
       const moduleTitle = piccaFullModuleLabel(mod.moduleId, mod.title, mod.volume)
       const sections = formatPiccaModuleAnswers(mod.moduleId, mod.answers)
 
@@ -63,7 +68,7 @@ function buildPrintHtml(session: PiccaSessionSubmissionsView): string {
       return `
         <section class="module-block">
           <h2>${escapeHtml(moduleTitle)}</h2>
-          <p class="meta">Submetido em ${escapeHtml(submittedAt)}</p>
+          <p class="meta">Estado: ${escapeHtml(submittedAt)}</p>
           ${sectionsHtml}
         </section>
       `

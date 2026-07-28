@@ -9,6 +9,8 @@ import { Container } from '../../components/layout/Container'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { ApiError, piccaInteractivePatientApi } from '../../lib/api'
+import { isDailyPiccaInteractiveKind } from '../../lib/piccaInteractiveKinds'
+import type { PiccaInteractiveFormKind } from '../../lib/piccaInteractiveKinds'
 import { formatDayLabelShort, getWeekDates } from '../../lib/piccaInteractiveWeek'
 import { usePiccaInteractiveAutosave } from '../../hooks/usePiccaInteractiveAutosave'
 import formStyles from '../../components/picca/interactive/PiccaInteractiveForm.module.css'
@@ -17,7 +19,7 @@ import styles from './PatientPortal.module.css'
 export function PiccaInteractiveFormPage() {
   const { token, formId } = useParams<{ token: string; formId: string }>()
   const [title, setTitle] = useState('')
-  const [kind, setKind] = useState<'daily_sono' | 'weekly_estrategias'>('daily_sono')
+  const [kind, setKind] = useState<PiccaInteractiveFormKind>('daily_sono')
   const [periodKey, setPeriodKey] = useState('')
   const [weekStart, setWeekStart] = useState('')
   const [today, setToday] = useState('')
@@ -29,7 +31,7 @@ export function PiccaInteractiveFormPage() {
   const [loading, setLoading] = useState(true)
 
   const hasRenderer = formId ? hasPiccaInteractiveFormRenderer(formId) : false
-  const isSono = kind === 'daily_sono'
+  const isSono = isDailyPiccaInteractiveKind(kind)
 
   const weekDates = useMemo(() => (weekStart ? getWeekDates(weekStart) : []), [weekStart])
 
@@ -45,7 +47,8 @@ export function PiccaInteractiveFormPage() {
         const session = await piccaInteractivePatientApi.getSession(activeToken)
         setToday(session.session.today)
 
-        if (piccaInteractiveFormRegistry[activeFormId]?.kind === 'daily_sono') {
+        const formKind = piccaInteractiveFormRegistry[activeFormId]?.kind
+        if (formKind && isDailyPiccaInteractiveKind(formKind)) {
           const targetDay = session.session.today
           const [formData, weekData] = await Promise.all([
             piccaInteractivePatientApi.getForm(activeToken, activeFormId, targetDay),

@@ -338,8 +338,10 @@ export const piccaCatalog = [
     modules: [
       {
         number: 1,
-        title: 'A publicar',
-        status: 'coming_soon',
+        title: 'Identificação e Referenciação',
+        description:
+          'Dados da criança, cuidadores, motivo da referenciação e síntese clínica inicial.',
+        status: 'available',
       },
       {
         number: 2,
@@ -359,6 +361,47 @@ export const piccaCatalog = [
         number: 4,
         title: 'História do Desenvolvimento',
         description: 'Marcos do desenvolvimento, competências, sinais de alerta e áreas de vulnerabilidade.',
+        status: 'available',
+      },
+      {
+        number: 5,
+        title: 'Funcionamento Atual',
+        description:
+          'Funcionamento atual nos domínios cognitivo, emocional, comportamental, social e adaptativo.',
+        status: 'available',
+      },
+      {
+        number: 6,
+        title: 'Percurso Escolar e Funcionamento Académico',
+        description: 'Percurso escolar, funcionamento académico, apoios educativos e integração clínica.',
+        status: 'available',
+      },
+      {
+        number: 7,
+        title: 'Observação Clínica e Exame do Estado Mental',
+        description:
+          'Observação sistemática durante a avaliação, com indicadores de alerta e integração nos 5 P\'s.',
+        status: 'available',
+      },
+      {
+        number: 8,
+        title: 'Síntese Clínica Inicial e Formulação de Caso',
+        description:
+          'Integração da anamnese e avaliação com formulação nos 5 P\'s e objetivos prioritários.',
+        status: 'available',
+      },
+      {
+        number: 9,
+        title: 'Plano Integrado de Intervenção e Monitorização Clínica',
+        description:
+          'Plano de intervenção individualizado com objetivos SMART, estratégias e indicadores de evolução.',
+        status: 'available',
+      },
+      {
+        number: 10,
+        title: 'Relatório Clínico Integrado e Devolução de Resultados',
+        description:
+          'Síntese final da avaliação, conclusões diagnósticas, recomendações e registo da devolução.',
         status: 'available',
       },
     ],

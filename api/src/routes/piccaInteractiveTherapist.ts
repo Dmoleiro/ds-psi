@@ -8,6 +8,7 @@ import {
   getPiccaInteractiveEntriesForTherapist,
   listPiccaInteractiveForms,
   revokePiccaInteractiveSession,
+  deletePiccaInteractiveSession,
   updatePiccaInteractiveEntryForTherapist,
 } from '../services/piccaInteractiveSessions.js'
 
@@ -74,6 +75,23 @@ export async function piccaInteractiveTherapistRoutes(app: FastifyInstance) {
         }
         if (error instanceof Error && error.message === 'SESSION_ALREADY_REVOKED') {
           return reply.status(400).send({ error: 'Sessão já revogada' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/picca-interactive-sessions/:id',
+    piccaInteractiveTherapist,
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        await deletePiccaInteractiveSession(request.user.sub, id)
+        return reply.status(204).send()
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
         }
         throw error
       }

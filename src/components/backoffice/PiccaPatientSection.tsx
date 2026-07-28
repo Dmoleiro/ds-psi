@@ -44,6 +44,7 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
       moduleNumber: number
       title: string
       description: string | null
+      therapistOnly?: boolean
     }>
   >([])
   const [selectedModules, setSelectedModules] = useState<string[]>([])
@@ -51,7 +52,10 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submissions, setSubmissions] = useState<PiccaSessionSubmissionsView | null>(null)
-  const [sessionAction, setSessionAction] = useState<{ sessionId: string } | null>(null)
+  const [sessionAction, setSessionAction] = useState<{
+    type: 'revoke' | 'delete'
+    sessionId: string
+  } | null>(null)
   const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null)
   const [sessionActionError, setSessionActionError] = useState('')
   const [copyFeedback, setCopyFeedback] = useState('')
@@ -107,6 +111,26 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
     }
   }
 
+  async function handleDeleteSession(sessionId: string) {
+    setSessionActionLoading(sessionId)
+    setSessionActionError('')
+    try {
+      await therapistApi.deletePiccaSession(token, sessionId)
+      setSessionAction(null)
+      if (submissions?.id === sessionId) {
+        setSubmissions(null)
+      }
+      if (generatedUrl) setGeneratedUrl('')
+      await onRefresh()
+    } catch (err) {
+      setSessionActionError(
+        err instanceof ApiError ? err.message : 'Não foi possível eliminar a sessão',
+      )
+    } finally {
+      setSessionActionLoading(null)
+    }
+  }
+
   async function copySessionUrl(url: string) {
     try {
       await navigator.clipboard.writeText(url)
@@ -121,27 +145,41 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
     return session.status === 'active' || session.status === 'in_progress'
   }
 
-  function sessionHasSubmissions(session: PiccaSessionRow) {
-    return session.modules.some((m) => m.status === 'submitted')
-  }
+  const patientLinkModules = availableModules.filter((m) => !m.therapistOnly)
+  const therapistOnlyModules = availableModules.filter((m) => m.therapistOnly)
 
   return (
     <>
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link PICCA</h2>
         <p className={styles.muted}>
-          Selecione os módulos a incluir. O encarregado de educação completa por ordem; pode pausar e
-          voltar com o mesmo link até revogar.
+          Selecione os módulos a incluir na sessão. Os módulos para a família aparecem no link;
+          os módulos clínicos são preenchidos por si no backoffice.
         </p>
         {availableModules.length === 0 ? (
           <p className={styles.muted}>Não existem módulos PICCA disponíveis.</p>
         ) : (
-          <div style={{ margin: 'var(--space-md) 0' }}>
-            <PiccaVolumeCheckboxGroups
-              modules={availableModules}
-              selectedIds={selectedModules}
-              onToggle={toggleModule}
-            />
+          <div style={{ margin: 'var(--space-md) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
+            {patientLinkModules.length > 0 && (
+              <div>
+                <h3 className={styles.muted}>Módulos para a família (link)</h3>
+                <PiccaVolumeCheckboxGroups
+                  modules={patientLinkModules}
+                  selectedIds={selectedModules}
+                  onToggle={toggleModule}
+                />
+              </div>
+            )}
+            {therapistOnlyModules.length > 0 && (
+              <div>
+                <h3 className={styles.muted}>Módulos clínicos (terapeuta)</h3>
+                <PiccaVolumeCheckboxGroups
+                  modules={therapistOnlyModules}
+                  selectedIds={selectedModules}
+                  onToggle={toggleModule}
+                />
+              </div>
+            )}
           </div>
         )}
         {error && <p className={styles.error}>{error}</p>}
@@ -219,7 +257,7 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
                           </button>
                         </>
                       )}
-                      {sessionHasSubmissions(session) && (
+                      {session.modules.length > 0 && (
                         <button
                           type="button"
                           className={styles.linkButton}
@@ -231,16 +269,26 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
                       {sessionAction?.sessionId === session.id ? (
                         <div className={styles.sessionConfirm}>
                           <p className={styles.muted}>
-                            O link deixará de funcionar. O registo mantém-se no histórico.
+                            {sessionAction.type === 'revoke'
+                              ? 'O link deixará de funcionar. O registo mantém-se no histórico.'
+                              : 'Eliminar esta sessão PICCA e todas as respostas? Esta ação não pode ser desfeita.'}
                           </p>
                           <div className={styles.rowActions}>
                             <button
                               type="button"
                               className={styles.dangerLinkButton}
                               disabled={sessionActionLoading === session.id}
-                              onClick={() => handleRevokeSession(session.id)}
+                              onClick={() =>
+                                sessionAction.type === 'revoke'
+                                  ? handleRevokeSession(session.id)
+                                  : handleDeleteSession(session.id)
+                              }
                             >
-                              {sessionActionLoading === session.id ? 'A processar…' : 'Sim, revogar'}
+                              {sessionActionLoading === session.id
+                                ? 'A processar…'
+                                : sessionAction.type === 'revoke'
+                                  ? 'Sim, revogar'
+                                  : 'Sim, eliminar'}
                             </button>
                             <button
                               type="button"
@@ -256,19 +304,32 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
                           </div>
                         </div>
                       ) : (
-                        sessionIsOpen(session) && (
+                        <>
+                          {sessionIsOpen(session) && (
+                            <button
+                              type="button"
+                              className={styles.dangerLinkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() => {
+                                setSessionActionError('')
+                                setSessionAction({ type: 'revoke', sessionId: session.id })
+                              }}
+                            >
+                              Revogar link
+                            </button>
+                          )}
                           <button
                             type="button"
                             className={styles.dangerLinkButton}
                             disabled={sessionActionLoading === session.id}
                             onClick={() => {
                               setSessionActionError('')
-                              setSessionAction({ sessionId: session.id })
+                              setSessionAction({ type: 'delete', sessionId: session.id })
                             }}
                           >
-                            Revogar link
+                            Eliminar sessão
                           </button>
-                        )
+                        </>
                       )}
                     </div>
                   </td>

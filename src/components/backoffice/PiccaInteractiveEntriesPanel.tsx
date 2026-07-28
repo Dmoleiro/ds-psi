@@ -4,6 +4,10 @@ import {
   hasPiccaInteractiveFormRenderer,
   piccaInteractiveFormRegistry,
 } from '../picca/interactive/interactiveFormRegistry'
+import {
+  isDailyPiccaInteractiveKind,
+  type PiccaInteractiveFormKind,
+} from '../../lib/piccaInteractiveKinds'
 import { formatDayLabelShort, formatWeekLabel, getWeekStartMonday } from '../../lib/piccaInteractiveWeek'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
@@ -17,13 +21,13 @@ export type PiccaInteractiveEntriesView = {
   forms: Array<{
     formId: string
     title: string
-    kind: 'daily_sono' | 'weekly_estrategias'
+    kind: PiccaInteractiveFormKind
   }>
   entries: Array<{
     id: string
     formId: string
     formTitle: string
-    kind: 'daily_sono' | 'weekly_estrategias'
+    kind: PiccaInteractiveFormKind
     periodKey: string
     answers: Record<string, unknown>
     submittedAt: string
@@ -44,32 +48,41 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
   const [error, setError] = useState('')
 
   const grouped = useMemo(() => {
-    const sono = session.entries.filter((entry) => entry.kind === 'daily_sono')
-    const estrategias = session.entries.filter((entry) => entry.kind === 'weekly_estrategias')
+    return session.forms
+      .map((form) => {
+        const entries = session.entries.filter((entry) => entry.formId === form.formId)
+        if (entries.length === 0) return null
 
-    const sonoByWeek = new Map<string, typeof sono>()
-    for (const entry of sono) {
-      const week = getWeekStartMonday(entry.periodKey)
-      const list = sonoByWeek.get(week) ?? []
-      list.push(entry)
-      sonoByWeek.set(week, list)
-    }
-    for (const list of sonoByWeek.values()) {
-      list.sort((a, b) => a.periodKey.localeCompare(b.periodKey))
-    }
+        if (isDailyPiccaInteractiveKind(form.kind)) {
+          const byWeek = new Map<string, typeof entries>()
+          for (const entry of entries) {
+            const week = getWeekStartMonday(entry.periodKey)
+            const list = byWeek.get(week) ?? []
+            list.push(entry)
+            byWeek.set(week, list)
+          }
+          for (const list of byWeek.values()) {
+            list.sort((a, b) => a.periodKey.localeCompare(b.periodKey))
+          }
+          return {
+            form,
+            dailyWeeks: [...byWeek.entries()].sort((a, b) => b[0].localeCompare(a[0])),
+          }
+        }
 
-    const estrategiasByWeek = new Map<string, typeof estrategias>()
-    for (const entry of estrategias) {
-      const list = estrategiasByWeek.get(entry.periodKey) ?? []
-      list.push(entry)
-      estrategiasByWeek.set(entry.periodKey, list)
-    }
-
-    return {
-      sonoWeeks: [...sonoByWeek.entries()].sort((a, b) => b[0].localeCompare(a[0])),
-      estrategiasWeeks: [...estrategiasByWeek.entries()].sort((a, b) => b[0].localeCompare(a[0])),
-    }
-  }, [session.entries])
+        const byWeek = new Map<string, typeof entries>()
+        for (const entry of entries) {
+          const list = byWeek.get(entry.periodKey) ?? []
+          list.push(entry)
+          byWeek.set(entry.periodKey, list)
+        }
+        return {
+          form,
+          weeklyWeeks: [...byWeek.entries()].sort((a, b) => b[0].localeCompare(a[0])),
+        }
+      })
+      .filter((group): group is NonNullable<typeof group> => group !== null)
+  }, [session.entries, session.forms])
 
   function openEntry(entryId: string, formId: string, answers: Record<string, unknown>) {
     setActiveEntryId(entryId)
@@ -109,53 +122,49 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
         <p className={styles.muted}>Ainda não existem registos submetidos.</p>
       ) : (
         <div className={panelStyles.groups}>
-          {grouped.sonoWeeks.length > 0 && (
-            <section>
-              <h3>Rituais do Sono</h3>
-              {grouped.sonoWeeks.map(([week, entries]) => (
-                <div key={week} className={panelStyles.weekBlock}>
-                  <h4>{formatWeekLabel(week)}</h4>
-                  <ul className={panelStyles.entryList}>
-                    {entries.map((entry) => (
-                      <li key={entry.id}>
-                        <button
-                          type="button"
-                          className={styles.linkButton}
-                          onClick={() => openEntry(entry.id, entry.formId, entry.answers)}
-                        >
-                          {formatDayLabelShort(entry.periodKey)}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+          {grouped.map((group) => (
+            <section key={group.form.formId}>
+              <h3>{group.form.title}</h3>
+              {'dailyWeeks' in group &&
+                group.dailyWeeks?.map(([week, entries]) => (
+                  <div key={week} className={panelStyles.weekBlock}>
+                    <h4>{formatWeekLabel(week)}</h4>
+                    <ul className={panelStyles.entryList}>
+                      {entries.map((entry) => (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            className={styles.linkButton}
+                            onClick={() => openEntry(entry.id, entry.formId, entry.answers)}
+                          >
+                            {formatDayLabelShort(entry.periodKey)}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              {'weeklyWeeks' in group &&
+                group.weeklyWeeks?.map(([week, entries]) => (
+                  <div key={week} className={panelStyles.weekBlock}>
+                    <h4>{formatWeekLabel(week)}</h4>
+                    <ul className={panelStyles.entryList}>
+                      {entries.map((entry) => (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            className={styles.linkButton}
+                            onClick={() => openEntry(entry.id, entry.formId, entry.answers)}
+                          >
+                            Ver / editar semana
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
             </section>
-          )}
-
-          {grouped.estrategiasWeeks.length > 0 && (
-            <section>
-              <h3>Estratégias e Tabelas</h3>
-              {grouped.estrategiasWeeks.map(([week, entries]) => (
-                <div key={week} className={panelStyles.weekBlock}>
-                  <h4>{formatWeekLabel(week)}</h4>
-                  <ul className={panelStyles.entryList}>
-                    {entries.map((entry) => (
-                      <li key={entry.id}>
-                        <button
-                          type="button"
-                          className={styles.linkButton}
-                          onClick={() => openEntry(entry.id, entry.formId, entry.answers)}
-                        >
-                          Ver / editar semana
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
+          ))}
         </div>
       )}
 
@@ -163,7 +172,7 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
         <div className={panelStyles.editor}>
           <h3>
             {activeEntry.formTitle}
-            {activeEntry.kind === 'daily_sono'
+            {isDailyPiccaInteractiveKind(activeEntry.kind)
               ? ` — ${formatDayLabelShort(activeEntry.periodKey)}`
               : ` — ${formatWeekLabel(activeEntry.periodKey)}`}
           </h3>

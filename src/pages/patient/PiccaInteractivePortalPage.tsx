@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError, piccaInteractivePatientApi, type PiccaInteractivePatientSession } from '../../lib/api'
+import { piccaInteractiveKindLabel } from '../../lib/piccaInteractiveKinds'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Container } from '../../components/layout/Container'
@@ -106,7 +107,7 @@ export function PiccaInteractivePortalPage() {
               {form.description && <p className={styles.formDescription}>{form.description}</p>}
               <Link to={`/formularios/picca-interativo/${token}/${form.formId}`}>
                 <Button type="button">
-                  {form.kind === 'daily_sono' ? 'Registo diário' : 'Registo semanal'}
+                  {piccaInteractiveKindLabel(form.kind)}
                 </Button>
               </Link>
             </Card>

@@ -10,6 +10,7 @@ import {
 import { PiccaVolumeNavList } from '../../components/picca/PiccaVolumeSections'
 import { piccaFullModuleLabel } from '../../lib/piccaModuleIds'
 import { piccaInteractiveFormLabel } from '../../lib/piccaInteractiveFormIds'
+import { piccaInteractiveKindLabel, type PiccaInteractiveFormKind } from '../../lib/piccaInteractiveKinds'
 import { ApiError, therapistApi } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Card } from '../../components/ui/Card'
@@ -26,13 +27,13 @@ type PiccaModuleSummary = {
 
 type PiccaInteractiveFormSummary = {
   id: string
-  kind: 'daily_sono' | 'weekly_estrategias'
+  kind: PiccaInteractiveFormKind
   title: string
   description: string | null
 }
 
 function interactiveFormKindLabel(kind: PiccaInteractiveFormSummary['kind']): string {
-  return kind === 'daily_sono' ? 'Registo diário' : 'Registo semanal'
+  return piccaInteractiveKindLabel(kind)
 }
 
 export function PiccaLibraryPage() {

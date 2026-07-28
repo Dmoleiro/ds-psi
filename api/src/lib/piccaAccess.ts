@@ -1,4 +1,4 @@
-import type { FormStatus } from '@prisma/client'
+import { PiccaSessionStatus, type FormStatus } from '@prisma/client'
 
 type ModuleProgress = { status: FormStatus }
 
@@ -15,6 +15,6 @@ export function canPatientAccessPiccaModule(modules: ModuleProgress[], moduleInd
   return moduleIndex === getCurrentPiccaModuleIndex(modules)
 }
 
-export function isPiccaModuleReadOnly(modules: ModuleProgress[], moduleIndex: number): boolean {
-  return modules[moduleIndex]?.status === 'submitted'
+export function isPiccaPatientSessionLocked(status: PiccaSessionStatus): boolean {
+  return status === PiccaSessionStatus.completed || status === PiccaSessionStatus.revoked
 }

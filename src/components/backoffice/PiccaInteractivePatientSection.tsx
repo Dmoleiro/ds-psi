@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApiError, therapistApi } from '../../lib/api'
+import type { PiccaInteractiveFormKind } from '../../lib/piccaInteractiveKinds'
 import type { PiccaInteractiveEntriesView } from './PiccaInteractiveEntriesPanel'
 import { PiccaInteractiveEntriesPanel } from './PiccaInteractiveEntriesPanel'
 import { Button } from '../ui/Button'
@@ -17,7 +18,7 @@ export type PiccaInteractiveSessionRow = {
   forms: Array<{
     formId: string
     title: string
-    kind: 'daily_sono' | 'weekly_estrategias'
+    kind: PiccaInteractiveFormKind
   }>
 }
 
@@ -42,7 +43,10 @@ export function PiccaInteractivePatientSection({
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [entries, setEntries] = useState<PiccaInteractiveEntriesView | null>(null)
-  const [sessionAction, setSessionAction] = useState<{ sessionId: string } | null>(null)
+  const [sessionAction, setSessionAction] = useState<{
+    type: 'revoke' | 'delete'
+    sessionId: string
+  } | null>(null)
   const [sessionActionLoading, setSessionActionLoading] = useState<string | null>(null)
   const [sessionActionError, setSessionActionError] = useState('')
   const [copyFeedback, setCopyFeedback] = useState('')
@@ -95,6 +99,26 @@ export function PiccaInteractivePatientSection({
     } catch (err) {
       setSessionActionError(
         err instanceof ApiError ? err.message : 'Não foi possível revogar o link',
+      )
+    } finally {
+      setSessionActionLoading(null)
+    }
+  }
+
+  async function handleDeleteSession(sessionId: string) {
+    setSessionActionLoading(sessionId)
+    setSessionActionError('')
+    try {
+      await therapistApi.deletePiccaInteractiveSession(token, sessionId)
+      setSessionAction(null)
+      if (entries?.id === sessionId) {
+        setEntries(null)
+      }
+      if (generatedUrl) setGeneratedUrl('')
+      await onRefresh()
+    } catch (err) {
+      setSessionActionError(
+        err instanceof ApiError ? err.message : 'Não foi possível eliminar a sessão',
       )
     } finally {
       setSessionActionLoading(null)
@@ -223,16 +247,26 @@ export function PiccaInteractivePatientSection({
                       {sessionAction?.sessionId === session.id ? (
                         <div className={styles.sessionConfirm}>
                           <p className={styles.muted}>
-                            O link deixará de funcionar. Os registos mantêm-se no histórico.
+                            {sessionAction.type === 'revoke'
+                              ? 'O link deixará de funcionar. Os registos mantêm-se no histórico.'
+                              : 'Eliminar esta sessão e todos os registos? Esta ação não pode ser desfeita.'}
                           </p>
                           <div className={styles.rowActions}>
                             <button
                               type="button"
                               className={styles.dangerLinkButton}
                               disabled={sessionActionLoading === session.id}
-                              onClick={() => handleRevokeSession(session.id)}
+                              onClick={() =>
+                                sessionAction.type === 'revoke'
+                                  ? handleRevokeSession(session.id)
+                                  : handleDeleteSession(session.id)
+                              }
                             >
-                              {sessionActionLoading === session.id ? 'A processar…' : 'Sim, revogar'}
+                              {sessionActionLoading === session.id
+                                ? 'A processar…'
+                                : sessionAction.type === 'revoke'
+                                  ? 'Sim, revogar'
+                                  : 'Sim, eliminar'}
                             </button>
                             <button
                               type="button"
@@ -248,19 +282,32 @@ export function PiccaInteractivePatientSection({
                           </div>
                         </div>
                       ) : (
-                        sessionIsOpen(session) && (
+                        <>
+                          {sessionIsOpen(session) && (
+                            <button
+                              type="button"
+                              className={styles.dangerLinkButton}
+                              disabled={sessionActionLoading === session.id}
+                              onClick={() => {
+                                setSessionActionError('')
+                                setSessionAction({ type: 'revoke', sessionId: session.id })
+                              }}
+                            >
+                              Revogar link
+                            </button>
+                          )}
                           <button
                             type="button"
                             className={styles.dangerLinkButton}
                             disabled={sessionActionLoading === session.id}
                             onClick={() => {
                               setSessionActionError('')
-                              setSessionAction({ sessionId: session.id })
+                              setSessionAction({ type: 'delete', sessionId: session.id })
                             }}
                           >
-                            Revogar link
+                            Eliminar sessão
                           </button>
-                        )
+                        </>
                       )}
                     </div>
                   </td>

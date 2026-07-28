@@ -2,7 +2,7 @@ import { FormStatus, PiccaEditedBy, PiccaSessionStatus, type Prisma } from '@pri
 import { prisma } from '../lib/prisma.js'
 import {
   canPatientAccessPiccaModule,
-  isPiccaModuleReadOnly,
+  isPiccaPatientSessionLocked,
 } from '../lib/piccaAccess.js'
 import { sortPiccaModuleIds } from '../lib/piccaModuleIds.js'
 import { buildPiccaPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
@@ -179,6 +179,20 @@ export async function revokePiccaSession(therapistId: string, sessionId: string)
   })
 }
 
+export async function deletePiccaSession(therapistId: string, sessionId: string) {
+  await assertTherapistPiccaEnabled(therapistId)
+
+  const session = await prisma.piccaSession.findFirst({
+    where: { id: sessionId, therapistId },
+    select: { id: true },
+  })
+  if (!session) {
+    throw new Error('SESSION_NOT_FOUND')
+  }
+
+  await prisma.piccaSession.delete({ where: { id: sessionId } })
+}
+
 export async function getPiccaSessionForTherapist(therapistId: string, sessionId: string) {
   return prisma.piccaSession.findFirst({
     where: { id: sessionId, therapistId },
@@ -207,16 +221,19 @@ export async function getPiccaSubmissionsForTherapist(therapistId: string, sessi
     status: session.status,
     patient: session.patient,
     location: session.patient.location,
-    modules: session.modules
-      .filter((m) => m.submission)
-      .map((m) => ({
-        moduleId: m.moduleId,
-        title: m.module.title,
-        volume: m.module.volume,
-        moduleNumber: m.module.moduleNumber,
-        submittedAt: m.submission!.submittedAt,
-        answers: m.submission!.answersJson as Record<string, unknown>,
-      })),
+    modules: session.modules.map((m) => ({
+      moduleId: m.moduleId,
+      title: m.module.title,
+      volume: m.module.volume,
+      moduleNumber: m.module.moduleNumber,
+      therapistOnly: m.module.therapistOnly,
+      status: m.status,
+      submittedAt: m.submission?.submittedAt ?? null,
+      answers:
+        (m.submission?.answersJson as Record<string, unknown> | undefined) ??
+        (m.draft?.answersJson as Record<string, unknown> | undefined) ??
+        {},
+    })),
   }
 }
 
@@ -234,10 +251,34 @@ export async function updatePiccaModuleAnswers(
       moduleId,
       session: { therapistId },
     },
-    include: { submission: true },
+    include: { submission: true, module: true },
   })
   if (!sessionModule) {
     throw new Error('MODULE_NOT_FOUND')
+  }
+
+  if (sessionModule.module.therapistOnly) {
+    await prisma.$transaction([
+      prisma.piccaModuleSubmission.upsert({
+        where: { sessionModuleId: sessionModule.id },
+        create: {
+          sessionModuleId: sessionModule.id,
+          answersJson: asJson(answers),
+          submittedBy: PiccaEditedBy.therapist,
+        },
+        update: {
+          answersJson: asJson(answers),
+          lastEditedAt: new Date(),
+          lastEditedBy: PiccaEditedBy.therapist,
+        },
+      }),
+      prisma.piccaModuleDraft.deleteMany({ where: { sessionModuleId: sessionModule.id } }),
+      prisma.piccaSessionModule.update({
+        where: { id: sessionModule.id },
+        data: { status: FormStatus.submitted },
+      }),
+    ])
+    return { status: FormStatus.submitted }
   }
 
   if (sessionModule.submission) {
@@ -295,17 +336,63 @@ export function assertPatientCanAccessModule(
   }
 }
 
-export function getPatientModuleReadOnly(
-  modules: Array<{ status: FormStatus }>,
-  moduleIndex: number,
-) {
-  return isPiccaModuleReadOnly(modules, moduleIndex)
+export function getPatientModuleReadOnly(sessionStatus: PiccaSessionStatus): boolean {
+  return isPiccaPatientSessionLocked(sessionStatus)
+}
+
+export async function completePiccaPatientSession(sessionId: string) {
+  const session = await prisma.piccaSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      modules: { include: { module: true }, orderBy: { sortOrder: 'asc' } },
+    },
+  })
+  if (!session) {
+    throw new Error('SESSION_NOT_FOUND')
+  }
+  if (session.status === PiccaSessionStatus.revoked) {
+    throw new Error('SESSION_REVOKED')
+  }
+  if (session.status === PiccaSessionStatus.completed) {
+    throw new Error('SESSION_ALREADY_COMPLETED')
+  }
+
+  const patientModules = session.modules.filter((m) => !m.module.therapistOnly)
+  const allSubmitted = patientModules.every((m) => m.status === FormStatus.submitted)
+  if (!allSubmitted) {
+    throw new Error('MODULES_INCOMPLETE')
+  }
+
+  return prisma.piccaSession.update({
+    where: { id: sessionId },
+    data: { status: PiccaSessionStatus.completed },
+  })
 }
 
 export async function savePiccaPatientDraft(
   sessionModuleId: string,
   answers: Record<string, unknown>,
 ) {
+  const sessionModule = await prisma.piccaSessionModule.findUnique({
+    where: { id: sessionModuleId },
+    include: { submission: true },
+  })
+  if (!sessionModule) {
+    throw new Error('MODULE_NOT_FOUND')
+  }
+
+  if (sessionModule.submission) {
+    await prisma.piccaModuleSubmission.update({
+      where: { sessionModuleId },
+      data: {
+        answersJson: asJson(answers),
+        lastEditedAt: new Date(),
+        lastEditedBy: PiccaEditedBy.patient,
+      },
+    })
+    return
+  }
+
   await prisma.$transaction([
     prisma.piccaModuleDraft.upsert({
       where: { sessionModuleId },

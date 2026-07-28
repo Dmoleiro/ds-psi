@@ -46,6 +46,7 @@ enum PiccaEditedBy {
 enum PiccaSessionStatus {
   active
   in_progress
+  completed
   revoked
 }
 
@@ -307,13 +308,14 @@ model TherapistFinancialSettings {
 }
 
 model PiccaModule {
-  id           String  @id
-  volume       Int
-  moduleNumber Int     @map("module_number")
-  sortOrder    Int     @map("sort_order")
-  title        String
-  description  String? @db.Text
-  active       Boolean @default(true)
+  id            String  @id
+  volume        Int
+  moduleNumber  Int     @map("module_number")
+  sortOrder     Int     @map("sort_order")
+  title         String
+  description   String? @db.Text
+  therapistOnly Boolean @default(false) @map("therapist_only")
+  active        Boolean @default(true)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -387,6 +389,7 @@ model PiccaModuleSubmission {
 enum PiccaInteractiveFormKind {
   daily_sono
   weekly_estrategias
+  weekly_kit
 }
 
 model PiccaInteractiveForm {
