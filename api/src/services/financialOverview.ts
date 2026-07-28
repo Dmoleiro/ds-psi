@@ -26,6 +26,8 @@ export const PAID_ATTENDANCE_STATUSES: AttendanceStatus[] = [
   AttendanceStatus.receipt_issued,
 ]
 
+export const UNPAID_ATTENDANCE_STATUSES: AttendanceStatus[] = [AttendanceStatus.present_unpaid]
+
 export function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
 }
@@ -62,7 +64,7 @@ function buildAppointmentFeeMap(
     sessionFee: { toString(): string }
     notes: string | null
     patient: { fullName: string }
-    location: { name: string }
+    location: { id: string; name: string }
     id: string
   }>,
 ) {
@@ -73,6 +75,7 @@ function buildAppointmentFeeMap(
       sessionFee: number
       notes: string | null
       patientName: string
+      locationId: string
       locationName: string
       time: string
     }>
@@ -87,6 +90,7 @@ function buildAppointmentFeeMap(
       sessionFee: decimalToNumber(appointment.sessionFee),
       notes: appointment.notes,
       patientName: appointment.patient.fullName,
+      locationId: appointment.location.id,
       locationName: appointment.location.name,
       time: formatAppointmentTime(appointment.scheduledAt),
     })
@@ -97,7 +101,18 @@ function buildAppointmentFeeMap(
 }
 
 function pickAppointmentForAttendance(
-  map: Map<string, Array<{ id: string; sessionFee: number; notes: string | null; patientName: string; locationName: string; time: string }>>,
+  map: Map<
+    string,
+    Array<{
+      id: string
+      sessionFee: number
+      notes: string | null
+      patientName: string
+      locationId: string
+      locationName: string
+      time: string
+    }>
+  >,
   patientId: string,
   date: string,
 ) {
@@ -128,16 +143,59 @@ function sumFinancials(rows: SessionFinancials[]) {
 
 export type FinancialRow = {
   id: string
-  kind: 'realized' | 'forecast'
+  kind: 'realized' | 'unpaid' | 'forecast'
   date: string
   patientId: string
   patientName: string
+  locationId: string | null
   locationName: string
   attendanceStatus: AttendanceStatus | null
   appointmentId: string | null
   notes: string | null
   missingAppointment: boolean
 } & SessionFinancials
+
+function buildAttendanceFinancialRows(
+  attendanceRecords: Array<{
+    id: string
+    patientId: string
+    status: AttendanceStatus
+    sessionDate: Date
+    patient: {
+      id: string
+      fullName: string
+      sessionFee: { toString(): string } | null
+      location: { id: string; name: string } | null
+    }
+  }>,
+  appointmentMap: ReturnType<typeof buildAppointmentFeeMap>,
+  rates: FinancialRates,
+  kind: 'realized' | 'unpaid',
+): FinancialRow[] {
+  return attendanceRecords.map((record) => {
+    const date = formatDateOnly(record.sessionDate)
+    const matched = pickAppointmentForAttendance(appointmentMap, record.patientId, date)
+    const patientFee =
+      record.patient.sessionFee != null ? decimalToNumber(record.patient.sessionFee) : null
+    const gross = matched?.sessionFee ?? patientFee ?? rates.defaultSessionFee
+    const financials = computeSessionFinancials(gross, rates)
+
+    return {
+      id: record.id,
+      kind,
+      date,
+      patientId: record.patientId,
+      patientName: record.patient.fullName,
+      locationId: matched?.locationId ?? record.patient.location?.id ?? null,
+      locationName: matched?.locationName ?? record.patient.location?.name ?? '—',
+      attendanceStatus: record.status,
+      appointmentId: matched?.id ?? null,
+      notes: matched?.notes ?? null,
+      missingAppointment: !matched,
+      ...financials,
+    }
+  })
+}
 
 async function loadMonthContext(therapistId: string, year: number, month: number) {
   const range = parseYearMonth(year, month)
@@ -148,7 +206,7 @@ async function loadMonthContext(therapistId: string, year: number, month: number
   const rates = await getOrCreateFinancialSettings(therapistId)
   const monthEndExclusive = new Date(Date.UTC(year, month, 1, 0, 0, 0))
 
-  const [attendanceRecords, appointments] = await Promise.all([
+  const [paidAttendanceRecords, unpaidAttendanceRecords, appointments] = await Promise.all([
     prisma.attendanceRecord.findMany({
       where: {
         therapistId,
@@ -156,7 +214,18 @@ async function loadMonthContext(therapistId: string, year: number, month: number
         sessionDate: { gte: range.from, lte: range.to },
       },
       include: {
-        patient: { select: { id: true, fullName: true, sessionFee: true, location: { select: { name: true } } } },
+        patient: { select: { id: true, fullName: true, sessionFee: true, location: { select: { id: true, name: true } } } },
+      },
+      orderBy: [{ sessionDate: 'asc' }, { patientId: 'asc' }],
+    }),
+    prisma.attendanceRecord.findMany({
+      where: {
+        therapistId,
+        status: { in: UNPAID_ATTENDANCE_STATUSES },
+        sessionDate: { gte: range.from, lte: range.to },
+      },
+      include: {
+        patient: { select: { id: true, fullName: true, sessionFee: true, location: { select: { id: true, name: true } } } },
       },
       orderBy: [{ sessionDate: 'asc' }, { patientId: 'asc' }],
     }),
@@ -167,7 +236,7 @@ async function loadMonthContext(therapistId: string, year: number, month: number
       },
       include: {
         patient: { select: { id: true, fullName: true } },
-        location: { select: { name: true } },
+        location: { select: { id: true, name: true } },
       },
       orderBy: { scheduledAt: 'asc' },
     }),
@@ -177,29 +246,22 @@ async function loadMonthContext(therapistId: string, year: number, month: number
 
   const paidKeys = new Set<string>()
 
-  const realizedRows: FinancialRow[] = attendanceRecords.map((record) => {
-    const date = formatDateOnly(record.sessionDate)
-    paidKeys.add(appointmentKey(record.patientId, date))
-    const matched = pickAppointmentForAttendance(appointmentMap, record.patientId, date)
-    const patientFee =
-      record.patient.sessionFee != null ? decimalToNumber(record.patient.sessionFee) : null
-    const gross = matched?.sessionFee ?? patientFee ?? rates.defaultSessionFee
-    const financials = computeSessionFinancials(gross, rates)
-
-    return {
-      id: record.id,
-      kind: 'realized',
-      date,
-      patientId: record.patientId,
-      patientName: record.patient.fullName,
-      locationName: matched?.locationName ?? record.patient.location?.name ?? '—',
-      attendanceStatus: record.status,
-      appointmentId: matched?.id ?? null,
-      notes: matched?.notes ?? null,
-      missingAppointment: !matched,
-      ...financials,
-    }
+  const realizedRows = buildAttendanceFinancialRows(
+    paidAttendanceRecords,
+    appointmentMap,
+    rates,
+    'realized',
+  ).map((row) => {
+    paidKeys.add(appointmentKey(row.patientId, row.date))
+    return row
   })
+
+  const unpaidRows = buildAttendanceFinancialRows(
+    unpaidAttendanceRecords,
+    appointmentMap,
+    rates,
+    'unpaid',
+  )
 
   const now = new Date()
   const today = getClinicTodayIso(now)
@@ -226,6 +288,7 @@ async function loadMonthContext(therapistId: string, year: number, month: number
         date,
         patientId: appointment.patientId,
         patientName: appointment.patient.fullName,
+        locationId: appointment.location.id,
         locationName: appointment.location.name,
         attendanceStatus: null,
         appointmentId: appointment.id,
@@ -241,9 +304,11 @@ async function loadMonthContext(therapistId: string, year: number, month: number
     today,
     rates,
     realizedRows,
+    unpaidRows,
     forecastRows,
     summary: {
       realized: sumFinancials(realizedRows),
+      unpaid: sumFinancials(unpaidRows),
       forecast: sumFinancials(forecastRows),
     },
   }
@@ -261,6 +326,7 @@ export async function getTherapistFinancialOverview(
     rates: context.rates,
     summary: context.summary,
     realizedRows: context.realizedRows,
+    unpaidRows: context.unpaidRows,
     forecastRows: context.forecastRows,
   }
 }

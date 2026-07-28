@@ -38,7 +38,13 @@ type Props = {
   therapistName: string
   readOnly?: boolean
   therapistId?: string
+  prefill?: AppointmentPrefill | null
+  onPrefillConsumed?: () => void
 }
+
+export type AppointmentPrefill =
+  | { mode: 'create'; date: string; patientId: string; locationId?: string | null }
+  | { mode: 'edit'; appointmentId: string }
 
 type FormState = {
   patientId: string
@@ -107,6 +113,8 @@ export function AppointmentsCalendar({
   therapistName,
   readOnly = false,
   therapistId,
+  prefill = null,
+  onPrefillConsumed,
 }: Props) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
@@ -130,6 +138,13 @@ export function AppointmentsCalendar({
   const [dialogError, setDialogError] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
   const [dayOccupancy, setDayOccupancy] = useState<RoomOccupancy[]>([])
+  const consumedPrefillRef = useRef<string | null>(null)
+
+  const prefillKey = prefill
+    ? prefill.mode === 'edit'
+      ? `edit:${prefill.appointmentId}`
+      : `create:${prefill.date}:${prefill.patientId}`
+    : null
 
   useEffect(() => {
     if (!editingId) return
@@ -267,6 +282,82 @@ export function AppointmentsCalendar({
       .then((data) => setLocations(data.locations))
       .catch(() => setLocations([]))
   }, [token, readOnly, therapistId])
+
+  useEffect(() => {
+    if (!prefill || !prefillKey || loading || readOnly) return
+    if (consumedPrefillRef.current === prefillKey) return
+
+    if (prefill.mode === 'edit') {
+      const appointment = appointments.find((entry) => entry.id === prefill.appointmentId)
+      if (!appointment) return
+
+      const [year, month] = appointment.date.split('-').map(Number)
+      setViewYear(year)
+      setViewMonth(month)
+      setEditingId(appointment.id)
+      setEditingAppointment(appointment)
+      setEditScope('single')
+      setPendingDelete(null)
+      setForm({
+        patientId: appointment.patientId,
+        locationId: appointment.locationId,
+        gabineteId: appointment.gabineteId,
+        time: appointment.time,
+        durationMinutes: appointment.durationMinutes,
+        sessionFee: appointment.sessionFee ?? defaultSessionFee,
+        notes: appointment.notes ?? '',
+        appointmentDate: appointment.date,
+        repeatEnabled: false,
+        repeatCadence: 'weekly',
+        repeatUntil: '',
+      })
+      setSelectedDate(appointment.date)
+      setDialogError('')
+      consumedPrefillRef.current = prefillKey
+      onPrefillConsumed?.()
+      return
+    }
+
+    const patient = patients.find((entry) => entry.id === prefill.patientId)
+    if (!patient && patients.length === 0) return
+
+    const [year, month] = prefill.date.split('-').map(Number)
+    const locationId =
+      prefill.locationId ??
+      patient?.location?.id ??
+      (locationFilter || locations[0]?.id || '')
+    const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
+
+    setViewYear(year)
+    setViewMonth(month)
+    setSelectedDate(prefill.date)
+    setEditingId(null)
+    setEditingAppointment(null)
+    setForm({
+      ...initialForm(locationId, gabineteId, prefill.date, defaultSessionFee),
+      patientId: prefill.patientId,
+      sessionFee: resolveSessionFeeForPatient(prefill.patientId, patients, defaultSessionFee),
+    })
+    setDialogError('')
+    consumedPrefillRef.current = prefillKey
+    onPrefillConsumed?.()
+  }, [
+    appointments,
+    defaultSessionFee,
+    gabinetes,
+    loading,
+    locationFilter,
+    locations,
+    onPrefillConsumed,
+    patients,
+    prefill,
+    prefillKey,
+    readOnly,
+  ])
+
+  useEffect(() => {
+    consumedPrefillRef.current = null
+  }, [prefillKey])
 
   function openDay(date: string) {
     setSelectedDate(date)

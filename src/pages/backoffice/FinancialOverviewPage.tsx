@@ -3,8 +3,19 @@ import { useEffect, useMemo, useState } from 'react'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
-import { therapistApi, type FinancialOverview, type FinancialSettings, type FinancialSummary, type FinancialYearCharts } from '../../lib/api'
+import {
+  therapistApi,
+  type FinancialOverview,
+  type FinancialRow,
+  type FinancialSettings,
+  type FinancialSummary,
+  type FinancialYearCharts,
+} from '../../lib/api'
 import { MONTH_LABELS, shiftMonth } from '../../lib/appointments'
+import {
+  exportFinancialOverviewCsv,
+  exportFinancialOverviewPdf,
+} from '../../lib/exportFinancialOverview'
 import { useAuth } from '../../hooks/useAuth'
 import layout from '../../components/backoffice/BackofficeLayout.module.css'
 import styles from './FinancialOverviewPage.module.css'
@@ -17,15 +28,42 @@ function formatPercent(value: number) {
   return `${Math.round(value * 1000) / 10}%`
 }
 
+function buildAppointmentFixLink(row: FinancialRow): { href: string; label: string } | null {
+  if (row.missingAppointment) {
+    const params = new URLSearchParams({
+      date: row.date,
+      patientId: row.patientId,
+    })
+    if (row.locationId) {
+      params.set('locationId', row.locationId)
+    }
+    return {
+      href: `/backoffice/appointments?${params.toString()}`,
+      label: 'Sem consulta — criar',
+    }
+  }
+
+  if (row.kind === 'forecast' && row.appointmentId) {
+    return {
+      href: `/backoffice/appointments?appointmentId=${encodeURIComponent(row.appointmentId)}`,
+      label: 'Editar consulta',
+    }
+  }
+
+  return null
+}
+
 function SummaryCard({
   label,
   value,
   to,
+  hash,
   accent,
 }: {
   label: string
   value: string
   to?: string
+  hash?: string
   accent?: 'primary' | 'warn'
 }) {
   const content = (
@@ -35,11 +73,30 @@ function SummaryCard({
     </>
   )
 
+  const accentClass = accent
+    ? styles[`summaryCard${accent.charAt(0).toUpperCase()}${accent.slice(1)}`]
+    : undefined
+
+  if (hash) {
+    return (
+      <a
+        href={hash}
+        className={`${styles.summaryCard} ${styles.summaryCardLink} ${accentClass ?? ''}`.trim()}
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
+      >
+        {content}
+      </a>
+    )
+  }
+
   if (to) {
     return (
       <Link
         to={to}
-        className={`${styles.summaryCard} ${styles.summaryCardLink} ${accent ? styles[`summaryCard${accent.charAt(0).toUpperCase()}${accent.slice(1)}`] : ''}`}
+        className={`${styles.summaryCard} ${styles.summaryCardLink} ${accentClass ?? ''}`.trim()}
       >
         {content}
       </Link>
@@ -47,25 +104,27 @@ function SummaryCard({
   }
 
   return (
-    <div className={`${styles.summaryCard} ${accent ? styles[`summaryCard${accent.charAt(0).toUpperCase()}${accent.slice(1)}`] : ''}`}>
+    <div className={`${styles.summaryCard} ${accentClass ?? ''}`.trim()}>
       {content}
     </div>
   )
 }
 
 function FinancialTable({
+  sectionId,
   title,
   rows,
   totals,
   emptyMessage,
 }: {
+  sectionId: string
   title: string
   rows: FinancialOverview['realizedRows']
   totals: FinancialSummary
   emptyMessage: string
 }) {
   return (
-    <Card as="section" className={styles.tableCard}>
+    <Card as="section" id={sectionId} className={styles.tableCard}>
       <h2 className={styles.tableTitle}>{title}</h2>
       {rows.length === 0 ? (
         <p className={layout.muted}>{emptyMessage}</p>
@@ -86,26 +145,31 @@ function FinancialTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={`${row.kind}-${row.id}`}>
-                  <td>{new Date(`${row.date}T12:00:00`).toLocaleDateString('pt-PT')}</td>
-                  <td>
-                    <Link to={`/backoffice/patients/${row.patientId}`} className={styles.patientLink}>
-                      {row.patientName}
-                    </Link>
-                    {row.missingAppointment && (
-                      <span className={styles.warningBadge}>Sem consulta</span>
-                    )}
-                  </td>
-                  <td>{row.locationName}</td>
-                  <td>{formatEuro(row.gross)}</td>
-                  <td>{formatEuro(row.socialSecurity)}</td>
-                  <td>{formatEuro(row.irs)}</td>
-                  <td>{formatEuro(row.savings)}</td>
-                  <td>{formatEuro(row.totalReserves)}</td>
-                  <td>{formatEuro(row.available)}</td>
-                </tr>
-              ))}
+              {rows.map((row) => {
+                const appointmentFix = buildAppointmentFixLink(row)
+                return (
+                  <tr key={`${row.kind}-${row.id}`}>
+                    <td>{new Date(`${row.date}T12:00:00`).toLocaleDateString('pt-PT')}</td>
+                    <td>
+                      <Link to={`/backoffice/patients/${row.patientId}`} className={styles.patientLink}>
+                        {row.patientName}
+                      </Link>
+                      {appointmentFix && (
+                        <Link to={appointmentFix.href} className={styles.warningBadge}>
+                          {appointmentFix.label}
+                        </Link>
+                      )}
+                    </td>
+                    <td>{row.locationName}</td>
+                    <td>{formatEuro(row.gross)}</td>
+                    <td>{formatEuro(row.socialSecurity)}</td>
+                    <td>{formatEuro(row.irs)}</td>
+                    <td>{formatEuro(row.savings)}</td>
+                    <td>{formatEuro(row.totalReserves)}</td>
+                    <td>{formatEuro(row.available)}</td>
+                  </tr>
+                )
+              })}
             </tbody>
             <tfoot>
               <tr className={styles.totalsRow}>
@@ -167,6 +231,8 @@ export function FinancialOverviewPage() {
 
   if (!user) return null
 
+  const therapistName = user.name
+
   if (!user.financialOverviewEnabled) {
     return <Navigate to="/backoffice" replace />
   }
@@ -197,26 +263,62 @@ export function FinancialOverviewPage() {
     }
   }
 
+  function handleExportPdf() {
+    if (!overview) return
+    try {
+      exportFinancialOverviewPdf(overview, therapistName)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
+    }
+  }
+
+  function handleExportCsv() {
+    if (!overview) return
+    try {
+      exportFinancialOverviewCsv(overview)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o CSV')
+    }
+  }
+
+  const hasExportableRows =
+    overview &&
+    (overview.realizedRows.length > 0 ||
+      overview.unpaidRows.length > 0 ||
+      overview.forecastRows.length > 0)
+
   return (
     <BackofficeLayout>
       <div className={styles.header}>
         <div>
           <h1 className={layout.pageTitle}>Finanças</h1>
           <p className={layout.muted}>
-            Planeamento de IRS, Segurança Social e poupança com base nas presenças pagas e consultas
-            futuras.
+            Planeamento de IRS, Segurança Social e poupança com base nas presenças pagas, por pagar e
+            consultas futuras.
           </p>
         </div>
-        <div className={styles.monthNav}>
-          <button type="button" className={styles.navButton} onClick={() => changeMonth(-1)} aria-label="Mês anterior">
-            ←
-          </button>
-          <strong>
-            {MONTH_LABELS[viewMonth - 1]} {viewYear}
-          </strong>
-          <button type="button" className={styles.navButton} onClick={() => changeMonth(1)} aria-label="Mês seguinte">
-            →
-          </button>
+        <div className={styles.headerActions}>
+          <div className={styles.monthNav}>
+            <button type="button" className={styles.navButton} onClick={() => changeMonth(-1)} aria-label="Mês anterior">
+              ←
+            </button>
+            <strong>
+              {MONTH_LABELS[viewMonth - 1]} {viewYear}
+            </strong>
+            <button type="button" className={styles.navButton} onClick={() => changeMonth(1)} aria-label="Mês seguinte">
+              →
+            </button>
+          </div>
+          {!loading && overview && (
+            <div className={styles.exportActions}>
+              <Button type="button" variant="outline" onClick={handleExportPdf} disabled={!hasExportableRows}>
+                Imprimir / PDF
+              </Button>
+              <Button type="button" variant="outline" onClick={handleExportCsv} disabled={!hasExportableRows}>
+                Exportar CSV
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -230,7 +332,13 @@ export function FinancialOverviewPage() {
             <SummaryCard
               label="Realizado bruto"
               value={formatEuro(overview.summary.realized.gross)}
-              to="/backoffice/attendance"
+              hash="#financas-realizado"
+            />
+            <SummaryCard
+              label="Por receber"
+              value={formatEuro(overview.summary.unpaid.gross)}
+              hash="#financas-por-receber"
+              accent="warn"
             />
             <SummaryCard
               label="Total reservas"
@@ -244,8 +352,7 @@ export function FinancialOverviewPage() {
             <SummaryCard
               label="Previsto (mês)"
               value={formatEuro(overview.summary.forecast.gross)}
-              to="/backoffice/appointments"
-              accent="warn"
+              hash="#financas-previsto"
             />
           </div>
 
@@ -372,6 +479,7 @@ export function FinancialOverviewPage() {
           </Card>
 
           <FinancialTable
+            sectionId="financas-realizado"
             title="Realizado — presenças pagas"
             rows={overview.realizedRows}
             totals={overview.summary.realized}
@@ -379,6 +487,15 @@ export function FinancialOverviewPage() {
           />
 
           <FinancialTable
+            sectionId="financas-por-receber"
+            title="Por receber — presenças por pagar"
+            rows={overview.unpaidRows}
+            totals={overview.summary.unpaid}
+            emptyMessage="Ainda não existem presenças por pagar neste mês."
+          />
+
+          <FinancialTable
+            sectionId="financas-previsto"
             title="Previsto — consultas futuras"
             rows={overview.forecastRows}
             totals={overview.summary.forecast}

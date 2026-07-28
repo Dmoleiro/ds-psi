@@ -36,10 +36,11 @@ export type FinancialSummary = {
 
 export type FinancialRow = {
   id: string
-  kind: 'realized' | 'forecast'
+  kind: 'realized' | 'unpaid' | 'forecast'
   date: string
   patientId: string
   patientName: string
+  locationId: string | null
   locationName: string
   attendanceStatus: AttendanceStatus | null
   appointmentId: string | null
@@ -59,9 +60,11 @@ export type FinancialOverview = {
   rates: FinancialSettings
   summary: {
     realized: FinancialSummary
+    unpaid: FinancialSummary
     forecast: FinancialSummary
   }
   realizedRows: FinancialRow[]
+  unpaidRows: FinancialRow[]
   forecastRows: FinancialRow[]
 }
 
