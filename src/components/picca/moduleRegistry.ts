@@ -19,6 +19,7 @@ import { defaultPiccaModulo9Answers } from './modules/piccaModulo9'
 import { PiccaModulo9Form } from './modules/PiccaModulo9Form'
 import { defaultPiccaModulo10Answers } from './modules/piccaModulo10'
 import { PiccaModulo10Form } from './modules/PiccaModulo10Form'
+import { piccaVol6ModuleRegistry } from './modules/vol6/vol6Registry'
 
 export type PiccaModuleRendererProps = {
   value: Record<string, unknown>
@@ -72,6 +73,7 @@ export const piccaModuleRegistry: Record<string, PiccaModuleDefinition> = {
     defaultAnswers: defaultPiccaModulo10Answers,
     Form: PiccaModulo10Form,
   },
+  ...piccaVol6ModuleRegistry,
 }
 
 export function getPiccaModuleDefaults(moduleId: string): Record<string, unknown> {

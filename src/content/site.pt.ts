@@ -406,6 +406,97 @@ export const piccaCatalog = [
       },
     ],
   },
+  {
+    volume: 6,
+    title: 'Volume VI',
+    modules: [
+      {
+        number: 1,
+        title: 'Perturbação do Desenvolvimento Intelectual',
+        description: 'Checklist clínico estruturado com indicadores N/O/F e registo por contexto.',
+        status: 'available',
+      },
+      {
+        number: 2,
+        title: 'Atraso Global do Desenvolvimento',
+        description: 'Checklist para atrasos significativos em várias áreas do desenvolvimento.',
+        status: 'available',
+      },
+      {
+        number: 3,
+        title: 'Perturbação da Linguagem',
+        description: 'Indicadores clínicos para perturbações da linguagem.',
+        status: 'available',
+      },
+      {
+        number: 4,
+        title: 'Perturbação dos Sons da Fala',
+        description: 'Indicadores clínicos para perturbações dos sons da fala.',
+        status: 'available',
+      },
+      {
+        number: 5,
+        title: 'Perturbação da Fluência com Início na Infância',
+        description: 'Indicadores clínicos para perturbações da fluência.',
+        status: 'available',
+      },
+      {
+        number: 6,
+        title: 'Perturbação da Comunicação Social (Pragmática)',
+        description: 'Indicadores clínicos para perturbações pragmáticas da comunicação.',
+        status: 'available',
+      },
+      {
+        number: 7,
+        title: 'Perturbação do Espetro do Autismo',
+        description: 'Checklist estruturado para avaliação do espetro do autismo.',
+        status: 'available',
+      },
+      {
+        number: 8,
+        title: 'Perturbação de Hiperatividade e Défice de Atenção',
+        description: 'Indicadores clínicos para PHDA e perfis de atenção/hiperatividade.',
+        status: 'available',
+      },
+      {
+        number: 9,
+        title: 'Perturbação Específica da Aprendizagem',
+        description: 'Indicadores clínicos para perturbações específicas da aprendizagem.',
+        status: 'available',
+      },
+      {
+        number: 10,
+        title: 'Perturbação do Desenvolvimento da Coordenação',
+        description: 'Indicadores clínicos para perturbação do desenvolvimento da coordenação.',
+        status: 'available',
+      },
+      {
+        number: 11,
+        title: 'Perturbação dos Movimentos Estereotipados',
+        description: 'Indicadores clínicos para movimentos estereotipados.',
+        status: 'available',
+      },
+      {
+        number: 12,
+        title: 'Perturbações de Tiques',
+        description: 'Indicadores clínicos para perturbações de tiques.',
+        status: 'available',
+      },
+      {
+        number: 13,
+        title: 'Outras Perturbações do Neurodesenvolvimento',
+        description: 'Checklist para outras perturbações do neurodesenvolvimento.',
+        status: 'available',
+      },
+      {
+        number: 14,
+        title: 'Síntese Integrada e Formulação de Hipóteses',
+        description:
+          'Matriz transversal, mapa de hipóteses, formulação conclusiva e recomendações.',
+        status: 'available',
+      },
+    ],
+  },
 ] satisfies PiccaCatalogVolume[]
 
 export const piccaFormsPage = {

@@ -33,6 +33,19 @@ import {
   PICCA_MOD10_FOLLOWUP_COLUMNS,
   PICCA_MOD10_INSTRUMENTS,
 } from '../components/picca/modules/piccaModulo10'
+import {
+  mergePiccaVol6DisorderAnswers,
+  mergePiccaVol6SinteseAnswers,
+  type PiccaVol6HipoteseRow,
+} from '../components/picca/modules/vol6/piccaVol6Answers'
+import {
+  PICCA_VOL6_BY_NUMBER,
+  PICCA_VOL6_DISORDERS,
+  PICCA_VOL6_SINTESE_TEXT_FIELDS,
+  type Vol6IndicatorAnswer,
+  type Vol6IndicatorGroup,
+} from '../components/picca/modules/vol6/piccaVol6Content'
+import { PICCA_VOL6_SINTESE_GROUPS } from '../components/picca/modules/vol6/piccaVol6SinteseContent'
 
 export type PiccaPresentationField = {
   label: string
@@ -1012,6 +1025,87 @@ function formatModulo10(answers: Record<string, unknown>): PiccaPresentationSect
   ].filter((s): s is PiccaPresentationSection => s !== null)
 }
 
+const VOL6_NIVEL_LABELS: Record<string, string> = {
+  n: 'N — não observado',
+  o: 'O — observado mas insuficientemente caracterizado',
+  f: 'F — evidência frequente, persistente e clinicamente relevante',
+}
+
+const VOL6_HIPOTESE_COLUMNS = [
+  { key: 'hipotese', label: 'Hipótese' },
+  { key: 'evidenciaAFavor', label: 'Evidência a favor' },
+  { key: 'evidenciaContra', label: 'Evidência contra' },
+  { key: 'dadosEmFalta', label: 'Dados em falta' },
+  { key: 'estado', label: 'Estado' },
+] as const
+
+function formatVol6IndicatorTable(
+  indicadores: Record<string, Vol6IndicatorAnswer>,
+  groups: ReadonlyArray<Vol6IndicatorGroup>,
+): string {
+  const lines: string[] = []
+  for (const group of groups) {
+    for (const item of group.items) {
+      const row = indicadores[item.id]
+      if (!row?.nivel) continue
+      const fontes = [
+        row.casa && 'Casa',
+        row.escola && 'Escola',
+        row.clinica && 'Clínica',
+        row.outros && 'Outros',
+      ].filter(Boolean)
+      const parts = [VOL6_NIVEL_LABELS[row.nivel] ?? row.nivel]
+      if (fontes.length) parts.push(`Fontes: ${fontes.join(', ')}`)
+      if (row.notas?.trim()) parts.push(`Notas: ${row.notas.trim()}`)
+      lines.push(`${item.label}: ${parts.join(' · ')}`)
+    }
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatVol6Disorder(number: number, answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const definition = PICCA_VOL6_BY_NUMBER[number]
+  const a = mergePiccaVol6DisorderAnswers(number, answers)
+  if (!definition) return []
+
+  return [
+    ...(definition.guidance
+      ? [section('Orientação clínica', [field('Orientação', text(definition.guidance))])]
+      : []),
+    ...definition.groups.map((group, index) =>
+      section(`${index + 1}. ${group.title}`, [
+        field('Indicadores', formatVol6IndicatorTable(a.indicadores, [group])),
+      ]),
+    ),
+    section('Integração clínica', [
+      field('Diagnóstico diferencial e comorbilidades', text(a.diagnosticoDiferencial)),
+      field('Instrumentos e fontes', text(a.instrumentosFontes)),
+      field('Síntese clínica e hipótese provisória', text(a.sinteseHipotese)),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatVol6Sintese(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaVol6SinteseAnswers(answers)
+
+  return [
+    ...PICCA_VOL6_SINTESE_GROUPS.map((group, index) =>
+      section(`${index + 1}. ${group.title}`, [
+        field('Indicadores', formatVol6IndicatorTable(a.indicadores, [group])),
+      ]),
+    ),
+    section('Mapa de hipóteses', [
+      field(
+        'Hipóteses',
+        formatDynamicTable(a.mapaHipoteses as PiccaVol6HipoteseRow[], VOL6_HIPOTESE_COLUMNS),
+      ),
+    ]),
+    section('Formulação integrada', [
+      ...PICCA_VOL6_SINTESE_TEXT_FIELDS.map((label) => field(label, text(a.textos[label]))),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
 const MODULE_FORMATTERS: Record<
   string,
   (answers: Record<string, unknown>) => PiccaPresentationSection[]
@@ -1026,6 +1120,14 @@ const MODULE_FORMATTERS: Record<
   'picca-vol1-mod8': formatModulo8,
   'picca-vol1-mod9': formatModulo9,
   'picca-vol1-mod10': formatModulo10,
+  ...Object.fromEntries(
+    PICCA_VOL6_DISORDERS.map((disorder) => [
+      disorder.moduleId,
+      disorder.number === 14
+        ? formatVol6Sintese
+        : (answers: Record<string, unknown>) => formatVol6Disorder(disorder.number, answers),
+    ]),
+  ),
 }
 
 export function formatPiccaModuleAnswers(

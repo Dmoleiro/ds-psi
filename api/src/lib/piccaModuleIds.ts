@@ -9,6 +9,20 @@ export const PICCA_MODULE_IDS = [
   'picca-vol1-mod8',
   'picca-vol1-mod9',
   'picca-vol1-mod10',
+  'picca-vol6-mod1',
+  'picca-vol6-mod2',
+  'picca-vol6-mod3',
+  'picca-vol6-mod4',
+  'picca-vol6-mod5',
+  'picca-vol6-mod6',
+  'picca-vol6-mod7',
+  'picca-vol6-mod8',
+  'picca-vol6-mod9',
+  'picca-vol6-mod10',
+  'picca-vol6-mod11',
+  'picca-vol6-mod12',
+  'picca-vol6-mod13',
+  'picca-vol6-mod14',
 ] as const
 
 export const THERAPIST_ONLY_PICCA_MODULE_IDS = new Set<string>([
@@ -16,6 +30,20 @@ export const THERAPIST_ONLY_PICCA_MODULE_IDS = new Set<string>([
   'picca-vol1-mod8',
   'picca-vol1-mod9',
   'picca-vol1-mod10',
+  'picca-vol6-mod1',
+  'picca-vol6-mod2',
+  'picca-vol6-mod3',
+  'picca-vol6-mod4',
+  'picca-vol6-mod5',
+  'picca-vol6-mod6',
+  'picca-vol6-mod7',
+  'picca-vol6-mod8',
+  'picca-vol6-mod9',
+  'picca-vol6-mod10',
+  'picca-vol6-mod11',
+  'picca-vol6-mod12',
+  'picca-vol6-mod13',
+  'picca-vol6-mod14',
 ])
 
 /** Titles/ordering for backoffice — public catalogue: src/content/site.pt.ts `piccaCatalog`. */

@@ -1,0 +1,1547 @@
+{
+  "disorders": [
+    {
+      "number": 1,
+      "title": "Perturbação do Desenvolvimento Intelectual",
+      "guidance": "Explorar conjuntamente o funcionamento intelectual e o funcionamento adaptativo. A gravidade clínica deve ser formulada sobretudo a partir das necessidades de apoio no quotidiano, e não apenas por um resultado de QI.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Funcionamento intelectual"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Dificuldades persistentes no raciocínio, resolução de problemas e aprendizagem de conceitos novos."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Necessidade de maior repetição, mediação ou ensino explícito para consolidar aprendizagens."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dificuldade em generalizar competências entre tarefas ou contextos."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Desempenho intelectual global abaixo do esperado em avaliação padronizada válida, interpretada com cautela."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Perfil cognitivo coerente com limitações globais, não explicado apenas por défice linguístico, sensorial ou escolar."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Funcionamento adaptativo — domínio conceptual"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Dificuldades significativas na linguagem funcional, literacia, numeracia, noção de tempo ou uso do dinheiro."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Dificuldade em compreender regras, consequências, sequências e exigências académicas."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Necessidade de apoio para planear, organizar ou concluir tarefas adequadas à idade."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Funcionamento adaptativo — domínio social"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Dificuldade em interpretar pistas sociais, intenções, risco, confiança e reciprocidade."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Julgamento social imaturo ou vulnerabilidade à influência/manipulação."
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Dificuldade em ajustar comunicação e comportamento à situação."
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Funcionamento adaptativo — domínio prático"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Necessidade de apoio acima do esperado em autocuidado, segurança, deslocações ou rotinas."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Dificuldades na gestão de responsabilidades domésticas, escolares ou laborais."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Dependência de supervisão para manter saúde, segurança ou funcionamento diário."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_23",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_24",
+              "label": "Défices intelectuais sustentados por avaliação clínica e psicométrica apropriada."
+            },
+            {
+              "id": "indicadores_25",
+              "label": "Défices adaptativos que limitam independência e responsabilidade social."
+            },
+            {
+              "id": "indicadores_26",
+              "label": "Início durante o período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_27",
+              "label": "Condições sensoriais, neurológicas, linguísticas e socioculturais consideradas."
+            },
+            {
+              "id": "indicadores_28",
+              "label": "Atraso global do desenvolvimento; perturbação específica da aprendizagem; perturbação da linguagem; PEA; PHDA; lesão neurológica; privação educacional; dificuldades sensoriais."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Atraso Global do Desenvolvimento",
+      "guidance": "Categoria clínica reservada sobretudo a crianças pequenas quando existem atrasos significativos em várias áreas e a avaliação intelectual sistemática ainda não é possível ou fiável. Requer reavaliação periódica.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Áreas do desenvolvimento"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Atraso relevante em duas ou mais áreas: cognição, linguagem, motricidade, socialização, autonomia ou competências adaptativas."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Marcos desenvolvimentais adquiridos mais tarde, de forma lenta ou com trajetória atípica."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Necessidade de suporte intensivo e transversal para aprender competências básicas."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Resultados convergentes em escalas de desenvolvimento, observação e relato dos cuidadores."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Perfil não adequadamente explicado por uma dificuldade isolada numa única área."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Qualidade e trajetória"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Presença de platôs prolongados ou progressão muito inferior à esperada."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Perda de competências previamente adquiridas ou regressão — indicador para avaliação médica/neurológica urgente."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Variabilidade marcada entre contextos ou momentos, exigindo análise de fatores sensoriais, médicos e relacionais."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Atraso significativo em múltiplos domínios."
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Idade ou condições de avaliação não permitem caracterização intelectual conclusiva."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Início no período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Plano de reavaliação e monitorização definido."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Perturbação do desenvolvimento intelectual; perturbação da linguagem; PEA; paralisia cerebral; défices auditivos/visuais; doenças genéticas/metabólicas; privação psicossocial."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Perturbação da Linguagem",
+      "guidance": "Avaliar aquisição e uso da linguagem em modalidades relevantes, distinguindo forma, conteúdo e uso. Considerar exposição linguística, audição, desenvolvimento cognitivo e qualidade das oportunidades comunicativas.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Compreensão e expressão"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Vocabulário reduzido ou dificuldade persistente em aprender e recuperar palavras."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Frases curtas, estruturas gramaticais imaturas ou erros morfossintáticos persistentes."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dificuldade em compreender instruções, perguntas, conceitos ou linguagem complexa."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Dificuldade em organizar narrativas, explicar acontecimentos ou manter coerência discursiva."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Desempenho linguístico inferior ao esperado para idade e exposição, confirmado por avaliação apropriada."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Impacto e curso"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Interferência na comunicação quotidiana, relações, aprendizagem ou participação escolar."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Início durante o desenvolvimento, ainda que o impacto se torne mais evidente com maiores exigências."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Dificuldades persistem apesar de oportunidades adequadas de aprendizagem e estimulação."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "O perfil não é melhor explicado por perda auditiva, condição neurológica, deficiência intelectual ou domínio insuficiente da língua de avaliação."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Dificuldades persistentes na aquisição e uso da linguagem."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Competências linguísticas abaixo do esperado para idade e contexto."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Impacto funcional clinicamente significativo."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Exclusões e fatores linguísticos/culturais adequadamente analisados."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Perturbação dos sons da fala; perturbação da comunicação social; PEA; défice auditivo; perturbação intelectual; perturbação específica da aprendizagem; exposição bilingue insuficientemente considerada."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Perturbação dos Sons da Fala",
+      "guidance": "Explorar a produção de sons, inteligibilidade e padrões fonológicos, distinguindo variações normativas, diferenças linguísticas, alterações estruturais, sensoriais e motoras.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Produção e inteligibilidade"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Dificuldade persistente na produção correta de sons esperados para a idade e variante linguística."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Fala pouco inteligível para interlocutores não familiares ou, em casos mais graves, também para familiares."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Erros articulatórios ou fonológicos que limitam a clareza da mensagem."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Evitação de palavras, simplificação excessiva ou frustração associada à fala."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Impacto na comunicação, relações, participação escolar ou desempenho académico."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Condições de enquadramento"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Início no período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Os erros excedem o esperado para a idade e não correspondem apenas a sotaque ou variação dialetal."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Foram avaliadas audição, estruturas orofaciais e fatores motores/neurológicos."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Foi considerada apraxia da fala na infância quando existem inconsistência, dificuldades de planeamento motor e alterações prosódicas."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Dificuldade persistente e desenvolvimental na produção dos sons."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Redução de inteligibilidade ou impacto funcional."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Variação linguística e maturação consideradas."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Condições sensoriais, estruturais e motoras avaliadas."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Perturbação da linguagem; apraxia da fala na infância; disartria; perda auditiva; fissura palatina; variação dialetal; PEA."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Perturbação da Fluência com Início na Infância",
+      "guidance": "Caracterizar frequência, tipos de disfluência, tensão, evitamento e impacto. As disfluências devem ser interpretadas em função da idade, contexto, curso e reação emocional.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Fluência e ritmo"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Repetições frequentes de sons, sílabas ou palavras curtas."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Prolongamentos de sons ou bloqueios audíveis/silenciosos."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Palavras produzidas com tensão física excessiva."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Interrupções, circunlóquios ou substituições para evitar palavras temidas."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Ansiedade antecipatória, evitamento de falar ou redução da participação comunicativa."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Perturbação do ritmo e fluência inadequada à idade, com impacto funcional."
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Curso e exclusões"
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Início durante o desenvolvimento."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Varia consoante interlocutor, exigência, excitação ou pressão temporal."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Não é melhor explicada por condição neurológica, lesão, efeito de substância ou outra alteração médica."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "São considerados antecedentes familiares e evolução temporal."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Alteração persistente da fluência e organização temporal da fala."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Inadequação à idade e competências linguísticas."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Ansiedade, evitamento ou limitação comunicativa."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Início na infância e exclusões relevantes analisadas."
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Disfluência desenvolvimental transitória; tiques vocais; perturbação de ansiedade social; alterações neurológicas; taquifemia."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Perturbação da Comunicação Social (Pragmática)",
+      "guidance": "A hipótese só deve ser considerada quando existem dificuldades pragmáticas persistentes e não estão presentes padrões restritos/repetitivos suficientes para PEA.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Uso social da comunicação"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Dificuldade em utilizar comunicação para cumprimentar, partilhar informação, pedir ajuda ou adequar-se ao contexto."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Dificuldade em adaptar linguagem à pessoa, situação, idade ou grau de formalidade."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dificuldade em seguir regras de conversação, alternar turnos, reformular e reparar mal-entendidos."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Dificuldade em compreender inferências, humor, ironia, ambiguidades ou linguagem não literal."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Dificuldade em integrar contexto, expressão facial, tom de voz e conhecimento partilhado."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Impacto e exclusão de PEA"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Limitações na participação social, relações, desempenho académico ou funcionamento profissional."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Início no desenvolvimento, podendo tornar-se evidente apenas com exigências sociais complexas."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Não existem padrões restritos/repetitivos atuais ou históricos suficientes para explicar o quadro como PEA."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Não é melhor explicada por perturbação da linguagem, deficiência intelectual ou condição neurológica."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Dificuldades persistentes no uso social da comunicação verbal e não verbal."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Impacto funcional relevante."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Início no desenvolvimento."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "PEA e outras explicações foram cuidadosamente excluídas."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "PEA; perturbação da linguagem; PHDA; ansiedade social; deficiência intelectual; dificuldades pragmáticas secundárias a trauma ou privação social."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Perturbação do Espetro do Autismo",
+      "guidance": "A formulação exige evidência nos três domínios de comunicação/interação social e em pelo menos dois grupos de comportamentos restritos ou repetitivos, com início desenvolvimental e impacto funcional. Registar história atual e passada.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "A. Reciprocidade socioemocional"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Dificuldade em iniciar ou responder a interações sociais de forma ajustada."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Partilha reduzida ou atípica de interesses, emoções, prazer ou atenção."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Conversação pouco recíproca, unilateral ou limitada à resposta instrumental."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Abordagens sociais incomuns, pouca leitura da resposta do outro ou dificuldade em manter intercâmbio."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "A. Comunicação não verbal"
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Contacto ocular, gestos, postura, expressão facial ou prosódia pouco integrados com a comunicação."
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Dificuldade em compreender ou utilizar gestos convencionais, apontar, mostrar ou coordenar atenção conjunta."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Expressão não verbal limitada, atípica, excessiva ou difícil de interpretar."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Desfasamento entre comunicação verbal e sinais não verbais."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "A. Relações e compreensão social"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Dificuldade em ajustar comportamento a diferentes contextos sociais."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Dificuldade em desenvolver, compreender ou manter relações adequadas ao nível de desenvolvimento."
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Brincadeira imaginativa partilhada limitada, rígida ou pouco recíproca."
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Interesse reduzido pelos pares ou forma atípica de aproximação e participação."
+            },
+            {
+              "id": "indicadores_17",
+              "label": "B. Padrões restritos/repetitivos"
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Movimentos, uso de objetos ou fala repetitiva/estereotipada."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Rigidez, insistência em rotinas, sofrimento com mudanças ou necessidade intensa de previsibilidade."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Interesses muito intensos, circunscritos ou incomuns quanto ao foco e persistência."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Hiper ou hiporreatividade sensorial, procura sensorial ou interesse invulgar por aspetos sensoriais."
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Curso, impacto e especificadores"
+            },
+            {
+              "id": "indicadores_23",
+              "label": "Características presentes no início do desenvolvimento, mesmo que mascaradas ou evidentes apenas mais tarde."
+            },
+            {
+              "id": "indicadores_24",
+              "label": "Impacto clinicamente significativo no funcionamento social, escolar, familiar ou adaptativo."
+            },
+            {
+              "id": "indicadores_25",
+              "label": "O quadro não é explicado apenas por deficiência intelectual; quando coexistem, as dificuldades sociais excedem o nível global de desenvolvimento."
+            },
+            {
+              "id": "indicadores_26",
+              "label": "Registar linguagem, funcionamento intelectual, condições médicas/genéticas, catatonia e necessidades de apoio."
+            },
+            {
+              "id": "indicadores_27",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_28",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_29",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_30",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_31",
+              "label": "Evidência em todos os três domínios de comunicação/interação social."
+            },
+            {
+              "id": "indicadores_32",
+              "label": "Evidência em pelo menos dois grupos de comportamentos restritos/repetitivos."
+            },
+            {
+              "id": "indicadores_33",
+              "label": "Início no período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_34",
+              "label": "Impacto funcional significativo."
+            },
+            {
+              "id": "indicadores_35",
+              "label": "Deficiência intelectual e outras hipóteses diferenciais consideradas."
+            },
+            {
+              "id": "indicadores_36",
+              "label": "Perturbação da comunicação social; perturbação da linguagem; deficiência intelectual; PHDA; ansiedade social; perturbação reativa de vinculação; TOC; condições sensoriais."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Perturbação de Hiperatividade e Défice de Atenção",
+      "guidance": "Registar sintomas em linguagem operacional, frequência, duração, início antes dos 12 anos, presença em dois ou mais contextos e prejuízo. Para crianças, habitualmente exige-se um limiar superior ao utilizado em adolescentes mais velhos e adultos.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Desatenção"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Comete erros por descuido ou não repara em detalhes relevantes."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Dificuldade em sustentar a atenção em tarefas, brincadeiras ou conversas."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Parece não ouvir quando lhe falam diretamente, sem causa aparente."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Não termina instruções, trabalhos ou rotinas, apesar de compreender o pedido."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Dificuldade em organizar tarefas, materiais, tempo e sequências."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Evita ou adia tarefas que exigem esforço mental continuado."
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Perde objetos necessários às atividades."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Distrai-se facilmente por estímulos externos ou pensamentos."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Esquece atividades, compromissos ou etapas de rotinas."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Hiperatividade e impulsividade"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Movimenta mãos/pés, remexe-se ou revela inquietação motora."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Levanta-se quando seria esperado permanecer sentado."
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Corre, trepa ou sente inquietação interna em situações inadequadas."
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Dificuldade em brincar ou ocupar-se de forma tranquila."
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Está frequentemente em movimento como se tivesse dificuldade em abrandar."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Fala em excesso ou prolonga respostas para além do necessário."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Responde antes de a pergunta terminar ou precipita respostas."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Dificuldade em esperar pela sua vez."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Interrompe, intromete-se ou utiliza objetos/atividades de outros sem esperar."
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Condições diagnósticas transversais"
+            },
+            {
+              "id": "indicadores_23",
+              "label": "Vários sintomas estavam presentes antes dos 12 anos."
+            },
+            {
+              "id": "indicadores_24",
+              "label": "Os sintomas ocorrem em pelo menos dois contextos relevantes."
+            },
+            {
+              "id": "indicadores_25",
+              "label": "Existe evidência clara de interferência ou redução da qualidade do funcionamento."
+            },
+            {
+              "id": "indicadores_26",
+              "label": "O padrão persiste há pelo menos seis meses e é desajustado ao nível de desenvolvimento."
+            },
+            {
+              "id": "indicadores_27",
+              "label": "Os sintomas não ocorrem exclusivamente durante perturbação psicótica e não são melhor explicados por ansiedade, humor, trauma, sono, aprendizagem, PEA ou outra condição."
+            },
+            {
+              "id": "indicadores_28",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_29",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_30",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_31",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_32",
+              "label": "Limiar sintomático e duração clinicamente compatíveis."
+            },
+            {
+              "id": "indicadores_33",
+              "label": "Início de vários sintomas antes dos 12 anos."
+            },
+            {
+              "id": "indicadores_34",
+              "label": "Presença em dois ou mais contextos."
+            },
+            {
+              "id": "indicadores_35",
+              "label": "Prejuízo funcional claro."
+            },
+            {
+              "id": "indicadores_36",
+              "label": "Diagnóstico diferencial e comorbilidades avaliados."
+            },
+            {
+              "id": "indicadores_37",
+              "label": "Ansiedade; depressão; trauma; perturbações do sono; PEA; perturbação da aprendizagem; deficiência intelectual; altas capacidades; dificuldades auditivas; ambiente pouco estruturado."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Perturbação Específica da Aprendizagem",
+      "guidance": "A hipótese requer dificuldades académicas persistentes apesar de intervenção dirigida, abaixo do esperado e com impacto funcional. Interpretar provas formais à luz da história escolar, qualidade do ensino e resposta à intervenção.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Leitura"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Leitura de palavras lenta, imprecisa ou laboriosa."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Dificuldade persistente na descodificação e automatização."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dificuldade em compreender o significado do que lê, mesmo quando a descodificação é suficiente."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Ortografia fonologicamente inconsistente ou dificuldade em reconhecer padrões ortográficos."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Expressão escrita"
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Erros ortográficos persistentes acima do esperado."
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Dificuldades gramaticais, de pontuação ou construção frásica."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Texto pouco organizado, incoerente ou muito reduzido."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Produção escrita lenta, com grande esforço ou evitamento."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Matemática"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Compreensão frágil de número, magnitude e relações numéricas."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Dificuldade em memorizar factos aritméticos ou executar cálculos com precisão/fluência."
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Erros persistentes em procedimentos, alinhamento, sinais ou sequências."
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Dificuldade em aplicar raciocínio matemático a problemas."
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Condições de decisão"
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Dificuldades persistem durante pelo menos seis meses apesar de apoio dirigido e monitorizado."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Desempenho claramente abaixo do esperado para idade e escolaridade, com impacto académico ou quotidiano."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Início durante os anos escolares, ainda que se torne evidente apenas quando aumentam as exigências."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Não é melhor explicado por deficiência intelectual, défices sensoriais, condição neurológica, adversidade psicossocial, língua de escolarização ou instrução inadequada."
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_23",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_24",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_25",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_26",
+              "label": "Dificuldades persistentes em leitura, escrita e/ou matemática."
+            },
+            {
+              "id": "indicadores_27",
+              "label": "Resposta insuficiente a intervenção adequada."
+            },
+            {
+              "id": "indicadores_28",
+              "label": "Desempenho abaixo do esperado e impacto funcional."
+            },
+            {
+              "id": "indicadores_29",
+              "label": "Início escolar e exclusões documentadas."
+            },
+            {
+              "id": "indicadores_30",
+              "label": "Deficiência intelectual; PHDA; perturbação da linguagem; absentismo; ensino inadequado; dificuldades emocionais; défices visuais/auditivos; diferenças linguísticas."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Perturbação do Desenvolvimento da Coordenação",
+      "guidance": "Avaliar aquisição e execução de competências motoras, impacto nas atividades diárias e relação com idade e oportunidades de aprendizagem.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Coordenação motora"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Aquisição de marcos motores ou competências motoras mais lenta do que o esperado."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Movimentos desajeitados, imprecisos ou lentos em tarefas como correr, saltar, lançar ou apanhar."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dificuldades em motricidade fina: escrita, desenho, recorte, botões, talheres ou construção."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Necessidade de esforço excessivo, repetição ou tempo adicional em tarefas motoras."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Evita atividades físicas, jogos de bola ou tarefas manuais por dificuldade ou frustração."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Impacto e exclusões"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Interferência relevante em autocuidado, desempenho escolar, lazer ou participação social."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Início no período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "As dificuldades não são explicadas por deficiência intelectual, défice visual ou condição neurológica motora."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Quando existe PEA ou PHDA, a dificuldade motora é clinicamente adicional e não apenas consequência de desatenção."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Competências motoras substancialmente abaixo do esperado."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Impacto funcional significativo."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Início no desenvolvimento."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Exclusão de condições neurológicas, visuais e intelectuais."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Paralisia cerebral; distrofias; perturbações neuromusculares; défice visual; deficiência intelectual; PHDA; dispraxia verbal; hipermobilidade."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "title": "Perturbação dos Movimentos Estereotipados",
+      "guidance": "Caracterizar forma, frequência, função, risco e possibilidade de interrupção dos movimentos. Avaliar sempre causas neurológicas, efeitos de medicação e comportamentos autolesivos.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Padrão motor"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Movimentos repetitivos, aparentemente sem objetivo funcional imediato."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Comportamentos como balançar, agitar mãos, bater a cabeça, morder-se ou manipular o corpo de forma repetida."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Movimentos interferem com atividades ou participação."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Existe risco de lesão ou necessidade de medidas de proteção."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "O padrão iniciou-se no período do desenvolvimento."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Enquadramento"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "O comportamento não é explicado por substância, medicação ou condição neurológica."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Não corresponde apenas a compulsão, tique, tricotilomania ou comportamento repetitivo típico de PEA."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Registar associação a deficiência intelectual, condição genética, sensorial ou ambiental."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Caracterizar presença de autoagressão e gravidade."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Comportamento motor repetitivo e sem função aparente."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Interferência funcional ou risco de lesão."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Início no desenvolvimento."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Diagnósticos diferenciais e causas médicas analisados."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Tiques; compulsões; PEA; tricotilomania; crises epiléticas; acatisia; efeitos de fármacos; autoestimulação sensorial."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "title": "Perturbações de Tiques",
+      "guidance": "Distinguir tiques motores e vocais, simples e complexos; documentar idade de início, duração, flutuação, supressibilidade, impulso premonitório e impacto.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Caracterização dos tiques"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Movimentos súbitos, rápidos, recorrentes e não rítmicos."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Vocalizações súbitas e recorrentes."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Os sintomas variam em frequência, intensidade e localização ao longo do tempo."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Podem ser parcialmente suprimidos durante períodos curtos, com aumento de tensão."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Existe impulso premonitório, alívio após o tique ou agravamento com stress/fadiga."
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Classificação temporal"
+            },
+            {
+              "id": "indicadores_9",
+              "label": "Existem tiques motores múltiplos e pelo menos um tique vocal em algum momento da evolução."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Os tiques persistem por período superior a um ano desde o primeiro início."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Quando a duração é inferior a um ano, considerar apresentação provisória."
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Quando existe apenas tique motor ou apenas vocal persistente, considerar apresentação persistente específica."
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Início ocorreu antes dos 18 anos."
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Não é atribuível a substância, medicação ou condição neurológica."
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Natureza motora e/ou vocal documentada."
+            },
+            {
+              "id": "indicadores_20",
+              "label": "Duração e curso claramente estabelecidos."
+            },
+            {
+              "id": "indicadores_21",
+              "label": "Início antes dos 18 anos."
+            },
+            {
+              "id": "indicadores_22",
+              "label": "Exclusão de causas médicas, farmacológicas e movimentos não-tique."
+            },
+            {
+              "id": "indicadores_23",
+              "label": "Estereotipias; compulsões; mioclonias; distonia; crises epiléticas; hábitos nervosos; movimentos induzidos por fármacos."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "title": "Outras Perturbações do Neurodesenvolvimento",
+      "guidance": "Utilizar apenas quando existe prejuízo clinicamente significativo e o perfil não satisfaz integralmente outra categoria, ou quando a informação é insuficiente para maior especificação.",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Assinalar apenas indicadores sustentados por exemplos concretos. Registar frequência, intensidade, duração, contexto, impacto e fonte. Evitar somas mecânicas sem análise qualitativa."
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Perturbação especificada"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Existe um padrão neurodesenvolvimental clinicamente significativo."
+            },
+            {
+              "id": "indicadores_4",
+              "label": "É possível indicar a razão pela qual os critérios completos de uma categoria não são satisfeitos."
+            },
+            {
+              "id": "indicadores_5",
+              "label": "A formulação descreve explicitamente a apresentação atípica, subclínica, tardia ou limitada."
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Foram avaliadas condições médicas, sensoriais, ambientais e emocionais."
+            },
+            {
+              "id": "indicadores_7",
+              "label": "Perturbação não especificada"
+            },
+            {
+              "id": "indicadores_8",
+              "label": "Existe prejuízo importante, mas a informação disponível é insuficiente para uma categoria mais precisa."
+            },
+            {
+              "id": "indicadores_9",
+              "label": "A situação clínica, urgência ou ausência de dados impede especificação adequada."
+            },
+            {
+              "id": "indicadores_10",
+              "label": "Está definido um plano para recolha adicional de informação e reavaliação."
+            },
+            {
+              "id": "indicadores_11",
+              "label": "Condições de decisão clínica"
+            },
+            {
+              "id": "indicadores_12",
+              "label": "Condição de decisão clínica"
+            },
+            {
+              "id": "indicadores_13",
+              "label": "Estado"
+            },
+            {
+              "id": "indicadores_14",
+              "label": "Evidência / fundamentação"
+            },
+            {
+              "id": "indicadores_15",
+              "label": "Prejuízo neurodesenvolvimental clinicamente relevante."
+            },
+            {
+              "id": "indicadores_16",
+              "label": "Razão para não preencher categoria específica documentada."
+            },
+            {
+              "id": "indicadores_17",
+              "label": "Uso prudente e provisório quando a informação é insuficiente."
+            },
+            {
+              "id": "indicadores_18",
+              "label": "Plano de investigação/reavaliação definido."
+            },
+            {
+              "id": "indicadores_19",
+              "label": "Variação do desenvolvimento; dificuldades situacionais; reação emocional; insuficiência de dados; problemas pedagógicos; condição médica não identificada."
+            }
+          ],
+          "id": "indicadores"
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "title": "Síntese Integrada e Formulação de Hipóteses",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores",
+          "items": [
+            {
+              "id": "indicadores_1",
+              "label": "Mapa de hipóteses"
+            },
+            {
+              "id": "indicadores_2",
+              "label": "Hipótese"
+            },
+            {
+              "id": "indicadores_3",
+              "label": "Evidência a favor"
+            },
+            {
+              "id": "indicadores_4",
+              "label": "Evidência contra"
+            },
+            {
+              "id": "indicadores_5",
+              "label": "Dados em falta"
+            },
+            {
+              "id": "indicadores_6",
+              "label": "Estado"
+            }
+          ],
+          "id": "indicadores"
+        },
+        {
+          "title": "Problema atual e impacto funcional",
+          "items": [
+            {
+              "id": "problema_atual_e_impacto_funcional_1",
+              "label": "Decisão e próximos passos"
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_2",
+              "label": "Plano clínico"
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_3",
+              "label": "A hipótese principal está sustentada por dados de múltiplas fontes."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_4",
+              "label": "Os critérios de duração, início, contexto e impacto estão documentados."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_5",
+              "label": "As hipóteses diferenciais prioritárias foram avaliadas."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_6",
+              "label": "As comorbilidades foram consideradas."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_7",
+              "label": "Foi avaliada a necessidade de referenciação médica, neuropediátrica, pedopsiquiátrica, terapia da fala, terapia ocupacional ou apoio educativo."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_8",
+              "label": "Foram identificadas adaptações imediatas para casa e escola."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_9",
+              "label": "Foi definido plano de intervenção e monitorização."
+            },
+            {
+              "id": "problema_atual_e_impacto_funcional_10",
+              "label": "Foi definida data de reavaliação."
+            }
+          ],
+          "id": "problema_atual_e_impacto_funcional"
+        }
+      ]
+    }
+  ],
+  "sinteseTextFields": [
+    "Fatores predisponentes",
+    "Fatores precipitantes",
+    "Fatores perpetuantes",
+    "Problema atual e impacto funcional",
+    "Decisão e próximos passos",
+    "Formulação conclusiva para relatório",
+    "Devolução aos pais/cuidadores em linguagem acessível",
+    "Recomendações para a escola"
+  ],
+  "sinteseHasHypothesisMap": true
+}
