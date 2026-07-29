@@ -14,6 +14,8 @@ import { defaultPiccaInteractiveKitRotinasAnswers } from './piccaInteractiveKitR
 import { PiccaInteractiveKitRotinasForm } from './PiccaInteractiveKitRotinasForm'
 import { defaultPiccaInteractiveKitSonoAnswers } from './piccaInteractiveKitSono'
 import { PiccaInteractiveKitSonoForm } from './PiccaInteractiveKitSonoForm'
+import { defaultPiccaInteractivePortageAnswers } from './piccaInteractivePortage'
+import { PiccaInteractivePortageForm } from './PiccaInteractivePortageForm'
 import { defaultPiccaInteractiveSonoAnswers } from './piccaInteractiveSono'
 import { PiccaInteractiveSonoForm } from './PiccaInteractiveSonoForm'
 
@@ -69,6 +71,11 @@ export const piccaInteractiveFormRegistry: Record<string, PiccaInteractiveFormDe
     defaultAnswers: defaultPiccaInteractiveKitConquistasAnswers,
     Form: PiccaInteractiveKitConquistasForm,
     kind: 'weekly_kit',
+  },
+  'picca-interactive-portage': {
+    defaultAnswers: defaultPiccaInteractivePortageAnswers,
+    Form: PiccaInteractivePortageForm,
+    kind: 'portage_assessment',
   },
 }
 

@@ -6,6 +6,7 @@ import {
 } from '../picca/interactive/interactiveFormRegistry'
 import {
   isDailyPiccaInteractiveKind,
+  isPortageAssessmentKind,
   type PiccaInteractiveFormKind,
 } from '../../lib/piccaInteractiveKinds'
 import { formatDayLabelShort, formatWeekLabel, getWeekStartMonday } from '../../lib/piccaInteractiveWeek'
@@ -68,6 +69,10 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
             form,
             dailyWeeks: [...byWeek.entries()].sort((a, b) => b[0].localeCompare(a[0])),
           }
+        }
+
+        if (isPortageAssessmentKind(form.kind)) {
+          return { form, assessmentEntries: entries }
         }
 
         const byWeek = new Map<string, typeof entries>()
@@ -163,6 +168,21 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
                     </ul>
                   </div>
                 ))}
+              {'assessmentEntries' in group && group.assessmentEntries && (
+                <ul className={panelStyles.entryList}>
+                  {group.assessmentEntries.map((entry) => (
+                    <li key={entry.id}>
+                      <button
+                        type="button"
+                        className={styles.linkButton}
+                        onClick={() => openEntry(entry.id, entry.formId, entry.answers)}
+                      >
+                        Ver / editar avaliação
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           ))}
         </div>
@@ -174,7 +194,9 @@ export function PiccaInteractiveEntriesPanel({ session, onClose, onSaveEntry }: 
             {activeEntry.formTitle}
             {isDailyPiccaInteractiveKind(activeEntry.kind)
               ? ` — ${formatDayLabelShort(activeEntry.periodKey)}`
-              : ` — ${formatWeekLabel(activeEntry.periodKey)}`}
+              : isPortageAssessmentKind(activeEntry.kind)
+                ? ' — Avaliação'
+                : ` — ${formatWeekLabel(activeEntry.periodKey)}`}
           </h3>
           {error && <p className={styles.error}>{error}</p>}
           <FormComponent value={values} onChange={setValues} />

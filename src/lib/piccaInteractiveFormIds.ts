@@ -7,6 +7,7 @@ export const PICCA_INTERACTIVE_FORM_IDS = [
   'picca-interactive-kit-autonomia',
   'picca-interactive-kit-flexibilidade',
   'picca-interactive-kit-conquistas',
+  'picca-interactive-portage',
 ] as const
 
 export type PiccaInteractiveFormId = (typeof PICCA_INTERACTIVE_FORM_IDS)[number]

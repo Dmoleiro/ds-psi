@@ -390,6 +390,7 @@ enum PiccaInteractiveFormKind {
   daily_sono
   weekly_estrategias
   weekly_kit
+  portage_assessment
 }
 
 model PiccaInteractiveForm {

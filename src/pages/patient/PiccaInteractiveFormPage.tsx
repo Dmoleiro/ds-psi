@@ -9,7 +9,7 @@ import { Container } from '../../components/layout/Container'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { ApiError, piccaInteractivePatientApi } from '../../lib/api'
-import { isDailyPiccaInteractiveKind } from '../../lib/piccaInteractiveKinds'
+import { isDailyPiccaInteractiveKind, isPortageAssessmentKind } from '../../lib/piccaInteractiveKinds'
 import type { PiccaInteractiveFormKind } from '../../lib/piccaInteractiveKinds'
 import { formatDayLabelShort, getWeekDates } from '../../lib/piccaInteractiveWeek'
 import { usePiccaInteractiveAutosave } from '../../hooks/usePiccaInteractiveAutosave'
@@ -32,6 +32,7 @@ export function PiccaInteractiveFormPage() {
 
   const hasRenderer = formId ? hasPiccaInteractiveFormRenderer(formId) : false
   const isSono = isDailyPiccaInteractiveKind(kind)
+  const isPortage = isPortageAssessmentKind(kind)
 
   const weekDates = useMemo(() => (weekStart ? getWeekDates(weekStart) : []), [weekStart])
 
@@ -150,7 +151,11 @@ export function PiccaInteractiveFormPage() {
       </p>
       <h1>{title}</h1>
       {!readOnly && hasRenderer && (
-        <p className={styles.intro}>O progresso é guardado automaticamente a cada poucos segundos.</p>
+        <p className={styles.intro}>
+          {isPortage
+            ? 'Pode guardar o progresso da avaliação a qualquer momento — o registo mantém-se editável enquanto o link estiver ativo.'
+            : 'O progresso é guardado automaticamente a cada poucos segundos.'}
+        </p>
       )}
       {readOnly && (
         <p className={styles.intro}>Este registo já não pode ser alterado — consulta apenas.</p>

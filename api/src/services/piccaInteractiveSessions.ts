@@ -1,6 +1,6 @@
 import { PiccaInteractiveFormKind, PiccaSessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
-import { isDailyPiccaInteractiveKind } from '../lib/piccaInteractiveKinds.js'
+import { isDailyPiccaInteractiveKind, isPortageAssessmentKind } from '../lib/piccaInteractiveKinds.js'
 import { sortPiccaInteractiveFormIds } from '../lib/piccaInteractiveFormIds.js'
 import {
   getWeekStartMonday,
@@ -278,9 +278,11 @@ export async function getPiccaInteractivePatientForm(
   const today = todayIsoLisbon()
   const resolvedPeriodKey =
     periodKey ??
-    (isDailyPiccaInteractiveKind(sessionForm.form.kind)
-      ? today
-      : getWeekStartMonday(today))
+    (isPortageAssessmentKind(sessionForm.form.kind)
+      ? 'assessment'
+      : isDailyPiccaInteractiveKind(sessionForm.form.kind)
+        ? today
+        : getWeekStartMonday(today))
 
   const entry = await prisma.piccaInteractiveEntry.findUnique({
     where: {
@@ -292,9 +294,12 @@ export async function getPiccaInteractivePatientForm(
     },
   })
 
-  const readOnly = isDailyPiccaInteractiveKind(sessionForm.form.kind)
-    ? !isDayEditable(resolvedPeriodKey, today)
-    : !isWeekEditable(resolvedPeriodKey, today)
+  const readOnly = isPortageAssessmentKind(sessionForm.form.kind)
+    ? sessionForm.session.status === PiccaSessionStatus.revoked ||
+      sessionForm.session.status === PiccaSessionStatus.completed
+    : isDailyPiccaInteractiveKind(sessionForm.form.kind)
+      ? !isDayEditable(resolvedPeriodKey, today)
+      : !isWeekEditable(resolvedPeriodKey, today)
 
   return {
     formId: sessionForm.formId,
@@ -352,7 +357,11 @@ export async function savePiccaInteractivePatientEntry(
   const sessionForm = await getSessionFormOrThrow(sessionId, formId)
   const today = todayIsoLisbon()
 
-  if (isDailyPiccaInteractiveKind(sessionForm.form.kind)) {
+  if (isPortageAssessmentKind(sessionForm.form.kind)) {
+    if (periodKey && periodKey !== 'assessment') {
+      throw new Error('ENTRY_NOT_EDITABLE')
+    }
+  } else if (isDailyPiccaInteractiveKind(sessionForm.form.kind)) {
     if (!isDayEditable(periodKey, today)) {
       throw new Error('ENTRY_NOT_EDITABLE')
     }
@@ -360,18 +369,22 @@ export async function savePiccaInteractivePatientEntry(
     throw new Error('ENTRY_NOT_EDITABLE')
   }
 
+  const normalizedPeriodKey = isPortageAssessmentKind(sessionForm.form.kind)
+    ? 'assessment'
+    : periodKey
+
   const entry = await prisma.piccaInteractiveEntry.upsert({
     where: {
       sessionId_formId_periodKey: {
         sessionId,
         formId,
-        periodKey,
+        periodKey: normalizedPeriodKey,
       },
     },
     create: {
       sessionId,
       formId,
-      periodKey,
+      periodKey: normalizedPeriodKey,
       answersJson: asJson(answers),
     },
     update: {
