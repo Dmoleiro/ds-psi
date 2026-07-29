@@ -19,6 +19,15 @@ export const RECEIPT_TOGGLE_STATUSES: AttendanceStatus[] = ['present_paid', 'rec
 
 export const SCHEDULED_APPOINTMENT_LABEL = 'Consulta agendada'
 
+export function attendanceCellLabel(
+  status: AttendanceStatus | null | undefined,
+  hasScheduledAppointment = false,
+): string {
+  if (status) return STATUS_LABELS[status]
+  if (hasScheduledAppointment) return SCHEDULED_APPOINTMENT_LABEL
+  return 'Sem registo'
+}
+
 export function toIsoDate(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }

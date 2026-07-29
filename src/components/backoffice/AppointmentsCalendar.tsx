@@ -4,9 +4,11 @@ import {
   coordinatorApi,
   therapistApi,
   type AppointmentSummary,
+  type AttendanceStatus,
   type LocationSummary,
   type PatientSummary,
 } from '../../lib/api'
+import { STATUS_CYCLE } from '../../lib/attendance'
 import {
   addMonthsToIsoDate,
   APPOINTMENT_SERIES_SCOPE_OPTIONS,
@@ -29,6 +31,8 @@ import {
   type RoomOccupancy,
 } from '../../lib/appointments'
 import { exportAppointmentsPdf } from '../../lib/exportAppointmentsPdf'
+import { AttendanceStatusTile } from './AttendanceStatusTile'
+import { useEditLock } from '../../hooks/useEditLock'
 import { Button } from '../ui/Button'
 import styles from './AppointmentsCalendar.module.css'
 import layout from './BackofficeLayout.module.css'
@@ -138,6 +142,9 @@ export function AppointmentsCalendar({
   const [dialogError, setDialogError] = useState('')
   const formRef = useRef<HTMLFormElement>(null)
   const [dayOccupancy, setDayOccupancy] = useState<RoomOccupancy[]>([])
+  const [attendanceByKey, setAttendanceByKey] = useState<Map<string, AttendanceStatus>>(new Map())
+  const [savingAttendanceKey, setSavingAttendanceKey] = useState<string | null>(null)
+  const attendanceEditLock = useEditLock()
   const consumedPrefillRef = useRef<string | null>(null)
 
   const prefillKey = prefill
@@ -164,6 +171,61 @@ export function AppointmentsCalendar({
       .then((data) => setDayOccupancy(data.appointments))
       .catch(() => setDayOccupancy([]))
   }, [token, selectedDate, readOnly])
+
+  const loadDayAttendance = useCallback(
+    async (date: string, dayAppointments: AppointmentSummary[]) => {
+      if (!token || dayAppointments.length === 0) {
+        setAttendanceByKey(new Map())
+        return
+      }
+
+      const [year, month] = date.split('-').map(Number)
+      const patientIds = [...new Set(dayAppointments.map((appointment) => appointment.patientId))]
+
+      try {
+        if (readOnly && therapistId) {
+          const locationIds = [
+            ...new Set(dayAppointments.map((appointment) => appointment.locationId)),
+          ]
+          const matrices = await Promise.all(
+            locationIds.map((locationId) =>
+              coordinatorApi.listAttendanceMatrix(token, therapistId, year, month, locationId),
+            ),
+          )
+          const map = new Map<string, AttendanceStatus>()
+          for (const matrix of matrices) {
+            for (const record of matrix.records) {
+              if (record.date === date) {
+                map.set(`${record.patientId}:${date}`, record.status)
+              }
+            }
+          }
+          setAttendanceByKey(map)
+          return
+        }
+
+        if (readOnly) {
+          setAttendanceByKey(new Map())
+          return
+        }
+
+        const results = await Promise.all(
+          patientIds.map((patientId) => therapistApi.listAttendance(token, patientId, year, month)),
+        )
+        const map = new Map<string, AttendanceStatus>()
+        patientIds.forEach((patientId, index) => {
+          const record = results[index]?.records.find((entry) => entry.date === date)
+          if (record) {
+            map.set(`${patientId}:${date}`, record.status)
+          }
+        })
+        setAttendanceByKey(map)
+      } catch {
+        setAttendanceByKey(new Map())
+      }
+    },
+    [token, readOnly, therapistId],
+  )
 
   const gabinetesForSelectedLocation = useMemo(
     () => gabinetesForLocation(gabinetes, form.locationId),
@@ -209,6 +271,15 @@ export function AppointmentsCalendar({
   }, [cells])
   const appointmentsByDate = useMemo(() => groupAppointmentsByDate(appointments), [appointments])
   const selectedDayAppointments = selectedDate ? (appointmentsByDate.get(selectedDate) ?? []) : []
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setAttendanceByKey(new Map())
+      return
+    }
+    void loadDayAttendance(selectedDate, selectedDayAppointments)
+  }, [selectedDate, selectedDayAppointments, loadDayAttendance])
+
   const selectedLocationName =
     locations.find((location) => location.id === locationFilter)?.name ?? 'Todos os locais'
   const patientsInSelectedLocation = useMemo(
@@ -360,6 +431,7 @@ export function AppointmentsCalendar({
   }, [prefillKey])
 
   function openDay(date: string) {
+    attendanceEditLock.lock()
     setSelectedDate(date)
     setEditingId(null)
     const locationId = locationFilter || locations[0]?.id || ''
@@ -369,16 +441,52 @@ export function AppointmentsCalendar({
   }
 
   function closeDialog() {
+    attendanceEditLock.lock()
     setSelectedDate(null)
     setEditingId(null)
     setEditingAppointment(null)
     setEditScope('single')
     setPendingDelete(null)
     setDeleteScope('single')
+    setAttendanceByKey(new Map())
+    setSavingAttendanceKey(null)
     const locationId = locationFilter || locations[0]?.id || ''
     const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
     setForm(initialForm(locationId, gabineteId, '', defaultSessionFee))
     setDialogError('')
+  }
+
+  async function handleAttendanceClick(patientId: string) {
+    if (!selectedDate || readOnly) return
+
+    const key = `${patientId}:${selectedDate}`
+    const current = attendanceByKey.get(key) ?? null
+    const currentIndex = STATUS_CYCLE.indexOf(current)
+    const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length]
+
+    setSavingAttendanceKey(key)
+    setDialogError('')
+    try {
+      const { record } = await therapistApi.upsertAttendance(token, patientId, {
+        date: selectedDate,
+        status: nextStatus,
+      })
+      setAttendanceByKey((prev) => {
+        const next = new Map(prev)
+        if (record.status === null) {
+          next.delete(key)
+        } else {
+          next.set(key, record.status)
+        }
+        return next
+      })
+    } catch (err) {
+      setDialogError(
+        err instanceof ApiError ? err.message : 'Não foi possível guardar a presença',
+      )
+    } finally {
+      setSavingAttendanceKey(null)
+    }
   }
 
   function startEdit(appointment: AppointmentSummary) {
@@ -673,45 +781,64 @@ export function AppointmentsCalendar({
               </button>
             </div>
 
+            {dialogError && <p className={layout.error}>{dialogError}</p>}
+
             {selectedDayAppointments.length > 0 && (
               <div className={styles.existingList}>
-                {selectedDayAppointments.map((appointment) => (
+                {selectedDayAppointments.map((appointment) => {
+                  const attendanceKey = `${appointment.patientId}:${selectedDate}`
+                  const attendanceStatus = attendanceByKey.get(attendanceKey)
+                  return (
                   <article
                     key={appointment.id}
                     className={`${styles.existingItem} ${editingId === appointment.id ? styles.existingItemActive : ''}`}
                   >
-                    <p className={styles.existingMeta}>
-                      {formatAppointmentRange(appointment.time, appointment.durationMinutes)} ·{' '}
-                      {appointment.gabineteName} · {appointment.locationName}
-                    </p>
-                    <h3 className={styles.existingTitle}>
-                      {appointment.patientName}
-                      {appointment.recurrenceGroupId && (
-                        <span className={styles.seriesBadge}>Série</span>
-                      )}
-                    </h3>
-                    {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
-                    {!readOnly && (
-                      <div className={styles.existingActions}>
-                        <button
-                          type="button"
-                          className={styles.textButton}
-                          onClick={() => startEdit(appointment)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.textButton} ${styles.textButtonDanger}`}
-                          onClick={() => requestDelete(appointment)}
-                          disabled={submitting}
-                        >
-                          Eliminar
-                        </button>
+                    <div className={styles.existingItemRow}>
+                      <div className={styles.existingItemBody}>
+                        <p className={styles.existingMeta}>
+                          {formatAppointmentRange(appointment.time, appointment.durationMinutes)} ·{' '}
+                          {appointment.gabineteName} · {appointment.locationName}
+                        </p>
+                        <h3 className={styles.existingTitle}>
+                          {appointment.patientName}
+                          {appointment.recurrenceGroupId && (
+                            <span className={styles.seriesBadge}>Série</span>
+                          )}
+                        </h3>
+                        {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
+                        {!readOnly && (
+                          <div className={styles.existingActions}>
+                            <button
+                              type="button"
+                              className={styles.textButton}
+                              onClick={() => startEdit(appointment)}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              className={`${styles.textButton} ${styles.textButtonDanger}`}
+                              onClick={() => requestDelete(appointment)}
+                              disabled={submitting}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <AttendanceStatusTile
+                        status={attendanceStatus}
+                        hasScheduledAppointment
+                        editable={!readOnly && attendanceEditLock.unlocked}
+                        disabled={savingAttendanceKey === attendanceKey}
+                        onClick={() => void handleAttendanceClick(appointment.patientId)}
+                        locked={readOnly ? undefined : !attendanceEditLock.unlocked}
+                        onLockToggle={readOnly ? undefined : attendanceEditLock.toggle}
+                      />
+                    </div>
                   </article>
-                ))}
+                  )
+                })}
               </div>
             )}
 
