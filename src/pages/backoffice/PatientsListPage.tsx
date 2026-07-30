@@ -6,6 +6,7 @@ import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import { ApiError, coordinatorApi, therapistApi, type LocationSummary, type PatientSummary } from '../../lib/api'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
+import { formatPatientSessionFee } from '../../lib/dashboard'
 import { matchesPatientSearch } from '../../lib/patientSearch'
 import { useAuth } from '../../hooks/useAuth'
 import attendanceStyles from './AttendancePage.module.css'
@@ -188,6 +189,7 @@ export function PatientsListPage() {
                 <tr>
                   <th>Nome</th>
                   <th>Local</th>
+                  <th>Consulta</th>
                   <th>Contacto</th>
                   <th>Últimos formulários</th>
                   <th />
@@ -200,6 +202,7 @@ export function PatientsListPage() {
                     <tr key={patient.id}>
                       <td>{patient.fullName}</td>
                       <td>{patient.location?.name ?? '—'}</td>
+                      <td>{formatPatientSessionFee(patient.sessionFee)}</td>
                       <td>{formatPatientContact(patient)}</td>
                       <td>
                         {latest ? (

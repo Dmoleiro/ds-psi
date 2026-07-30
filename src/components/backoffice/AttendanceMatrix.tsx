@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, coordinatorApi, therapistApi, type AttendanceStatus, type LocationSummary } from '../../lib/api'
 import {
@@ -7,8 +7,8 @@ import {
   SCHEDULED_APPOINTMENT_LABEL,
   STATUS_CYCLE,
   STATUS_LABELS,
-  toIsoDate,
 } from '../../lib/attendance'
+import { getTodayInLisbon } from '../../lib/workshopDates'
 import type { useEditLock } from '../../hooks/useEditLock'
 import { Button } from '../ui/Button'
 import { exportAttendanceList } from '../../lib/exportAttendanceList'
@@ -49,9 +49,10 @@ export function AttendanceMatrix({
   therapistId,
 }: Props) {
   const isCoordinator = mode === 'coordinator'
-  const today = new Date()
-  const [viewYear, setViewYear] = useState(today.getFullYear())
-  const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
+  const todayIso = getTodayInLisbon()
+  const todayColRef = useRef<HTMLTableCellElement>(null)
+  const [viewYear, setViewYear] = useState(() => Number(todayIso.slice(0, 4)))
+  const [viewMonth, setViewMonth] = useState(() => Number(todayIso.slice(5, 7)))
   const [patients, setPatients] = useState<PatientRow[]>([])
   const [records, setRecords] = useState<MatrixRecord[]>([])
   const [scheduledAppointments, setScheduledAppointments] = useState<ScheduledAppointment[]>([])
@@ -109,6 +110,19 @@ export function AttendanceMatrix({
     const date = new Date(viewYear, viewMonth - 1 + delta, 1)
     setViewYear(date.getFullYear())
     setViewMonth(date.getMonth() + 1)
+  }
+
+  const isCurrentMonth =
+    viewYear === Number(todayIso.slice(0, 4)) && viewMonth === Number(todayIso.slice(5, 7))
+
+  function goToToday() {
+    lock?.()
+    const [year, month] = todayIso.split('-').map(Number)
+    setViewYear(year)
+    setViewMonth(month)
+    requestAnimationFrame(() => {
+      todayColRef.current?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    })
   }
 
   async function handleTherapistCellClick(patientId: string, isoDate: string) {
@@ -199,8 +213,6 @@ export function AttendanceMatrix({
     year: 'numeric',
   })
 
-  const todayIso = toIsoDate(today.getFullYear(), today.getMonth() + 1, today.getDate())
-
   function handleExport() {
     try {
       exportAttendanceList(viewYear, viewMonth, therapistName, location.name, records)
@@ -223,6 +235,11 @@ export function AttendanceMatrix({
           <button type="button" className={styles.navButton} onClick={() => shiftMonth(1)} aria-label="Mês seguinte">
             →
           </button>
+          {!isCurrentMonth && (
+            <button type="button" className={styles.todayButton} onClick={goToToday}>
+              Ir para hoje
+            </button>
+          )}
         </div>
         <Button type="button" variant="outline" onClick={handleExport} disabled={loading || records.length === 0}>
           Imprimir / guardar PDF
@@ -293,6 +310,7 @@ export function AttendanceMatrix({
                 {days.map(({ day, date, weekday }) => (
                   <th
                     key={date}
+                    ref={date === todayIso ? todayColRef : undefined}
                     className={`${styles.dayHead} ${date === todayIso ? styles.todayCol : ''}`}
                     title={new Date(viewYear, viewMonth - 1, day).toLocaleDateString('pt-PT', {
                       weekday: 'long',

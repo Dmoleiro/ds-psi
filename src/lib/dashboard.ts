@@ -1,3 +1,5 @@
+import { getTodayInLisbon } from './workshopDates'
+
 export function formatAppointmentDayLabel(isoDate: string): string {
   const date = new Date(`${isoDate}T12:00:00`)
   if (Number.isNaN(date.getTime())) return isoDate
@@ -26,4 +28,24 @@ export function isIsoDateString(value: string): boolean {
 
 export function appointmentsDayHref(date: string): string {
   return `/backoffice/appointments?date=${encodeURIComponent(date)}`
+}
+
+export function appointmentsCreateHref(options: {
+  patientId: string
+  date?: string
+  locationId?: string | null
+}): string {
+  const params = new URLSearchParams({
+    date: options.date ?? getTodayInLisbon(),
+    patientId: options.patientId,
+  })
+  if (options.locationId) {
+    params.set('locationId', options.locationId)
+  }
+  return `/backoffice/appointments?${params.toString()}`
+}
+
+export function formatPatientSessionFee(value: number | null): string {
+  if (value == null) return '—'
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value)
 }

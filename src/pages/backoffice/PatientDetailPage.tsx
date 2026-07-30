@@ -9,6 +9,7 @@ import {
 import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { ApiError, coordinatorApi, therapistApi, type LocationSummary } from '../../lib/api'
+import { appointmentsCreateHref } from '../../lib/dashboard'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -224,14 +225,18 @@ export function PatientDetailPage() {
     }
   }
 
-  async function copySessionUrl(url: string) {
+  async function copyText(text: string, successMessage: string) {
     try {
-      await navigator.clipboard.writeText(url)
-      setCopyFeedback('Link copiado.')
+      await navigator.clipboard.writeText(text)
+      setCopyFeedback(successMessage)
       window.setTimeout(() => setCopyFeedback(''), 2000)
     } catch {
-      setCopyFeedback('Não foi possível copiar o link.')
+      setCopyFeedback('Não foi possível copiar.')
     }
+  }
+
+  async function copySessionUrl(url: string) {
+    await copyText(url, 'Link copiado.')
   }
 
   function sessionIsOpen(session: SessionRow) {
@@ -483,24 +488,61 @@ export function PatientDetailPage() {
           Apenas consulta — não pode alterar dados do paciente.
         </p>
       )}
-      <p className={styles.muted}>
-        {[
-          patient.therapist?.name ? `Terapeuta: ${patient.therapist.name}` : null,
-          patient.email,
-          patient.email2,
-          patient.phone,
-          patient.phone2,
-          formatBirthDate(patient.birthDate),
-          patient.sessionFee != null
-            ? `Consulta: ${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(patient.sessionFee)}`
-            : null,
-          patient.location?.name,
-        ]
-          .filter(Boolean)
-          .join(' · ') || 'Sem contacto'}
-        {' · '}
-        <Link to="/backoffice/attendance">Ver presenças</Link>
-      </p>
+      <div className={tabStyles.patientMeta}>
+        <p className={styles.muted}>
+          {[
+            patient.therapist?.name ? `Terapeuta: ${patient.therapist.name}` : null,
+            formatBirthDate(patient.birthDate),
+            patient.sessionFee != null
+              ? `Consulta: ${new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(patient.sessionFee)}`
+              : null,
+            patient.location?.name,
+          ]
+            .filter(Boolean)
+            .join(' · ') || null}
+        </p>
+        {(patient.email || patient.email2 || patient.phone || patient.phone2) && (
+          <div className={tabStyles.contactRow}>
+            {[
+              patient.email ? { label: 'Email', value: patient.email } : null,
+              patient.email2 ? { label: 'Email 2', value: patient.email2 } : null,
+              patient.phone ? { label: 'Telefone', value: patient.phone } : null,
+              patient.phone2 ? { label: 'Telefone 2', value: patient.phone2 } : null,
+            ]
+              .filter((item): item is { label: string; value: string } => item != null)
+              .map((item, index) => (
+                <span key={item.value} className={tabStyles.contactItem}>
+                  {index > 0 && <span className={tabStyles.contactSep}>·</span>}
+                  <button
+                    type="button"
+                    className={styles.linkButton}
+                    onClick={() => copyText(item.value, `${item.label} copiado.`)}
+                    title={`Copiar ${item.label.toLowerCase()}`}
+                  >
+                    {item.value}
+                  </button>
+                </span>
+              ))}
+          </div>
+        )}
+        <p className={styles.muted}>
+          <Link to="/backoffice/attendance">Ver presenças</Link>
+          {!readOnly && (
+            <>
+              {' · '}
+              <Link to={appointmentsCreateHref({ patientId: patient.id, locationId: patient.location?.id })}>
+                Marcar consulta
+              </Link>
+            </>
+          )}
+          {copyFeedback && (
+            <>
+              {' · '}
+              <span>{copyFeedback}</span>
+            </>
+          )}
+        </p>
+      </div>
 
       <div className={tabStyles.tabs} role="tablist" aria-label="Secções do utente">
         {(
