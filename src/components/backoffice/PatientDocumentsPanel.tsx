@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ApiError, therapistApi, type PatientDocumentSummary } from '../../lib/api'
+import { ApiError, coordinatorApi, therapistApi, type PatientDocumentSummary } from '../../lib/api'
 import { isImageMimeType, PATIENT_DOCUMENT_ACCEPT } from '../../lib/patientDocuments'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../ui/Button'
@@ -9,6 +9,7 @@ import styles from './PatientDocumentsPanel.module.css'
 
 type PatientDocumentsPanelProps = {
   patientId: string
+  readOnly?: boolean
 }
 
 function formatFileSize(bytes: number): string {
@@ -21,7 +22,7 @@ function formatUploadedBy(uploadedBy: PatientDocumentSummary['uploadedBy']): str
   return uploadedBy === 'patient' ? 'Paciente' : 'Terapeuta'
 }
 
-export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps) {
+export function PatientDocumentsPanel({ patientId, readOnly = false }: PatientDocumentsPanelProps) {
   const { token } = useAuth()
   const [documents, setDocuments] = useState<PatientDocumentSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +40,9 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
     setLoading(true)
     setError('')
     try {
-      const result = await therapistApi.listPatientDocuments(token, patientId)
+      const result = readOnly
+        ? await coordinatorApi.listPatientDocuments(token, patientId)
+        : await therapistApi.listPatientDocuments(token, patientId)
       setDocuments(result.documents)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar os documentos')
@@ -80,7 +83,9 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
     setActionLoading(document.id)
     setError('')
     try {
-      const blob = await therapistApi.getPatientDocumentContent(token, patientId, document.id, 'inline')
+      const blob = readOnly
+        ? await coordinatorApi.getPatientDocumentContent(token, patientId, document.id, 'inline')
+        : await therapistApi.getPatientDocumentContent(token, patientId, document.id, 'inline')
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl)
       }
@@ -99,12 +104,14 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
     setActionLoading(document.id)
     setError('')
     try {
-      const blob = await therapistApi.getPatientDocumentContent(
-        token,
-        patientId,
-        document.id,
-        'attachment',
-      )
+      const blob = readOnly
+        ? await coordinatorApi.getPatientDocumentContent(token, patientId, document.id, 'attachment')
+        : await therapistApi.getPatientDocumentContent(
+            token,
+            patientId,
+            document.id,
+            'attachment',
+          )
       const url = URL.createObjectURL(blob)
       const link = window.document.createElement('a')
       link.href = url
@@ -153,10 +160,12 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
       <Card as="section" className={layout.sectionSpaced}>
         <h2>Documentos</h2>
         <p className={layout.muted}>
-          Documentos associados a este paciente (PDF ou imagens). Podem ser anexados pelo paciente
-          através do formulário &quot;Anexar documentos&quot; ou carregados aqui pela terapeuta.
+          {readOnly
+            ? 'Documentos associados a este paciente (apenas consulta).'
+            : 'Documentos associados a este paciente (PDF ou imagens). Podem ser anexados pelo paciente através do formulário "Anexar documentos" ou carregados aqui pela terapeuta.'}
         </p>
 
+        {!readOnly && (
         <div className={styles.uploadRow}>
           <input
             type="file"
@@ -167,6 +176,7 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
             {uploading ? 'A carregar…' : 'Carregar ficheiro'}
           </Button>
         </div>
+        )}
 
         {error && <p className={layout.error}>{error}</p>}
 
@@ -210,35 +220,36 @@ export function PatientDocumentsPanel({ patientId }: PatientDocumentsPanelProps)
                       >
                         Descarregar
                       </button>
-                      {confirmDeleteId === document.id ? (
-                        <>
+                      {!readOnly &&
+                        (confirmDeleteId === document.id ? (
+                          <>
+                            <button
+                              type="button"
+                              className={layout.dangerLinkButton}
+                              disabled={actionLoading === document.id}
+                              onClick={() => handleDelete(document.id)}
+                            >
+                              Confirmar
+                            </button>
+                            <button
+                              type="button"
+                              className={layout.linkButton}
+                              disabled={actionLoading === document.id}
+                              onClick={() => setConfirmDeleteId(null)}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
                           <button
                             type="button"
                             className={layout.dangerLinkButton}
                             disabled={actionLoading === document.id}
-                            onClick={() => handleDelete(document.id)}
+                            onClick={() => setConfirmDeleteId(document.id)}
                           >
-                            Confirmar
+                            Eliminar
                           </button>
-                          <button
-                            type="button"
-                            className={layout.linkButton}
-                            disabled={actionLoading === document.id}
-                            onClick={() => setConfirmDeleteId(null)}
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          className={layout.dangerLinkButton}
-                          disabled={actionLoading === document.id}
-                          onClick={() => setConfirmDeleteId(document.id)}
-                        >
-                          Eliminar
-                        </button>
-                      )}
+                        ))}
                     </div>
                   </td>
                 </tr>

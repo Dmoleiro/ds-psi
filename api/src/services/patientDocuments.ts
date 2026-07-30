@@ -5,6 +5,7 @@ import {
   getAbsoluteDocumentPath,
   savePatientDocumentBuffer,
 } from '../lib/patientDocumentUpload.js'
+import { assertCoordinatorPatientAccess } from './coordinatorPatients.js'
 
 export function formatPatientDocument(document: PatientDocument) {
   return {
@@ -135,4 +136,28 @@ export async function deleteTherapistPatientDocument(
   const document = await getTherapistPatientDocument(therapistId, patientId, documentId)
   await prisma.patientDocument.delete({ where: { id: document.id } })
   await deletePatientDocumentFile(document.storagePath)
+}
+
+export async function listCoordinatorPatientDocuments(coordinatorId: string, patientId: string) {
+  await assertCoordinatorPatientAccess(coordinatorId, patientId)
+  const documents = await prisma.patientDocument.findMany({
+    where: { patientId },
+    orderBy: { createdAt: 'desc' },
+  })
+  return documents.map(formatPatientDocument)
+}
+
+export async function getCoordinatorPatientDocument(
+  coordinatorId: string,
+  patientId: string,
+  documentId: string,
+) {
+  await assertCoordinatorPatientAccess(coordinatorId, patientId)
+  const document = await prisma.patientDocument.findFirst({
+    where: { id: documentId, patientId },
+  })
+  if (!document) {
+    throw new Error('DOCUMENT_NOT_FOUND')
+  }
+  return document
 }

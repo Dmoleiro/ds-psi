@@ -110,6 +110,14 @@ export const setTherapistLocationsSchema = z.object({
   locationIds: z.array(z.string().uuid()),
 })
 
+export const setCoordinatorTherapistsSchema = z.object({
+  therapistIds: z.array(z.string().uuid()),
+})
+
+export const coordinatorPatientsQuerySchema = z.object({
+  therapistId: z.string().uuid(),
+})
+
 export const gabineteListQuerySchema = z.object({
   locationId: z.string().uuid().optional(),
 })

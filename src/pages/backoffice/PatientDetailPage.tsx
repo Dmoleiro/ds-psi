@@ -8,7 +8,7 @@ import {
 } from '../../components/backoffice/PiccaInteractivePatientSection'
 import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
-import { ApiError, therapistApi, type LocationSummary } from '../../lib/api'
+import { ApiError, coordinatorApi, therapistApi, type LocationSummary } from '../../lib/api'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
@@ -51,6 +51,7 @@ type PatientDetail = {
   sessionFee: number | null
   internalNotes: string | null
   location?: { id: string; name: string }
+  therapist?: { id: string; name: string }
   intakeSessions: SessionRow[]
   piccaSessions?: PiccaSessionRow[]
   piccaInteractiveSessions?: PiccaInteractiveSessionRow[]
@@ -60,6 +61,7 @@ export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { token, user } = useAuth()
+  const readOnly = user?.role === 'coordinator'
   const [activeTab, setActiveTab] = useState<PatientTab>('dados')
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
@@ -95,17 +97,19 @@ export function PatientDetailPage() {
 
   useEffect(() => {
     if (!token || !id) return
-    therapistApi
-      .getPatient(token, id)
+    const request = readOnly
+      ? coordinatorApi.getPatient(token, id)
+      : therapistApi.getPatient(token, id)
+    request
       .then((data) => setPatient(data.patient as unknown as PatientDetail))
       .finally(() => setLoading(false))
-  }, [token, id])
+  }, [token, id, readOnly])
 
   useEffect(() => {
-    if (!token) return
+    if (!token || readOnly) return
     therapistApi.listForms(token).then((data) => setAvailableForms(data.forms))
     therapistApi.listLocations(token).then((data) => setLocations(data.locations))
-  }, [token])
+  }, [token, readOnly])
 
   function toggleForm(formId: string) {
     setSelectedForms((current) =>
@@ -132,7 +136,9 @@ export function PatientDetailPage() {
   async function handleViewSubmissions(sessionId: string) {
     if (!token) return
     try {
-      const result = await therapistApi.getSessionSubmissions(token, sessionId)
+      const result = readOnly
+        ? await coordinatorApi.getSessionSubmissions(token, sessionId)
+        : await therapistApi.getSessionSubmissions(token, sessionId)
       setSubmissions(result.session)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível carregar as respostas')
@@ -169,7 +175,9 @@ export function PatientDetailPage() {
 
   async function refreshPatient() {
     if (!token || !id) return
-    const refreshed = await therapistApi.getPatient(token, id)
+    const refreshed = readOnly
+      ? await coordinatorApi.getPatient(token, id)
+      : await therapistApi.getPatient(token, id)
     setPatient(refreshed.patient as unknown as PatientDetail)
   }
 
@@ -345,7 +353,7 @@ export function PatientDetailPage() {
       <p className={styles.muted}>
         <Link to="/backoffice/patients">← Pacientes</Link>
       </p>
-      {editingPatient ? (
+      {editingPatient && !readOnly ? (
         <form className={styles.editPatientForm} onSubmit={handleSavePatient}>
           <div className={styles.field}>
             <label htmlFor="patientFullName">Nome completo</label>
@@ -463,13 +471,21 @@ export function PatientDetailPage() {
       ) : (
         <div className={styles.titleRow}>
           <h1 className={styles.pageTitle}>{patient.fullName}</h1>
-          <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
-            Editar dados
-          </button>
+          {!readOnly && (
+            <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
+              Editar dados
+            </button>
+          )}
         </div>
+      )}
+      {readOnly && (
+        <p className={styles.muted} style={{ marginTop: '-0.5rem' }}>
+          Apenas consulta — não pode alterar dados do paciente.
+        </p>
       )}
       <p className={styles.muted}>
         {[
+          patient.therapist?.name ? `Terapeuta: ${patient.therapist.name}` : null,
           patient.email,
           patient.email2,
           patient.phone,
@@ -491,7 +507,7 @@ export function PatientDetailPage() {
           [
             ['dados', 'Dados'],
             ['intake', 'Formulários'],
-            ...(user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
+            ...(!readOnly && user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
             ['documentos', 'Documentos'],
           ] as const
         ).map(([id, label]) => (
@@ -546,14 +562,22 @@ export function PatientDetailPage() {
                 <dt>Valor da consulta</dt>
                 <dd>{formatSessionFee(patient.sessionFee)}</dd>
               </div>
+              {readOnly && patient.therapist && (
+                <div className={tabStyles.detailItem}>
+                  <dt>Terapeuta</dt>
+                  <dd>{patient.therapist.name}</dd>
+                </div>
+              )}
             </dl>
-            <div className={tabStyles.detailFooter}>
-              <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
-                Editar dados
-              </button>
-              {' · '}
-              <Link to="/backoffice/attendance">Ver presenças</Link>
-            </div>
+            {!readOnly && (
+              <div className={tabStyles.detailFooter}>
+                <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
+                  Editar dados
+                </button>
+                {' · '}
+                <Link to="/backoffice/attendance">Ver presenças</Link>
+              </div>
+            )}
           </Card>
 
           {patient.internalNotes && (
@@ -563,6 +587,7 @@ export function PatientDetailPage() {
             </Card>
           )}
 
+          {!readOnly && (
           <section className={`${styles.dangerZone} ${styles.sectionSpacedTop}`}>
             <h2>Zona de perigo</h2>
             <p className={styles.muted}>
@@ -605,11 +630,13 @@ export function PatientDetailPage() {
               </>
             )}
           </section>
+          )}
         </>
       )}
 
       {activeTab === 'intake' && (
       <>
+      {!readOnly && (
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link de formulários</h2>
         <p className={styles.muted}>Selecione os formulários a incluir no link único do paciente.</p>
@@ -647,12 +674,14 @@ export function PatientDetailPage() {
           </div>
         )}
       </Card>
+      )}
 
       <Card as="section">
         <h2>Formulários</h2>
         <p className={styles.muted}>
-          Pode revogar links em curso ou eliminar conjuntos criados por engano, desde que ainda não existam
-          respostas submetidas.
+          {readOnly
+            ? 'Histórico de formulários de intake do paciente (apenas consulta).'
+            : 'Pode revogar links em curso ou eliminar conjuntos criados por engano, desde que ainda não existam respostas submetidas.'}
         </p>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
@@ -691,7 +720,7 @@ export function PatientDetailPage() {
                   </td>
                   <td>
                     <div className={styles.sessionActions}>
-                      {session.url && sessionIsOpen(session) && (
+                      {!readOnly && session.url && sessionIsOpen(session) && (
                         <>
                           <a
                             href={session.url}
@@ -719,7 +748,7 @@ export function PatientDetailPage() {
                           Ver respostas
                         </button>
                       )}
-                      {sessionAction?.sessionId === session.id ? (
+                      {!readOnly && sessionAction?.sessionId === session.id ? (
                         <div className={styles.sessionConfirm}>
                           <p className={styles.muted}>
                             {sessionAction.type === 'revoke'
@@ -757,6 +786,7 @@ export function PatientDetailPage() {
                           </div>
                         </div>
                       ) : (
+                        !readOnly && (
                         <>
                           {sessionCanRevoke(session) && (
                             <button
@@ -785,6 +815,7 @@ export function PatientDetailPage() {
                             </button>
                           )}
                         </>
+                        )
                       )}
                     </div>
                   </td>
@@ -818,7 +849,9 @@ export function PatientDetailPage() {
         </>
       )}
 
-      {activeTab === 'documentos' && <PatientDocumentsPanel patientId={patient.id} />}
+      {activeTab === 'documentos' && (
+        <PatientDocumentsPanel patientId={patient.id} readOnly={readOnly} />
+      )}
       </div>
     </BackofficeLayout>
   )

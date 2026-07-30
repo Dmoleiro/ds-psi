@@ -15,9 +15,108 @@ type CoordinatorRow = {
   createdAt: string
 }
 
+type CoordinatorTherapistRow = {
+  id: string
+  name: string
+  email: string
+  active: boolean
+  assigned: boolean
+}
+
+function CoordinatorTherapistsPanel({
+  coordinator,
+  token,
+  onClose,
+}: {
+  coordinator: CoordinatorRow
+  token: string
+  onClose: () => void
+}) {
+  const [therapists, setTherapists] = useState<CoordinatorTherapistRow[]>([])
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    setError('')
+    adminApi
+      .getCoordinatorTherapists(token, coordinator.id)
+      .then((data) => {
+        setTherapists(data.therapists)
+        setSelectedIds(data.therapists.filter((therapist) => therapist.assigned).map((therapist) => therapist.id))
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar terapeutas')
+      })
+      .finally(() => setLoading(false))
+  }, [token, coordinator.id])
+
+  function toggleTherapist(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id],
+    )
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setError('')
+    try {
+      const data = await adminApi.setCoordinatorTherapists(token, coordinator.id, selectedIds)
+      setTherapists(data.therapists)
+      setSelectedIds(data.therapists.filter((therapist) => therapist.assigned).map((therapist) => therapist.id))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível guardar os terapeutas')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card as="section" className={styles.sectionSpaced}>
+      <h2>Terapeutas — {coordinator.name}</h2>
+      <p className={styles.muted}>
+        Selecione os terapeutas a que este utilizador administrativo pode aceder (consultas, presenças e
+        pacientes).
+      </p>
+      {error && <p className={styles.error}>{error}</p>}
+      {loading ? (
+        <p className={styles.muted}>A carregar…</p>
+      ) : therapists.length === 0 ? (
+        <p className={styles.muted}>Crie terapeutas antes de atribuir acessos.</p>
+      ) : (
+        <div className={styles.form}>
+          {therapists.map((therapist) => (
+            <label key={therapist.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(therapist.id)}
+                onChange={() => toggleTherapist(therapist.id)}
+                disabled={!therapist.active}
+              />
+              {therapist.name}
+              {!therapist.active ? ' (inativo)' : ''}
+            </label>
+          ))}
+        </div>
+      )}
+      <div className={styles.rowActions} style={{ marginTop: 'var(--space-md)' }}>
+        <Button type="button" onClick={handleSave} disabled={saving || loading}>
+          {saving ? 'A guardar…' : 'Guardar terapeutas'}
+        </Button>
+        <button type="button" className={styles.linkButton} onClick={onClose}>
+          Fechar
+        </button>
+      </div>
+    </Card>
+  )
+}
+
 export function AdminCoordinatorsPage() {
   const { token } = useAuth()
   const [coordinators, setCoordinators] = useState<CoordinatorRow[]>([])
+  const [managingCoordinator, setManagingCoordinator] = useState<CoordinatorRow | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -67,6 +166,9 @@ export function AdminCoordinatorsPage() {
     setError('')
     try {
       await adminApi.deleteCoordinator(token, coordinator.id)
+      if (managingCoordinator?.id === coordinator.id) {
+        setManagingCoordinator(null)
+      }
       await load()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível eliminar o utilizador')
@@ -78,7 +180,8 @@ export function AdminCoordinatorsPage() {
       <BackofficeLayout>
         <h1 className={styles.pageTitle}>Utilizadores administrativos</h1>
         <p className={styles.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-lg)' }}>
-          Acesso só de leitura às presenças de cada terapeuta — sem permissão para alterar dados.
+          Acesso de leitura a consultas, presenças e pacientes dos terapeutas atribuídos. Pode alterar o
+          estado de recibos nas presenças.
         </p>
 
         <Card as="section" className={styles.sectionSpaced}>
@@ -108,6 +211,14 @@ export function AdminCoordinatorsPage() {
           </form>
         </Card>
 
+        {managingCoordinator && token && (
+          <CoordinatorTherapistsPanel
+            coordinator={managingCoordinator}
+            token={token}
+            onClose={() => setManagingCoordinator(null)}
+          />
+        )}
+
         {loading ? (
           <p className={styles.muted}>A carregar…</p>
         ) : (
@@ -126,6 +237,13 @@ export function AdminCoordinatorsPage() {
                   <td>{coordinator.email}</td>
                   <td>
                     <div className={styles.rowActions}>
+                      <button
+                        type="button"
+                        className={styles.linkButton}
+                        onClick={() => setManagingCoordinator(coordinator)}
+                      >
+                        Terapeutas
+                      </button>
                       <AdminPasswordReset
                         onSubmit={async (password) => {
                           if (!token) return

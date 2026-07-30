@@ -4,33 +4,29 @@ import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
-import { therapistApi, type LocationSummary, type PatientSummary } from '../../lib/api'
+import { ApiError, coordinatorApi, therapistApi, type LocationSummary, type PatientSummary } from '../../lib/api'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
+import { matchesPatientSearch } from '../../lib/patientSearch'
 import { useAuth } from '../../hooks/useAuth'
+import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
+
+type TherapistOption = { id: string; name: string; email: string }
 
 function formatPatientContact(patient: PatientSummary): string {
   const contact = [patient.email, patient.email2, patient.phone, patient.phone2].filter(Boolean)
   return contact.length > 0 ? contact.join(' · ') : '—'
 }
 
-function matchesPatientSearch(patient: PatientSummary, query: string): boolean {
-  const normalized = query.trim().toLocaleLowerCase('pt-PT')
-  if (!normalized) return true
-
-  const haystack = [patient.fullName, patient.email, patient.email2, patient.phone, patient.phone2]
-    .filter(Boolean)
-    .join(' ')
-    .toLocaleLowerCase('pt-PT')
-
-  return haystack.includes(normalized)
-}
-
 export function PatientsListPage() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const readOnly = user?.role === 'coordinator'
+  const [therapists, setTherapists] = useState<TherapistOption[]>([])
+  const [selectedTherapist, setSelectedTherapist] = useState<TherapistOption | null>(null)
   const [patients, setPatients] = useState<PatientSummary[]>([])
   const [locations, setLocations] = useState<LocationSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
 
@@ -46,104 +42,188 @@ export function PatientsListPage() {
 
   useEffect(() => {
     if (!token) return
-    Promise.all([therapistApi.listPatients(token), therapistApi.listLocations(token)])
+    if (!readOnly) {
+      setLoading(true)
+      Promise.all([therapistApi.listPatients(token), therapistApi.listLocations(token)])
+        .then(([patientsData, locationsData]) => {
+          setPatients(patientsData.patients)
+          setLocations(locationsData.locations)
+        })
+        .finally(() => setLoading(false))
+      return
+    }
+
+    setLoading(true)
+    setError('')
+    coordinatorApi
+      .listTherapists(token)
+      .then((data) => setTherapists(data.therapists))
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar terapeutas'))
+      .finally(() => setLoading(false))
+  }, [token, readOnly])
+
+  useEffect(() => {
+    if (!token || !readOnly || !selectedTherapist) return
+    setLoading(true)
+    setError('')
+    setSearch('')
+    setLocationFilter('')
+    Promise.all([
+      coordinatorApi.listPatients(token, selectedTherapist.id),
+      coordinatorApi.listLocations(token, selectedTherapist.id),
+    ])
       .then(([patientsData, locationsData]) => {
         setPatients(patientsData.patients)
         setLocations(locationsData.locations)
       })
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar pacientes'))
       .finally(() => setLoading(false))
-  }, [token])
+  }, [token, readOnly, selectedTherapist])
 
   return (
     <BackofficeLayout>
-      <div className={styles.actions} style={{ justifyContent: 'space-between', marginBottom: 'var(--space-lg)' }}>
-        <h1 className={styles.pageTitle} style={{ margin: 0 }}>
-          Pacientes
-        </h1>
-        <Button href="/backoffice/patients/new">Novo paciente</Button>
-      </div>
+      <h1 className={styles.pageTitle}>Pacientes</h1>
 
-      {!loading && patients.length > 0 && (
-        <div className={styles.filterBar}>
-          <div className={styles.searchBar}>
-            <label htmlFor="patient-search">Pesquisar</label>
-            <input
-              id="patient-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nome ou email…"
-              autoComplete="off"
-            />
-          </div>
-          <div className={styles.filterField}>
-            <label htmlFor="patient-location-filter">Local</label>
-            <select
-              id="patient-location-filter"
-              value={locationFilter}
-              onChange={(event) => setLocationFilter(event.target.value)}
-            >
-              <option value="">Todos os locais</option>
-              {locations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <p className={styles.muted}>A carregar…</p>
-      ) : filteredPatients.length === 0 ? (
-        <Card>
-          <p>
-            {search.trim() || locationFilter
-              ? 'Nenhum paciente corresponde aos filtros.'
-              : 'Ainda não existem pacientes. Crie o primeiro perfil para gerar um link de formulários.'}
+      {readOnly && !selectedTherapist ? (
+        <>
+          <p className={styles.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-lg)' }}>
+            Selecione o terapeuta para consultar os pacientes (apenas leitura).
           </p>
-        </Card>
+          {error && <p className={styles.error}>{error}</p>}
+          {loading ? (
+            <p className={styles.muted}>A carregar…</p>
+          ) : therapists.length === 0 ? (
+            <p className={styles.muted}>Não tem terapeutas atribuídos. Contacte o administrador.</p>
+          ) : (
+            <div className={attendanceStyles.locationGrid}>
+              {therapists.map((therapist) => (
+                <button
+                  key={therapist.id}
+                  type="button"
+                  className={attendanceStyles.locationTile}
+                  onClick={() => setSelectedTherapist(therapist)}
+                >
+                  <span className={attendanceStyles.locationName}>{therapist.name}</span>
+                  <span className={attendanceStyles.locationAddress}>{therapist.email}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       ) : (
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Local</th>
-              <th>Contacto</th>
-              <th>Últimos formulários</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {filteredPatients.map((patient) => {
-              const latest = patient.intakeSessions?.[0]
-              return (
-                <tr key={patient.id}>
-                  <td>{patient.fullName}</td>
-                  <td>{patient.location?.name ?? '—'}</td>
-                  <td>{formatPatientContact(patient)}</td>
-                  <td>
-                    {latest ? (
-                      <>
-                        <Badge variant={sessionStatusBadgeVariant(latest.status)}>
-                          {formatSessionStatus(latest.status)}
-                        </Badge>
-                        {' · '}
-                        {new Date(latest.createdAt).toLocaleDateString('pt-PT')}
-                      </>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`/backoffice/patients/${patient.id}`}>Abrir</Link>
-                  </td>
+        <>
+          {readOnly && selectedTherapist && (
+            <p className={styles.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-md)' }}>
+              Terapeuta: <strong>{selectedTherapist.name}</strong>
+              {' · '}
+              <button
+                type="button"
+                className={styles.linkButton}
+                onClick={() => {
+                  setSelectedTherapist(null)
+                  setPatients([])
+                  setLocations([])
+                }}
+              >
+                Escolher outro terapeuta
+              </button>
+            </p>
+          )}
+
+          <div className={styles.actions} style={{ justifyContent: 'space-between', marginBottom: 'var(--space-lg)' }}>
+            <p className={styles.muted} style={{ margin: 0 }}>
+              {readOnly ? 'Consulta de dados dos pacientes (apenas leitura).' : null}
+            </p>
+            {!readOnly && <Button href="/backoffice/patients/new">Novo paciente</Button>}
+          </div>
+
+          {error && <p className={styles.error}>{error}</p>}
+
+          {!loading && patients.length > 0 && (
+            <div className={styles.filterBar}>
+              <div className={styles.searchBar}>
+                <label htmlFor="patient-search">Pesquisar</label>
+                <input
+                  id="patient-search"
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Nome, email ou telefone…"
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.filterField}>
+                <label htmlFor="patient-location-filter">Local</label>
+                <select
+                  id="patient-location-filter"
+                  value={locationFilter}
+                  onChange={(event) => setLocationFilter(event.target.value)}
+                >
+                  <option value="">Todos os locais</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <p className={styles.muted}>A carregar…</p>
+          ) : filteredPatients.length === 0 ? (
+            <Card>
+              <p>
+                {search.trim() || locationFilter
+                  ? 'Nenhum paciente corresponde aos filtros.'
+                  : readOnly
+                    ? 'Este terapeuta ainda não tem pacientes registados.'
+                    : 'Ainda não existem pacientes. Crie o primeiro perfil para gerar um link de formulários.'}
+              </p>
+            </Card>
+          ) : (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Local</th>
+                  <th>Contacto</th>
+                  <th>Últimos formulários</th>
+                  <th />
                 </tr>
-              )
-            })}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {filteredPatients.map((patient) => {
+                  const latest = patient.intakeSessions?.[0]
+                  return (
+                    <tr key={patient.id}>
+                      <td>{patient.fullName}</td>
+                      <td>{patient.location?.name ?? '—'}</td>
+                      <td>{formatPatientContact(patient)}</td>
+                      <td>
+                        {latest ? (
+                          <>
+                            <Badge variant={sessionStatusBadgeVariant(latest.status)}>
+                              {formatSessionStatus(latest.status)}
+                            </Badge>
+                            {' · '}
+                            {new Date(latest.createdAt).toLocaleDateString('pt-PT')}
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>
+                        <Link to={`/backoffice/patients/${patient.id}`}>Ver ficha</Link>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
+        </>
       )}
     </BackofficeLayout>
   )

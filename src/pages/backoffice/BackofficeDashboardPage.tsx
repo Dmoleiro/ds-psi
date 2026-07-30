@@ -1,5 +1,5 @@
-import { Navigate } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
+import { AdminDashboard } from '../../components/backoffice/AdminDashboard'
 import { TherapistDashboard } from '../../components/backoffice/TherapistDashboard'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -10,7 +10,19 @@ export function BackofficeDashboardPage() {
   const { user, token } = useAuth()
 
   if (user?.role === 'admin') {
-    return <Navigate to="/backoffice/admin/therapists" replace />
+    if (!token) {
+      return (
+        <BackofficeLayout>
+          <p className={styles.muted}>A carregar…</p>
+        </BackofficeLayout>
+      )
+    }
+
+    return (
+      <BackofficeLayout>
+        <AdminDashboard token={token} adminName={user.name} />
+      </BackofficeLayout>
+    )
   }
 
   if (user?.role === 'coordinator') {
@@ -18,6 +30,15 @@ export function BackofficeDashboardPage() {
       <BackofficeLayout>
         <h1 className={styles.pageTitle}>Olá, {user.name}</h1>
         <div className={styles.cardGrid}>
+          <Card as="article">
+            <h2>Pacientes</h2>
+            <p className={styles.muted}>
+              Consulte fichas de pacientes, contactos e formulários (apenas leitura).
+            </p>
+            <Button href="/backoffice/patients" style={{ marginTop: 'var(--space-md)' }}>
+              Ver pacientes
+            </Button>
+          </Card>
           <Card as="article">
             <h2>Consultas</h2>
             <p className={styles.muted}>

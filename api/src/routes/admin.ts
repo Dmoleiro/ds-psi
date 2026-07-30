@@ -2,14 +2,23 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createGabineteSchema, updateGabineteSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema, setTherapistLocationsSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createGabineteSchema, updateGabineteSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema, setTherapistLocationsSchema, setCoordinatorTherapistsSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
 import { createGabinete, listGabinetes, updateGabinete } from '../services/gabinetes.js'
 import { listTherapistLocationsForAdmin, setTherapistLocations } from '../services/therapistLocations.js'
+import {
+  listCoordinatorTherapistsForAdmin,
+  setCoordinatorTherapists,
+} from '../services/coordinatorTherapists.js'
+import { getAdminDashboard } from '../services/adminDashboard.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   const adminOnly = [requireAuth, requireRole(UserRole.admin)]
+
+  app.get('/api/admin/dashboard', { preHandler: adminOnly }, async () => {
+    return getAdminDashboard()
+  })
 
   app.get('/api/admin/therapists', { preHandler: adminOnly }, async () => {
     const therapists = await prisma.user.findMany({
@@ -229,6 +238,38 @@ export async function adminRoutes(app: FastifyInstance) {
     })
 
     return { coordinator: updated }
+  })
+
+  app.get('/api/admin/coordinators/:id/therapists', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    try {
+      return await listCoordinatorTherapistsForAdmin(id)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'COORDINATOR_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Utilizador administrativo não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put('/api/admin/coordinators/:id/therapists', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = setCoordinatorTherapistsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await setCoordinatorTherapists(id, parsed.data.therapistIds)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'COORDINATOR_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Utilizador administrativo não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_THERAPIST') {
+        return reply.status(400).send({ error: 'Terapeuta inválido' })
+      }
+      throw error
+    }
   })
 
   app.delete('/api/admin/coordinators/:id', { preHandler: adminOnly }, async (request, reply) => {

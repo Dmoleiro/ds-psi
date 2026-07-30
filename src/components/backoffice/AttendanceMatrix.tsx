@@ -310,13 +310,9 @@ export function AttendanceMatrix({
               {patients.map((patient) => (
                 <tr key={patient.id}>
                   <th className={styles.stickyCol} scope="row">
-                    {isCoordinator ? (
-                      patient.fullName
-                    ) : (
-                      <Link to={`/backoffice/patients/${patient.id}`} className={styles.patientLink}>
-                        {patient.fullName}
-                      </Link>
-                    )}
+                    <Link to={`/backoffice/patients/${patient.id}`} className={styles.patientLink}>
+                      {patient.fullName}
+                    </Link>
                   </th>
                   {days.map(({ date }) => {
                     const key = `${patient.id}:${date}`

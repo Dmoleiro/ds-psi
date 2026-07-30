@@ -8,7 +8,7 @@ import { LocationDayCalendar } from './LocationDayCalendar'
 import { therapistApi, type TherapistDashboard } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
-import { formatAppointmentDayLabel } from '../../lib/dashboard'
+import { appointmentsDayHref, formatAppointmentDayLabel } from '../../lib/dashboard'
 import styles from './TherapistDashboard.module.css'
 
 type TherapistDashboardProps = {
@@ -78,6 +78,7 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
   }
 
   const nextAppointment = dashboard.todayAppointments.find((appointment) => !appointment.isPast)
+  const todayAppointmentsHref = appointmentsDayHref(dashboard.today)
   const hasAttention =
     dashboard.pendingForms.length > 0 ||
     dashboard.stats.unpaidThisMonth > 0 ||
@@ -93,7 +94,11 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
           </h1>
           {nextAppointment ? (
             <p className={styles.heroSubtitle}>
-              Próxima consulta às <strong>{nextAppointment.time}</strong> — {nextAppointment.patientName}
+              Próxima consulta às{' '}
+              <Link to={todayAppointmentsHref} className={styles.heroAppointmentLink}>
+                <strong>{nextAppointment.time}</strong>
+              </Link>{' '}
+              — {nextAppointment.patientName}
             </p>
           ) : dashboard.todayAppointments.length > 0 ? (
             <p className={styles.heroSubtitle}>As consultas de hoje já terminaram. Bom trabalho.</p>
@@ -114,7 +119,7 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
           label="Consultas hoje"
           value={dashboard.stats.todayAppointments}
           accent="brain"
-          to="/backoffice/appointments"
+          to={todayAppointmentsHref}
         />
         <StatCard
           label="Próximos 7 dias"
@@ -147,12 +152,12 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
         <section className={styles.scheduleSection}>
           <div className={styles.sectionHeader}>
             <h2>
-              <Link to="/backoffice/appointments" className={styles.sectionTitleLink}>
+              <Link to={todayAppointmentsHref} className={styles.sectionTitleLink}>
                 Agenda de hoje
               </Link>
             </h2>
-            <Link to="/backoffice/appointments" className={styles.sectionLink}>
-              Ver calendário →
+            <Link to={todayAppointmentsHref} className={styles.sectionLink}>
+              Gerir consultas →
             </Link>
           </div>
 
@@ -171,8 +176,10 @@ export function TherapistDashboard({ token, therapistName }: TherapistDashboardP
                   className={`${styles.timelineItem} ${appointment.isPast ? styles.timelineItemPast : ''} ${nextAppointment?.id === appointment.id ? styles.timelineItemNext : ''}`}
                 >
                   <div className={styles.timelineTime}>
-                    <span>{appointment.time}</span>
-                    <span className={styles.timelineDuration}>{appointment.durationMinutes} min</span>
+                    <Link to={todayAppointmentsHref} className={styles.timelineTimeLink}>
+                      <span>{appointment.time}</span>
+                      <span className={styles.timelineDuration}>{appointment.durationMinutes} min</span>
+                    </Link>
                   </div>
                   <Card className={styles.timelineCard}>
                     <div className={styles.timelineCardTop}>

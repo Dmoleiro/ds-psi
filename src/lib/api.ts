@@ -203,6 +203,7 @@ export type PatientSummary = {
   sessionFee: number | null
   createdAt: string
   location?: LocationSummary
+  therapist?: { id: string; name: string }
   intakeSessions?: Array<{
     id: string
     status: string
@@ -259,6 +260,60 @@ export type TherapistDashboard = {
       count: number
     }>
     monthAttendanceTotal: number
+  }
+}
+
+export type AdminDashboard = {
+  today: string
+  todayLabel: string
+  greeting: string
+  stats: {
+    activeTherapists: number
+    totalTherapists: number
+    activeCoordinators: number
+    totalCoordinators: number
+    activeLocations: number
+    totalLocations: number
+    activeGabinetes: number
+    totalGabinetes: number
+    totalPatients: number
+    newPatientsThisMonth: number
+    openIntakeSessions: number
+    appointmentsToday: number
+    appointmentsThisWeek: number
+    appointmentsThisMonth: number
+    attendanceThisMonth: number
+    upcomingWorkshops: number
+    piccaEnabledTherapists: number
+  }
+  charts: {
+    weekAppointments: Array<{
+      date: string
+      label: string
+      count: number
+      isToday: boolean
+    }>
+    monthByLocation: Array<{
+      locationId: string
+      locationName: string
+      count: number
+    }>
+    monthByTherapist: Array<{
+      therapistId: string
+      therapistName: string
+      active: boolean
+      count: number
+    }>
+    monthAttendance: Array<{
+      status: string
+      label: string
+      count: number
+    }>
+    monthAttendanceTotal: number
+  }
+  monitoring: {
+    therapistsWithoutWeekAppointments: Array<{ id: string; name: string }>
+    todayByLocation: Array<{ locationId: string; locationName: string; count: number }>
   }
 }
 
@@ -681,6 +736,48 @@ export const coordinatorApi = {
       '/api/coordinator/therapists',
       { token },
     ),
+  listPatients: (token: string, therapistId: string) =>
+    apiRequest<{ patients: PatientSummary[] }>(
+      `/api/coordinator/patients?therapistId=${encodeURIComponent(therapistId)}`,
+      { token },
+    ),
+  getPatient: (token: string, id: string) =>
+    apiRequest<{ patient: PatientSummary & { internalNotes: string | null; intakeSessions: unknown[] } }>(
+      `/api/coordinator/patients/${id}`,
+      { token },
+    ),
+  getSessionSubmissions: (token: string, sessionId: string) =>
+    apiRequest<{
+      session: {
+        id: string
+        status: string
+        patient: { id: string; fullName: string }
+        location: { name: string }
+        submissions: Array<{
+          formId: string
+          title: string
+          submittedAt: string
+          fields: Array<{ key: string; label: string; value: string }>
+        }>
+      }
+    }>(`/api/coordinator/sessions/${sessionId}/submissions`, {
+      token,
+    }),
+  listPatientDocuments: (token: string, patientId: string) =>
+    apiRequest<{ documents: PatientDocumentSummary[] }>(
+      `/api/coordinator/patients/${patientId}/documents`,
+      { token },
+    ),
+  getPatientDocumentContent: (
+    token: string,
+    patientId: string,
+    documentId: string,
+    disposition: 'inline' | 'attachment' = 'inline',
+  ) =>
+    fetchDocumentBlob(
+      `/api/coordinator/patients/${patientId}/documents/${documentId}/content?disposition=${disposition}`,
+      { token },
+    ),
   listLocations: (token: string, therapistId: string) =>
     apiRequest<{ locations: LocationSummary[] }>(
       `/api/coordinator/locations?therapistId=${therapistId}`,
@@ -733,6 +830,8 @@ export const coordinatorApi = {
 }
 
 export const adminApi = {
+  getDashboard: (token: string) =>
+    apiRequest<AdminDashboard>('/api/admin/dashboard', { token }),
   listTherapists: (token: string) =>
     apiRequest<{ therapists: Array<StaffUser & { active: boolean; createdAt: string }> }>(
       '/api/admin/therapists',
@@ -812,6 +911,30 @@ export const adminApi = {
       method: 'PATCH',
       token,
       body,
+    }),
+  getCoordinatorTherapists: (token: string, coordinatorId: string) =>
+    apiRequest<{
+      therapists: Array<{
+        id: string
+        name: string
+        email: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/coordinators/${coordinatorId}/therapists`, { token }),
+  setCoordinatorTherapists: (token: string, coordinatorId: string, therapistIds: string[]) =>
+    apiRequest<{
+      therapists: Array<{
+        id: string
+        name: string
+        email: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/coordinators/${coordinatorId}/therapists`, {
+      method: 'PUT',
+      token,
+      body: { therapistIds },
     }),
   listLocations: (token: string) =>
     apiRequest<{

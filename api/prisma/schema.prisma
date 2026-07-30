@@ -73,6 +73,8 @@ model User {
   patientDocuments PatientDocument[]
   financialSettings TherapistFinancialSettings?
   therapistLocations TherapistLocation[]
+  coordinatorTherapists CoordinatorTherapist[] @relation("CoordinatorTherapistAssignments")
+  therapistCoordinators CoordinatorTherapist[] @relation("TherapistCoordinatorAssignments")
 
   @@map("users")
 }
@@ -134,6 +136,20 @@ model TherapistLocation {
   @@index([therapistId])
   @@index([locationId])
   @@map("therapist_locations")
+}
+
+model CoordinatorTherapist {
+  id            String   @id @default(uuid())
+  coordinatorId String   @map("coordinator_id")
+  therapistId   String   @map("therapist_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  coordinator User @relation("CoordinatorTherapistAssignments", fields: [coordinatorId], references: [id], onDelete: Cascade)
+  therapist   User @relation("TherapistCoordinatorAssignments", fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([coordinatorId])
+  @@index([therapistId])
+  @@map("coordinator_therapists")
 }
 
 model Gabinete {

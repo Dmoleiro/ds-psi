@@ -32,6 +32,7 @@ import {
 } from '../../lib/appointments'
 import { exportAppointmentsPdf } from '../../lib/exportAppointmentsPdf'
 import { AttendanceStatusTile } from './AttendanceStatusTile'
+import { PatientSearchPicker } from './PatientSearchPicker'
 import { useEditLock } from '../../hooks/useEditLock'
 import { Button } from '../ui/Button'
 import styles from './AppointmentsCalendar.module.css'
@@ -49,6 +50,7 @@ type Props = {
 export type AppointmentPrefill =
   | { mode: 'create'; date: string; patientId: string; locationId?: string | null }
   | { mode: 'edit'; appointmentId: string }
+  | { mode: 'day'; date: string }
 
 type FormState = {
   patientId: string
@@ -150,7 +152,9 @@ export function AppointmentsCalendar({
   const prefillKey = prefill
     ? prefill.mode === 'edit'
       ? `edit:${prefill.appointmentId}`
-      : `create:${prefill.date}:${prefill.patientId}`
+      : prefill.mode === 'day'
+        ? `day:${prefill.date}`
+        : `create:${prefill.date}:${prefill.patientId}`
     : null
 
   useEffect(() => {
@@ -355,8 +359,29 @@ export function AppointmentsCalendar({
   }, [token, readOnly, therapistId])
 
   useEffect(() => {
-    if (!prefill || !prefillKey || loading || readOnly) return
+    if (!prefill || !prefillKey || loading) return
+    if (readOnly && prefill.mode !== 'day') return
     if (consumedPrefillRef.current === prefillKey) return
+
+    if (prefill.mode === 'day') {
+      const [year, month] = prefill.date.split('-').map(Number)
+      setViewYear(year)
+      setViewMonth(month)
+      attendanceEditLock.lock()
+      setSelectedDate(prefill.date)
+      setEditingId(null)
+      setEditingAppointment(null)
+      setPendingDelete(null)
+      const locationId = locationFilter || locations[0]?.id || ''
+      const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
+      setForm(initialForm(locationId, gabineteId, prefill.date, defaultSessionFee))
+      setDialogError('')
+      consumedPrefillRef.current = prefillKey
+      onPrefillConsumed?.()
+      return
+    }
+
+    if (readOnly) return
 
     if (prefill.mode === 'edit') {
       const appointment = appointments.find((entry) => entry.id === prefill.appointmentId)
@@ -971,21 +996,18 @@ export function AppointmentsCalendar({
                   </div>
                   <div className={styles.field}>
                     <label htmlFor="appointment-patient">Paciente</label>
-                    <select
+                    <PatientSearchPicker
                       id="appointment-patient"
+                      patients={patientsInSelectedLocation}
                       value={form.patientId}
-                      onChange={(event) => handlePatientChange(event.target.value)}
+                      onChange={handlePatientChange}
                       disabled={!form.locationId}
-                    >
-                      <option value="" disabled>
-                        {form.locationId ? 'Selecionar paciente' : 'Selecione um local primeiro'}
-                      </option>
-                      {patientsInSelectedLocation.map((patient) => (
-                        <option key={patient.id} value={patient.id}>
-                          {patient.fullName}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder={
+                        form.locationId
+                          ? 'Pesquisar por nome, email ou telefone…'
+                          : 'Selecione um local primeiro'
+                      }
+                    />
                     {form.locationId && patientsInSelectedLocation.length === 0 && (
                       <p className={layout.muted}>Não existem pacientes neste local.</p>
                     )}

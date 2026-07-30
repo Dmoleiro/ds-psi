@@ -1,0 +1,211 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.loading,
+.error {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.error {
+  color: var(--color-accent);
+}
+
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #2c3440 0%, #3d4a5c 55%, #4a3f38 130%);
+  color: #f5f0eb;
+}
+
+.heroCopy {
+  flex: 1 1 16rem;
+}
+
+.heroEyebrow {
+  margin: 0 0 var(--space-xs);
+  font-size: 0.875rem;
+  text-transform: capitalize;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.heroTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  line-height: 1.15;
+}
+
+.heroSubtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #e8dfd6;
+  max-width: 40rem;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.statCardClickable {
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.statCardClickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgb(45 90 66 / 0.25);
+}
+
+.statCardAccent {
+  border-color: rgb(107 142 122 / 0.35);
+  background: linear-gradient(180deg, rgb(107 142 122 / 0.12), var(--color-bg-card));
+}
+
+.statCardWarn {
+  border-color: rgb(196 120 74 / 0.35);
+  background: linear-gradient(180deg, rgb(196 120 74 / 0.1), var(--color-bg-card));
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.statCardClickable:hover .statLabel {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.statHint {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.mainGrid {
+  display: grid;
+  gap: var(--space-xl);
+}
+
+.monitoringCard h2 {
+  margin: 0 0 var(--space-md);
+  font-size: 1.0625rem;
+}
+
+.monitoringSections {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.monitoringSection h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.monitoringList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.monitoringItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-warm);
+  font-size: 0.875rem;
+}
+
+.monitoringCount {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.monitoringEmpty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.shortcuts a {
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.shortcuts a:hover {
+  background: var(--color-bg-warm);
+  color: var(--color-primary);
+}
+
+@media (min-width: 768px) {
+  .statGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .mainGrid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.85fr);
+    align-items: start;
+  }
+
+  .monitoringSections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .statGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

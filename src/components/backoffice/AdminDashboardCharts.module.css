@@ -1,0 +1,59 @@
+.panelTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.rankChart {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.rankRow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) minmax(0, 1fr) 2rem;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.rankLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankBarTrack {
+  height: 0.65rem;
+  background: var(--color-bg-warm);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.rankBarFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-brain), rgb(107 142 122 / 0.65));
+  min-width: 0;
+  transition: width 0.35s ease;
+}
+
+.rankCount {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .rankRow {
+    grid-template-columns: minmax(5rem, 6.5rem) minmax(0, 1fr) 1.75rem;
+  }
+}

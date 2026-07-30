@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { SiteLayout } from './components/layout/SiteLayout'
-import { RequireTherapist } from './components/backoffice/BackofficeLayout'
+import { RequirePatientViewer, RequireTherapist } from './components/backoffice/BackofficeLayout'
 import { CookiesPolicyPage } from './pages/CookiesPolicyPage'
 import { FormulariosPiccaPage } from './pages/FormulariosPiccaPage'
 import { WorkshopsPublicPage } from './pages/WorkshopsPublicPage'
@@ -92,9 +92,9 @@ export function App() {
         />
         <Route path="/backoffice/login" element={<BackofficeLoginPage />} />
         <Route path="/backoffice" element={<BackofficeDashboardPage />} />
-        <Route path="/backoffice/patients" element={<RequireTherapist><PatientsListPage /></RequireTherapist>} />
+        <Route path="/backoffice/patients" element={<RequirePatientViewer><PatientsListPage /></RequirePatientViewer>} />
         <Route path="/backoffice/patients/new" element={<RequireTherapist><PatientCreatePage /></RequireTherapist>} />
-        <Route path="/backoffice/patients/:id" element={<RequireTherapist><PatientDetailPage /></RequireTherapist>} />
+        <Route path="/backoffice/patients/:id" element={<RequirePatientViewer><PatientDetailPage /></RequirePatientViewer>} />
         <Route path="/backoffice/appointments" element={<AppointmentsPage />} />
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/financial" element={<RequireTherapist><FinancialOverviewPage /></RequireTherapist>} />

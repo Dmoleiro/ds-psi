@@ -6,6 +6,7 @@ import {
   type AppointmentPrefill,
 } from '../../components/backoffice/AppointmentsCalendar'
 import { ApiError, coordinatorApi } from '../../lib/api'
+import { isIsoDateString } from '../../lib/dashboard'
 import { useAuth } from '../../hooks/useAuth'
 import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
@@ -48,6 +49,10 @@ export function AppointmentsPage() {
         patientId,
         locationId: locationId || null,
       }
+    }
+
+    if (date && isIsoDateString(date)) {
+      return { mode: 'day', date }
     }
 
     return null

@@ -15,9 +15,7 @@ export function BackofficeLoginPage() {
   const [submitting, setSubmitting] = useState(false)
 
   if (user) {
-    const redirect =
-      user.role === 'admin' ? '/backoffice/admin/therapists' : '/backoffice'
-    return <Navigate to={redirect} replace />
+    return <Navigate to="/backoffice" replace />
   }
 
   async function handleSubmit(event: React.FormEvent) {

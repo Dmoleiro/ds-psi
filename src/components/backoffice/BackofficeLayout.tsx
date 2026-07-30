@@ -52,12 +52,14 @@ function BackofficeNavLinks({
       {user.role === 'coordinator' && (
         <>
           {link('/backoffice', 'Dashboard')}
+          {link('/backoffice/patients', 'Pacientes')}
           {link('/backoffice/appointments', 'Consultas')}
           {link('/backoffice/attendance', 'Presenças')}
         </>
       )}
       {user.role === 'admin' && (
         <>
+          {link('/backoffice', 'Dashboard')}
           {link('/backoffice/admin/therapists', 'Terapeutas')}
           {link('/backoffice/admin/coordinators', 'Administrativos')}
           {link('/backoffice/admin/locations', 'Locais')}
@@ -199,6 +201,15 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
       </main>
     </div>
   )
+}
+
+export function RequirePatientViewer({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user || (user.role !== 'therapist' && user.role !== 'coordinator')) {
+    return <Navigate to="/backoffice" replace />
+  }
+  return <>{children}</>
 }
 
 export function RequireAdmin({ children }: { children: ReactNode }) {

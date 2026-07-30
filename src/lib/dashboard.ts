@@ -17,3 +17,13 @@ export function formatAppointmentDayLabel(isoDate: string): string {
     month: 'short',
   }).format(date)
 }
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+export function isIsoDateString(value: string): boolean {
+  return ISO_DATE_RE.test(value)
+}
+
+export function appointmentsDayHref(date: string): string {
+  return `/backoffice/appointments?date=${encodeURIComponent(date)}`
+}
