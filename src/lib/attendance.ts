@@ -37,7 +37,9 @@ export function getMonthDays(year: number, month: number) {
   return Array.from({ length: daysInMonth }, (_, index) => {
     const day = index + 1
     const date = toIsoDate(year, month, day)
-    const weekday = new Date(year, month - 1, day).toLocaleDateString('pt-PT', { weekday: 'narrow' })
-    return { day, date, weekday }
+    const dateObj = new Date(year, month - 1, day)
+    const weekday = dateObj.toLocaleDateString('pt-PT', { weekday: 'short' }).replace(/\.$/, '')
+    const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6
+    return { day, date, weekday, isWeekend }
   })
 }

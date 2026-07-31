@@ -307,11 +307,11 @@ export function AttendanceMatrix({
             <thead>
               <tr>
                 <th className={styles.stickyCol}>Paciente</th>
-                {days.map(({ day, date, weekday }) => (
+                {days.map(({ day, date, weekday, isWeekend }) => (
                   <th
                     key={date}
                     ref={date === todayIso ? todayColRef : undefined}
-                    className={`${styles.dayHead} ${date === todayIso ? styles.todayCol : ''}`}
+                    className={`${styles.dayHead} ${isWeekend ? styles.weekendCol : ''} ${date === todayIso ? styles.todayCol : ''}`}
                     title={new Date(viewYear, viewMonth - 1, day).toLocaleDateString('pt-PT', {
                       weekday: 'long',
                       day: 'numeric',
@@ -332,7 +332,7 @@ export function AttendanceMatrix({
                       {patient.fullName}
                     </Link>
                   </th>
-                  {days.map(({ date }) => {
+                  {days.map(({ date, isWeekend }) => {
                     const key = `${patient.id}:${date}`
                     const status = statusMap.get(key)
                     const hasScheduledAppointment = !status && scheduledMap.has(key)
@@ -344,7 +344,10 @@ export function AttendanceMatrix({
                         ? SCHEDULED_APPOINTMENT_LABEL
                         : 'sem registo'
                     return (
-                      <td key={key} className={date === todayIso ? styles.todayCol : undefined}>
+                      <td
+                        key={key}
+                        className={`${isWeekend ? styles.weekendCol : ''} ${date === todayIso ? styles.todayCol : ''}`}
+                      >
                         <CellTag
                           {...(editable
                             ? {
