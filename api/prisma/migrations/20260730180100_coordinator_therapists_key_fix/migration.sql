@@ -43,8 +43,34 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @coordinator_idx_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'coordinator_therapists'
+    AND INDEX_NAME = 'coordinator_therapists_coordinator_id_idx'
+);
+
 SET @sql := IF(
-  @table_exists > 0 AND @has_id_column = 0,
+  @table_exists > 0 AND @coordinator_idx_exists = 0,
+  'CREATE INDEX `coordinator_therapists_coordinator_id_idx` ON `coordinator_therapists`(`coordinator_id`)',
+  'SELECT ''coordinator_therapists coordinator_id index already exists or table missing'' AS info'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @has_composite_pk := (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'coordinator_therapists'
+    AND INDEX_NAME = 'PRIMARY'
+    AND SEQ_IN_INDEX = 2
+);
+
+SET @sql := IF(
+  @table_exists > 0 AND @has_id_column > 0 AND @has_composite_pk > 0,
   'ALTER TABLE `coordinator_therapists` DROP PRIMARY KEY',
   'SELECT ''skip coordinator_therapists drop primary key'' AS info'
 );
@@ -52,8 +78,17 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @has_id_pk := (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'coordinator_therapists'
+    AND INDEX_NAME = 'PRIMARY'
+    AND COLUMN_NAME = 'id'
+);
+
 SET @sql := IF(
-  @table_exists > 0 AND @has_id_column = 0,
+  @table_exists > 0 AND @has_id_column > 0 AND @has_id_pk = 0,
   'ALTER TABLE `coordinator_therapists` ADD PRIMARY KEY (`id`)',
   'SELECT ''skip coordinator_therapists add primary key'' AS info'
 );

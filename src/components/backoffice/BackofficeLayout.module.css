@@ -1,6 +1,7 @@
 .shell {
   min-height: 100vh;
   background: var(--color-bg);
+  --backoffice-header-height: 4.5rem;
 }
 
 .loading {

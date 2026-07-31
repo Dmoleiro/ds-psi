@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import type { StaffUser } from '../../lib/api'
 import { Container } from '../layout/Container'
+import { TherapistNotepadDrawer } from './TherapistNotepadDrawer'
 import styles from './BackofficeLayout.module.css'
 
 function useIsDesktop() {
@@ -73,7 +74,7 @@ function BackofficeNavLinks({
 }
 
 export function BackofficeLayout({ children }: { children: ReactNode }) {
-  const { user, logout, loading } = useAuth()
+  const { user, logout, loading, token } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const isDesktop = useIsDesktop()
@@ -199,6 +200,8 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
       <main className={styles.main}>
         <Container>{children}</Container>
       </main>
+
+      {user.role === 'therapist' && token && <TherapistNotepadDrawer token={token} />}
     </div>
   )
 }

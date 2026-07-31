@@ -3,6 +3,15 @@ import type { StaffUser } from '../lib/api'
 import { authApi } from '../lib/api'
 
 const STORAGE_KEY = 'ds-psi-staff-token'
+const NOTEPAD_OPEN_KEY = 'therapist-notepad-open'
+const NOTEPAD_DISMISSED_KEY = 'therapist-notepad-dismissed'
+const NOTEPAD_AUTO_OPENED_KEY = 'therapist-notepad-auto-opened'
+
+function clearNotepadSessionState() {
+  sessionStorage.removeItem(NOTEPAD_OPEN_KEY)
+  sessionStorage.removeItem(NOTEPAD_DISMISSED_KEY)
+  sessionStorage.removeItem(NOTEPAD_AUTO_OPENED_KEY)
+}
 
 export function getStoredToken(): string | null {
   return localStorage.getItem(STORAGE_KEY)
@@ -56,6 +65,7 @@ export function useAuth() {
 
   const login = useCallback(async (email: string, password: string) => {
     const result = await authApi.login(email, password)
+    clearNotepadSessionState()
     setStoredToken(result.token)
     setToken(result.token)
     setUser(result.user)
@@ -66,6 +76,7 @@ export function useAuth() {
     setStoredToken(null)
     setToken(null)
     setUser(null)
+    clearNotepadSessionState()
   }, [])
 
   const updateUser = useCallback((nextUser: StaffUser, nextToken?: string) => {

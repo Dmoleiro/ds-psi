@@ -33,7 +33,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -51,6 +51,7 @@ import {
   listTherapistPatientDocuments,
   uploadTherapistPatientDocument,
 } from '../services/patientDocuments.js'
+import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapistNotepad.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -58,6 +59,33 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.get('/api/therapist/dashboard', { preHandler: therapistOnly }, async (request) => {
     return getTherapistDashboard(request.user.sub)
+  })
+
+  app.get('/api/therapist/notepad', { preHandler: therapistOnly }, async (request, reply) => {
+    try {
+      return await getTherapistNotepad(request.user.sub)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put('/api/therapist/notepad', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = therapistNotepadSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await updateTherapistNotepad(request.user.sub, parsed.data.content)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      throw error
+    }
   })
 
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {

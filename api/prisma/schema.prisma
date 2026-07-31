@@ -60,6 +60,7 @@ model User {
   active       Boolean   @default(true)
   financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   piccaEnabled             Boolean @default(false) @map("picca_enabled")
+  notepad                  String? @db.Text
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 

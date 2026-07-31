@@ -376,6 +376,14 @@ export const therapistApi = {
     }),
   getDashboard: (token: string) =>
     apiRequest<TherapistDashboard>('/api/therapist/dashboard', { token }),
+  getNotepad: (token: string) =>
+    apiRequest<{ content: string; updatedAt: string }>('/api/therapist/notepad', { token }),
+  updateNotepad: (token: string, content: string) =>
+    apiRequest<{ content: string; updatedAt: string }>('/api/therapist/notepad', {
+      method: 'PUT',
+      token,
+      body: { content },
+    }),
   listPatients: (token: string) =>
     apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
   createPatient: (token: string, body: Record<string, unknown>) =>
