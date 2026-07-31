@@ -52,6 +52,7 @@ import {
   uploadTherapistPatientDocument,
 } from '../services/patientDocuments.js'
 import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapistNotepad.js'
+import { getPatientTimeline } from '../services/patientTimeline.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -269,6 +270,18 @@ export async function therapistRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
     return { patient: formatTherapistPatient(patient) }
+  })
+
+  app.get('/api/therapist/patients/:id/timeline', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    try {
+      return await getPatientTimeline(id, request.user.sub)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
   })
 
   app.patch('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
@@ -764,6 +777,7 @@ export async function therapistRoutes(app: FastifyInstance) {
         request.user.sub,
         parsed.data.year,
         parsed.data.month,
+        parsed.data.period,
       )
     } catch (error) {
       if (error instanceof Error && error.message === 'INVALID_MONTH') {
@@ -779,7 +793,7 @@ export async function therapistRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
     }
 
-    return getTherapistFinancialCharts(request.user.sub, parsed.data.year)
+    return getTherapistFinancialCharts(request.user.sub, parsed.data.year, parsed.data.period)
   })
 
   app.get(

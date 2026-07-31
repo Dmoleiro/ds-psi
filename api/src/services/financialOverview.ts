@@ -1,7 +1,8 @@
 import { AttendanceStatus } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { formatAppointmentDate, formatAppointmentTime } from './appointments.js'
-import { formatDateOnly, parseYearMonth } from './attendance.js'
+import { formatDateOnly } from './attendance.js'
+import { formatFinancialPeriodRange, parseFinancialPeriod, type FinancialPeriodMode } from '../lib/financialPeriod.js'
 import { getClinicTodayIso } from './dashboard.js'
 import {
   decimalToNumber,
@@ -197,14 +198,18 @@ function buildAttendanceFinancialRows(
   })
 }
 
-async function loadMonthContext(therapistId: string, year: number, month: number) {
-  const range = parseYearMonth(year, month)
+async function loadMonthContext(
+  therapistId: string,
+  year: number,
+  month: number,
+  period: FinancialPeriodMode = 'calendar',
+) {
+  const range = parseFinancialPeriod(year, month, period)
   if (!range) {
     throw new Error('INVALID_MONTH')
   }
 
   const rates = await getOrCreateFinancialSettings(therapistId)
-  const monthEndExclusive = new Date(Date.UTC(year, month, 1, 0, 0, 0))
 
   const [paidAttendanceRecords, unpaidAttendanceRecords, appointments] = await Promise.all([
     prisma.attendanceRecord.findMany({
@@ -232,7 +237,7 @@ async function loadMonthContext(therapistId: string, year: number, month: number
     prisma.appointment.findMany({
       where: {
         therapistId,
-        scheduledAt: { gte: range.from, lt: monthEndExclusive },
+        scheduledAt: { gte: range.from, lt: range.appointmentsEndExclusive },
       },
       include: {
         patient: { select: { id: true, fullName: true } },
@@ -301,6 +306,8 @@ async function loadMonthContext(therapistId: string, year: number, month: number
   return {
     year,
     month,
+    period,
+    periodLabel: formatFinancialPeriodRange(year, month, period),
     today,
     rates,
     realizedRows,
@@ -318,11 +325,14 @@ export async function getTherapistFinancialOverview(
   therapistId: string,
   year: number,
   month: number,
+  period: FinancialPeriodMode = 'calendar',
 ) {
-  const context = await loadMonthContext(therapistId, year, month)
+  const context = await loadMonthContext(therapistId, year, month, period)
   return {
     year: context.year,
     month: context.month,
+    period: context.period,
+    periodLabel: context.periodLabel,
     rates: context.rates,
     summary: context.summary,
     realizedRows: context.realizedRows,
@@ -331,15 +341,20 @@ export async function getTherapistFinancialOverview(
   }
 }
 
-export async function getTherapistFinancialCharts(therapistId: string, year: number) {
+export async function getTherapistFinancialCharts(
+  therapistId: string,
+  year: number,
+  period: FinancialPeriodMode = 'calendar',
+) {
   const months = await Promise.all(
     Array.from({ length: 12 }, (_, index) =>
-      loadMonthContext(therapistId, year, index + 1).catch(() => null),
+      loadMonthContext(therapistId, year, index + 1, period).catch(() => null),
     ),
   )
 
   return {
     year,
+    period,
     months: months.map((context, index) => {
       if (!context) {
         return {

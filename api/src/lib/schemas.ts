@@ -215,10 +215,12 @@ export const financialSettingsSchema = z.object({
 export const financialMonthQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
   month: z.coerce.number().int().min(1).max(12),
+  period: z.enum(['calendar', 'fiscal']).default('calendar'),
 })
 
 export const financialYearQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
+  period: z.enum(['calendar', 'fiscal']).default('calendar'),
 })
 
 export const appointmentRecurrenceSchema = z.object({

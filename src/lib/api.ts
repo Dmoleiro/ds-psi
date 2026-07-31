@@ -214,6 +214,28 @@ export type PatientSummary = {
 
 export type AttendanceStatus = 'present_unpaid' | 'present_paid' | 'receipt_issued' | 'absent'
 
+export type PatientTimelineEventKind =
+  | 'appointment_upcoming'
+  | 'appointment_past'
+  | 'attendance'
+  | 'form_submitted'
+
+export type PatientTimelineEvent = {
+  id: string
+  kind: PatientTimelineEventKind
+  occurredAt: string
+  title: string
+  detail: string | null
+  appointmentId: string | null
+  attendanceStatus: AttendanceStatus | null
+  sessionId: string | null
+}
+
+export type PatientTimeline = {
+  nextAppointment: PatientTimelineEvent | null
+  events: PatientTimelineEvent[]
+}
+
 export type DashboardAppointment = {
   id: string
   patientId: string
@@ -397,6 +419,8 @@ export const therapistApi = {
       `/api/therapist/patients/${id}`,
       { token },
     ),
+  getPatientTimeline: (token: string, id: string) =>
+    apiRequest<PatientTimeline>(`/api/therapist/patients/${id}/timeline`, { token }),
   updatePatient: (
     token: string,
     id: string,
@@ -729,13 +753,16 @@ export const therapistApi = {
       token,
       body,
     }),
-  getFinancialOverview: (token: string, year: number, month: number) =>
+  getFinancialOverview: (token: string, year: number, month: number, period: 'calendar' | 'fiscal' = 'calendar') =>
     apiRequest<FinancialOverview>(
-      `/api/therapist/financial/overview?year=${year}&month=${month}`,
+      `/api/therapist/financial/overview?year=${year}&month=${month}&period=${period}`,
       { token },
     ),
-  getFinancialCharts: (token: string, year: number) =>
-    apiRequest<FinancialYearCharts>(`/api/therapist/financial/charts?year=${year}`, { token }),
+  getFinancialCharts: (token: string, year: number, period: 'calendar' | 'fiscal' = 'calendar') =>
+    apiRequest<FinancialYearCharts>(
+      `/api/therapist/financial/charts?year=${year}&period=${period}`,
+      { token },
+    ),
 }
 
 export const coordinatorApi = {
@@ -754,6 +781,8 @@ export const coordinatorApi = {
       `/api/coordinator/patients/${id}`,
       { token },
     ),
+  getPatientTimeline: (token: string, id: string) =>
+    apiRequest<PatientTimeline>(`/api/coordinator/patients/${id}/timeline`, { token }),
   getSessionSubmissions: (token: string, sessionId: string) =>
     apiRequest<{
       session: {

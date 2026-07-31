@@ -13,6 +13,13 @@ import {
 } from '../../lib/api'
 import { MONTH_LABELS, shiftMonth } from '../../lib/appointments'
 import {
+  formatFinancialPeriodRange,
+  financialPeriodModeLabel,
+  readFinancialPeriodMode,
+  storeFinancialPeriodMode,
+  type FinancialPeriodMode,
+} from '../../lib/financialPeriod'
+import {
   exportFinancialOverviewCsv,
   exportFinancialOverviewPdf,
 } from '../../lib/exportFinancialOverview'
@@ -194,6 +201,7 @@ export function FinancialOverviewPage() {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
+  const [periodMode, setPeriodMode] = useState<FinancialPeriodMode>(() => readFinancialPeriodMode())
   const [overview, setOverview] = useState<FinancialOverview | null>(null)
   const [charts, setCharts] = useState<FinancialYearCharts | null>(null)
   const [settingsDraft, setSettingsDraft] = useState<FinancialSettings | null>(null)
@@ -208,8 +216,8 @@ export function FinancialOverviewPage() {
     setLoading(true)
     setError('')
     Promise.all([
-      therapistApi.getFinancialOverview(token, viewYear, viewMonth),
-      therapistApi.getFinancialCharts(token, viewYear),
+      therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode),
+      therapistApi.getFinancialCharts(token, viewYear, periodMode),
       therapistApi.getFinancialSettings(token),
     ])
       .then(([overviewData, chartsData, settingsData]) => {
@@ -219,7 +227,12 @@ export function FinancialOverviewPage() {
       })
       .catch(() => setError('Não foi possível carregar as finanças.'))
       .finally(() => setLoading(false))
-  }, [token, user?.financialOverviewEnabled, viewYear, viewMonth])
+  }, [token, user?.financialOverviewEnabled, viewYear, viewMonth, periodMode])
+
+  function handlePeriodChange(mode: FinancialPeriodMode) {
+    setPeriodMode(mode)
+    storeFinancialPeriodMode(mode)
+  }
 
   const maxChartGross = useMemo(() => {
     if (!charts) return 1
@@ -252,8 +265,8 @@ export function FinancialOverviewPage() {
       const result = await therapistApi.updateFinancialSettings(token, settingsDraft)
       setSettingsDraft(result.settings)
       setSettingsMessage('Parâmetros guardados.')
-      const overviewData = await therapistApi.getFinancialOverview(token, viewYear, viewMonth)
-      const chartsData = await therapistApi.getFinancialCharts(token, viewYear)
+      const overviewData = await therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode)
+      const chartsData = await therapistApi.getFinancialCharts(token, viewYear, periodMode)
       setOverview(overviewData)
       setCharts(chartsData)
     } catch {
@@ -289,6 +302,27 @@ export function FinancialOverviewPage() {
 
   return (
     <BackofficeLayout>
+      <div className={styles.periodToggle} role="group" aria-label="Tipo de mês">
+        <button
+          type="button"
+          className={`${styles.periodOption} ${periodMode === 'calendar' ? styles.periodOptionActive : ''}`}
+          onClick={() => handlePeriodChange('calendar')}
+          aria-pressed={periodMode === 'calendar'}
+        >
+          Mês civil
+          <span className={styles.periodHint}>1.º – último dia do mês</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.periodOption} ${periodMode === 'fiscal' ? styles.periodOptionActive : ''}`}
+          onClick={() => handlePeriodChange('fiscal')}
+          aria-pressed={periodMode === 'fiscal'}
+        >
+          Mês financeiro
+          <span className={styles.periodHint}>21 do mês anterior – 20</span>
+        </button>
+      </div>
+
       <div className={styles.header}>
         <div>
           <h1 className={layout.pageTitle}>Finanças</h1>
@@ -302,9 +336,14 @@ export function FinancialOverviewPage() {
             <button type="button" className={styles.navButton} onClick={() => changeMonth(-1)} aria-label="Mês anterior">
               ←
             </button>
-            <strong>
-              {MONTH_LABELS[viewMonth - 1]} {viewYear}
-            </strong>
+            <div className={styles.monthTitleBlock}>
+              <strong>
+                {MONTH_LABELS[viewMonth - 1]} {viewYear}
+              </strong>
+              <span className={styles.monthRange}>
+                {formatFinancialPeriodRange(viewYear, viewMonth, periodMode)}
+              </span>
+            </div>
             <button type="button" className={styles.navButton} onClick={() => changeMonth(1)} aria-label="Mês seguinte">
               →
             </button>
@@ -358,7 +397,10 @@ export function FinancialOverviewPage() {
 
           <Card as="section" className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h2>Realizado vs previsto — {viewYear}</h2>
+              <h2>
+                Realizado vs previsto — {viewYear}
+                <span className={styles.chartPeriodHint}> ({financialPeriodModeLabel(periodMode).toLowerCase()})</span>
+              </h2>
               <Link to="/backoffice/appointments" className={styles.sectionLink}>
                 Ver consultas →
               </Link>

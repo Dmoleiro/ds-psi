@@ -1,0 +1,151 @@
+.card {
+  margin-bottom: var(--space-lg);
+}
+
+.title {
+  margin: 0 0 var(--space-xs);
+  font-size: 1.0625rem;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+}
+
+.error {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: 0.875rem;
+}
+
+.nextAppointment {
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: rgb(45 55 72 / 0.06);
+  border: 1px solid var(--color-border-soft);
+}
+
+.nextLabel {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.nextDetail {
+  margin: 0;
+  font-weight: 600;
+}
+
+.nextLink {
+  display: inline-block;
+  margin-top: var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.event {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.event:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.eventMarker {
+  position: relative;
+  margin-top: 0.45rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  justify-self: center;
+}
+
+.eventMarker::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0.7rem;
+  bottom: -1.25rem;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--color-border-soft);
+}
+
+.event:last-child .eventMarker::before {
+  display: none;
+}
+
+.eventBody {
+  min-width: 0;
+}
+
+.eventHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: 0.15rem;
+}
+
+.eventWhen {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.eventTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.eventDetail {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.eventLink,
+.eventLinkButton {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.eventLink:hover,
+.eventLinkButton:hover {
+  text-decoration: underline;
+}

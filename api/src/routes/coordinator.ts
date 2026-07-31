@@ -19,6 +19,7 @@ import {
   getDocumentAbsolutePath,
   listCoordinatorPatientDocuments,
 } from '../services/patientDocuments.js'
+import { getPatientTimeline } from '../services/patientTimeline.js'
 import {
   coordinatorAppointmentsQuerySchema,
   coordinatorAttendanceQuerySchema,
@@ -76,6 +77,32 @@ export async function coordinatorRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
     return { patient }
+  })
+
+  app.get('/api/coordinator/patients/:id/timeline', { preHandler: coordinatorOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const patient = await prisma.patient.findUnique({
+      where: { id },
+      select: { id: true, therapistId: true },
+    })
+    if (!patient) {
+      return reply.status(404).send({ error: 'Paciente não encontrado' })
+    }
+
+    try {
+      await assertCoordinatorHasTherapist(request.user.sub, patient.therapistId)
+    } catch {
+      return reply.status(404).send({ error: 'Paciente não encontrado' })
+    }
+
+    try {
+      return await getPatientTimeline(patient.id, patient.therapistId)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
   })
 
   app.get(

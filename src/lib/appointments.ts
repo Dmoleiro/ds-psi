@@ -57,6 +57,8 @@ export type FinancialRow = {
 export type FinancialOverview = {
   year: number
   month: number
+  period: 'calendar' | 'fiscal'
+  periodLabel: string
   rates: FinancialSettings
   summary: {
     realized: FinancialSummary
@@ -70,6 +72,7 @@ export type FinancialOverview = {
 
 export type FinancialYearCharts = {
   year: number
+  period: 'calendar' | 'fiscal'
   months: Array<{
     month: number
     realizedGross: number

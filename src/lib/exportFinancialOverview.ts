@@ -99,6 +99,8 @@ function buildSectionHtml(section: TableSection): string {
 function buildPrintHtml(overview: FinancialOverview, therapistName: string): string {
   const generatedAt = new Date().toLocaleString('pt-PT')
   const monthTitle = formatMonthTitle(overview.year, overview.month)
+  const periodTitle =
+    overview.period === 'fiscal' ? `Mês financeiro (${overview.periodLabel})` : `Mês civil (${overview.periodLabel})`
   const sections: TableSection[] = [
     {
       title: 'Realizado — presenças pagas',
@@ -141,6 +143,7 @@ function buildPrintHtml(overview: FinancialOverview, therapistName: string): str
     <h1>Finanças — ${escapeHtml(monthTitle)}</h1>
     <p class="meta">
       <strong>Terapeuta:</strong> ${escapeHtml(therapistName)}<br />
+      <strong>Período:</strong> ${escapeHtml(periodTitle)}<br />
       <strong>Documento gerado:</strong> ${escapeHtml(generatedAt)}
     </p>
     ${sections.map(buildSectionHtml).join('')}

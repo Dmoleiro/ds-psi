@@ -23,6 +23,7 @@ import {
   sessionStatusBadgeVariant,
 } from '../../lib/intakeStatus'
 import tabStyles from './PatientDetailPage.module.css'
+import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 
 type PatientTab = 'dados' | 'intake' | 'picca' | 'documentos'
 
@@ -543,6 +544,15 @@ export function PatientDetailPage() {
           )}
         </p>
       </div>
+
+      {token && id && (
+        <PatientTimelinePanel
+          token={token}
+          patientId={id}
+          readOnly={readOnly}
+          onOpenIntakeTab={() => setActiveTab('intake')}
+        />
+      )}
 
       <div className={tabStyles.tabs} role="tablist" aria-label="Secções do utente">
         {(
