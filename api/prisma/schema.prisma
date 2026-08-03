@@ -50,6 +50,14 @@ enum PiccaSessionStatus {
   revoked
 }
 
+enum CalendarInviteStatus {
+  not_sent
+  pending
+  sent
+  failed
+  cancelled
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -60,6 +68,10 @@ model User {
   active       Boolean   @default(true)
   financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   piccaEnabled             Boolean @default(false) @map("picca_enabled")
+  appointmentInvitesAllowed Boolean @default(false) @map("appointment_invites_allowed")
+  appointmentInvitesEnabled Boolean @default(false) @map("appointment_invites_enabled")
+  appointmentInviteRecipients String @default("email") @map("appointment_invite_recipients")
+  appointmentInviteCopyToTherapist Boolean @default(true) @map("appointment_invite_copy_to_therapist")
   notepad                  String? @db.Text
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
@@ -295,6 +307,13 @@ model Appointment {
   sessionFee      Decimal         @default(50) @map("session_fee") @db.Decimal(10, 2)
   notes           String?         @db.Text
   recurrenceGroupId String?       @map("recurrence_group_id")
+  recurrenceCadence String?       @map("recurrence_cadence")
+  recurrenceUntil   String?       @map("recurrence_until")
+  calendarUid       String?       @unique @map("calendar_uid")
+  calendarSequence  Int           @default(0) @map("calendar_sequence")
+  calendarInviteStatus CalendarInviteStatus @default(not_sent) @map("calendar_invite_status")
+  calendarInvitedAt DateTime?     @map("calendar_invited_at")
+  calendarInviteError String?     @map("calendar_invite_error") @db.Text
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @updatedAt @map("updated_at")
 
@@ -308,6 +327,7 @@ model Appointment {
   @@index([locationId, scheduledAt])
   @@index([gabineteId, scheduledAt])
   @@index([recurrenceGroupId])
+  @@index([calendarInviteStatus])
   @@map("appointments")
 }
 

@@ -272,6 +272,14 @@
   margin: 0;
 }
 
+.calendarUpdateCheckbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.875rem;
+  color: var(--color-ink);
+}
+
 .seriesBadge {
   display: inline-block;
   margin-left: var(--space-sm);
@@ -284,6 +292,64 @@
   letter-spacing: 0.03em;
   text-transform: uppercase;
   vertical-align: middle;
+}
+
+.inviteWarning {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  background: #fff4e5;
+  border: 1px solid #f0c987;
+  color: #7a4b00;
+  font-size: 0.875rem;
+}
+
+.inviteRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.inviteBadge {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.inviteBadgeSent {
+  background: #e8f1ec;
+  color: #1f6b45;
+}
+
+.inviteBadgeFailed {
+  background: #fde8e8;
+  color: #9b2c2c;
+}
+
+.inviteBadgePending {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.inviteBadgeCancelled {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.inviteBadgeMuted {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.inviteError {
+  font-size: 0.8125rem;
+  color: #9b2c2c;
 }
 
 .seriesActionBox {

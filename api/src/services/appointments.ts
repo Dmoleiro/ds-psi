@@ -1,9 +1,18 @@
+import { CalendarInviteStatus } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
+import { buildCalendarUid } from '../lib/icalendar.js'
 import { getActiveGabineteOrThrow, listActiveGabinetes } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
+import {
+  formatCalendarInviteStatusForAppointment,
+  prepareDeletionCancellationJobs,
+  queueAppointmentCalendarInvites,
+  queueDeletionCancellationInvites,
+  sendSeriesOccurrenceException,
+} from './appointmentCalendarInvites.js'
 
 export type AppointmentRecurrenceCadence = 'weekly' | 'biweekly' | 'monthly'
 
@@ -27,6 +36,7 @@ export type AppointmentInput = {
   notes?: string | null
   recurrence?: AppointmentRecurrence
   scope?: AppointmentSeriesScope
+  sendCalendarUpdate?: boolean
 }
 
 export class RoomConflictError extends Error {
@@ -324,19 +334,25 @@ export async function getActiveLocationOrThrow(locationId: string) {
   return location
 }
 
-export function formatAppointment(record: {
-  id: string
-  gabineteId: string
-  scheduledAt: Date
-  durationMinutes: number
-  sessionFee: { toString(): string } | number
-  notes: string | null
-  recurrenceGroupId: string | null
-  patient: { id: string; fullName: string }
-  location: { id: string; name: string }
-  gabinete: { id: string; name: string }
-}) {
-  return {
+export function formatAppointment(
+  record: {
+    id: string
+    gabineteId: string
+    scheduledAt: Date
+    durationMinutes: number
+    sessionFee: { toString(): string } | number
+    notes: string | null
+    recurrenceGroupId: string | null
+    calendarInviteStatus?: CalendarInviteStatus
+    calendarInviteError?: string | null
+    calendarInvitedAt?: Date | null
+    patient: { id: string; fullName: string }
+    location: { id: string; name: string }
+    gabinete: { id: string; name: string }
+  },
+  options?: { includeCalendarInvite?: boolean },
+) {
+  const base = {
     id: record.id,
     patientId: record.patient.id,
     patientName: record.patient.fullName,
@@ -351,6 +367,19 @@ export function formatAppointment(record: {
     sessionFee: decimalToNumber(record.sessionFee),
     notes: record.notes,
     recurrenceGroupId: record.recurrenceGroupId,
+  }
+
+  if (!options?.includeCalendarInvite) {
+    return base
+  }
+
+  return {
+    ...base,
+    ...formatCalendarInviteStatusForAppointment({
+      calendarInviteStatus: record.calendarInviteStatus ?? CalendarInviteStatus.not_sent,
+      calendarInviteError: record.calendarInviteError ?? null,
+      calendarInvitedAt: record.calendarInvitedAt ?? null,
+    }),
   }
 }
 
@@ -380,6 +409,7 @@ export async function listTherapistAppointments(
   year: number,
   month: number,
   locationId?: string,
+  options?: { includeCalendarInvite?: boolean },
 ) {
   const range = parseAppointmentMonth(year, month)
   if (!range) {
@@ -401,7 +431,9 @@ export async function listTherapistAppointments(
     orderBy: { scheduledAt: 'asc' },
   })
 
-  return appointments.map(formatAppointment)
+  return appointments.map((appointment) =>
+    formatAppointment(appointment, { includeCalendarInvite: options?.includeCalendarInvite ?? false }),
+  )
 }
 
 export async function createTherapistAppointment(therapistId: string, input: AppointmentInput) {
@@ -464,7 +496,43 @@ export async function createTherapistAppointment(therapistId: string, input: App
     ),
   )
 
-  const formatted = appointments.map(formatAppointment)
+  await prisma.$transaction(
+    appointments.map((appointment) =>
+      prisma.appointment.update({
+        where: { id: appointment.id },
+        data: recurrenceGroupId
+          ? {
+              recurrenceCadence: input.recurrence!.cadence,
+              recurrenceUntil: input.recurrence!.until,
+            }
+          : { calendarUid: buildCalendarUid(appointment.id) },
+      }),
+    ),
+  )
+
+  if (recurrenceGroupId && appointments.length > 0) {
+    const anchor = [...appointments].sort(
+      (left, right) => left.scheduledAt.getTime() - right.scheduledAt.getTime(),
+    )[0]
+    await prisma.appointment.update({
+      where: { id: anchor.id },
+      data: { calendarUid: buildCalendarUid(recurrenceGroupId) },
+    })
+  }
+
+  const formatted = appointments.map((appointment) =>
+    formatAppointment(appointment, { includeCalendarInvite: true }),
+  )
+  queueAppointmentCalendarInvites(
+    recurrenceGroupId && appointments.length > 0
+      ? [
+          [...appointments].sort(
+            (left, right) => left.scheduledAt.getTime() - right.scheduledAt.getTime(),
+          )[0].id,
+        ]
+      : appointments.map((appointment) => appointment.id),
+    'REQUEST',
+  )
   return {
     appointment: formatted[0],
     appointments: formatted,
@@ -491,12 +559,15 @@ export async function updateTherapistAppointment(
 
   const scope = input.scope ?? 'single'
   const notes = input.notes?.trim() ? input.notes.trim() : null
+  const sendCalendarUpdate = input.sendCalendarUpdate !== false
 
   if (scope === 'single' || !existing.recurrenceGroupId) {
     const scheduledAt = parseScheduledAt(input.date, input.time)
     if (!scheduledAt) {
       throw new Error('INVALID_SCHEDULE')
     }
+
+    const previousScheduledAt = existing.scheduledAt
 
     await assertRoomAvailable(
       gabinete.id,
@@ -520,7 +591,18 @@ export async function updateTherapistAppointment(
       include: appointmentInclude,
     })
 
-    const formatted = formatAppointment(appointment)
+    const formatted = formatAppointment(appointment, { includeCalendarInvite: true })
+    if (sendCalendarUpdate) {
+      if (existing.recurrenceGroupId) {
+        void sendSeriesOccurrenceException(appointment.id, previousScheduledAt, scheduledAt).catch(
+          () => {
+            // Status persisted on the appointment row.
+          },
+        )
+      } else {
+        queueAppointmentCalendarInvites([appointment.id], 'REQUEST')
+      }
+    }
     return {
       appointment: formatted,
       appointments: [formatted],
@@ -580,7 +662,19 @@ export async function updateTherapistAppointment(
     ),
   )
 
-  const formatted = appointments.map(formatAppointment)
+  const formatted = appointments.map((appointment) =>
+    formatAppointment(appointment, { includeCalendarInvite: true }),
+  )
+  if (sendCalendarUpdate) {
+    queueAppointmentCalendarInvites(
+      [
+        [...appointments].sort(
+          (left, right) => left.scheduledAt.getTime() - right.scheduledAt.getTime(),
+        )[0].id,
+      ],
+      'REQUEST',
+    )
+  }
   return {
     appointment: formatted.find((appointment) => appointment.id === appointmentId) ?? formatted[0],
     appointments: formatted,
@@ -601,13 +695,39 @@ export async function deleteTherapistAppointment(
   }
 
   if (scope === 'single' || !existing.recurrenceGroupId) {
+    const cancellationJobs = await prepareDeletionCancellationJobs(
+      [
+        {
+          id: existing.id,
+          recurrenceGroupId: existing.recurrenceGroupId,
+          calendarInviteStatus: existing.calendarInviteStatus,
+          scheduledAt: existing.scheduledAt,
+        },
+      ],
+      scope,
+    )
     await prisma.appointment.delete({ where: { id: appointmentId } })
+    queueDeletionCancellationInvites(cancellationJobs)
     return { deletedCount: 1 }
   }
+
+  const targets = await prisma.appointment.findMany({
+    where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),
+    select: {
+      id: true,
+      recurrenceGroupId: true,
+      calendarInviteStatus: true,
+      scheduledAt: true,
+    },
+  })
+
+  const cancellationJobs = await prepareDeletionCancellationJobs(targets, scope)
 
   const result = await prisma.appointment.deleteMany({
     where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),
   })
+
+  queueDeletionCancellationInvites(cancellationJobs)
 
   return { deletedCount: result.count }
 }

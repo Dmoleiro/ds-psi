@@ -33,7 +33,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -54,6 +54,11 @@ import {
 import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapistNotepad.js'
 import { getPatientTimeline } from '../services/patientTimeline.js'
 import { updateTherapistPatientEvaluations } from '../services/patientEvaluations.js'
+import {
+  getAppointmentInviteSettings,
+  retryAppointmentCalendarInvite,
+  updateAppointmentInviteSettings,
+} from '../services/appointmentCalendarInvites.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -90,10 +95,51 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
+  app.get('/api/therapist/appointment-invites/settings', { preHandler: therapistOnly }, async (request) => {
+    return getAppointmentInviteSettings(request.user.sub)
+  })
+
+  app.patch('/api/therapist/appointment-invites/settings', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = appointmentInviteSettingsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const settings = await updateAppointmentInviteSettings(request.user.sub, parsed.data)
+      return { settings }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'APPOINTMENT_INVITES_NOT_ALLOWED') {
+        return reply.status(403).send({ error: 'Convites de calendário não autorizados para este terapeuta' })
+      }
+      throw error
+    }
+  })
+
+  app.post(
+    '/api/therapist/appointments/:id/calendar-invite/retry',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        const result = await retryAppointmentCalendarInvite(request.user.sub, id)
+        return { ok: true, ...result }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Consulta não encontrada' })
+        }
+        if (error instanceof Error) {
+          return reply.status(400).send({ error: error.message })
+        }
+        throw error
+      }
+    },
+  )
+
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
     const profile = await prisma.user.findUniqueOrThrow({
       where: { id: request.user.sub },
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true, appointmentInvitesAllowed: true },
     })
     return { profile }
   })
@@ -128,7 +174,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     const profile = await prisma.user.update({
       where: { id: existing.id },
       data,
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true },
+      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true, appointmentInvitesAllowed: true },
     })
 
     const token = await reply.jwtSign({
@@ -627,6 +673,7 @@ export async function therapistRoutes(app: FastifyInstance) {
         parsed.data.year,
         parsed.data.month,
         parsed.data.locationId,
+        { includeCalendarInvite: true },
       )
       return {
         year: parsed.data.year,

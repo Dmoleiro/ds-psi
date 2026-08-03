@@ -16,6 +16,9 @@ export type AppointmentSummary = {
   sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
+  calendarInviteStatus?: 'not_sent' | 'pending' | 'sent' | 'failed' | 'cancelled'
+  calendarInviteError?: string | null
+  calendarInvitedAt?: string | null
 }
 
 export type FinancialSettings = {

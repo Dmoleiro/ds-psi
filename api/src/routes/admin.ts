@@ -30,6 +30,7 @@ export async function adminRoutes(app: FastifyInstance) {
         active: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
+        appointmentInvitesAllowed: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -81,6 +82,8 @@ export async function adminRoutes(app: FastifyInstance) {
       active?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
+      appointmentInvitesAllowed?: boolean
+      appointmentInvitesEnabled?: boolean
       passwordHash?: string
     } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
@@ -90,6 +93,12 @@ export async function adminRoutes(app: FastifyInstance) {
     }
     if (parsed.data.piccaEnabled !== undefined) {
       data.piccaEnabled = parsed.data.piccaEnabled
+    }
+    if (parsed.data.appointmentInvitesAllowed !== undefined) {
+      data.appointmentInvitesAllowed = parsed.data.appointmentInvitesAllowed
+      if (!parsed.data.appointmentInvitesAllowed) {
+        data.appointmentInvitesEnabled = false
+      }
     }
     if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password)
 
@@ -180,6 +189,7 @@ export async function adminRoutes(app: FastifyInstance) {
         active: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
+        appointmentInvitesAllowed: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },

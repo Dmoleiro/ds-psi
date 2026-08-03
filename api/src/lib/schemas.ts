@@ -33,6 +33,7 @@ export const updateTherapistSchema = z.object({
   active: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
   piccaEnabled: z.boolean().optional(),
+  appointmentInvitesAllowed: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
 
@@ -89,6 +90,16 @@ export const updatePatientSchema = z.object({
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
+})
+
+export const appointmentInviteSettingsSchema = z.object({
+  enabled: z.boolean().optional(),
+  inviteRecipients: z.enum(['email', 'email2', 'both']).optional(),
+  copyToTherapist: z.boolean().optional(),
+})
+
+export const updateTherapistAppointmentInvitesSchema = z.object({
+  appointmentInvitesAllowed: z.boolean(),
 })
 
 export const createLocationSchema = z.object({
@@ -251,6 +262,7 @@ export const createAppointmentBodySchema = appointmentBodySchema
 
 export const updateAppointmentBodySchema = appointmentBodySchema.extend({
   scope: appointmentSeriesScopeSchema.optional(),
+  sendCalendarUpdate: z.boolean().optional(),
 })
 
 export const deleteAppointmentQuerySchema = z.object({

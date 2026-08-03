@@ -3,8 +3,11 @@ import {
   ApiError,
   coordinatorApi,
   therapistApi,
+  type AppointmentInviteSettings,
   type AppointmentSummary,
   type AttendanceStatus,
+  type CalendarInviteStatus,
+  type InviteRecipients,
   type LocationSummary,
   type PatientSummary,
 } from '../../lib/api'
@@ -114,6 +117,45 @@ function patientsForLocation(patients: PatientSummary[], locationId: string, sel
   return filtered
 }
 
+const INVITE_STATUS_LABELS: Record<CalendarInviteStatus, string> = {
+  not_sent: 'Convite não enviado',
+  pending: 'A enviar convite…',
+  sent: 'Convite enviado',
+  failed: 'Convite falhou',
+  cancelled: 'Convite cancelado',
+}
+
+function formatInviteError(error: string | null | undefined) {
+  if (!error) return null
+  if (error === 'PACIENTE_SEM_EMAIL') return 'O paciente não tem email configurado.'
+  if (error === 'SMTP_NOT_CONFIGURED') return 'O envio de email (SMTP) não está configurado no servidor.'
+  return error
+}
+
+function patientHasInviteEmail(patient: PatientSummary | undefined, recipients: InviteRecipients) {
+  if (!patient) return false
+  const email = patient.email?.trim()
+  const email2 = patient.email2?.trim()
+  if (recipients === 'email') return Boolean(email)
+  if (recipients === 'email2') return Boolean(email2)
+  return Boolean(email || email2)
+}
+
+function inviteBadgeClass(status: CalendarInviteStatus | undefined) {
+  switch (status) {
+    case 'sent':
+      return styles.inviteBadgeSent
+    case 'failed':
+      return styles.inviteBadgeFailed
+    case 'pending':
+      return styles.inviteBadgePending
+    case 'cancelled':
+      return styles.inviteBadgeCancelled
+    default:
+      return styles.inviteBadgeMuted
+  }
+}
+
 export function AppointmentsCalendar({
   token,
   therapistName,
@@ -146,6 +188,9 @@ export function AppointmentsCalendar({
   const [dayOccupancy, setDayOccupancy] = useState<RoomOccupancy[]>([])
   const [attendanceByKey, setAttendanceByKey] = useState<Map<string, AttendanceStatus>>(new Map())
   const [savingAttendanceKey, setSavingAttendanceKey] = useState<string | null>(null)
+  const [inviteSettings, setInviteSettings] = useState<AppointmentInviteSettings | null>(null)
+  const [retryingInviteId, setRetryingInviteId] = useState<string | null>(null)
+  const [sendCalendarUpdate, setSendCalendarUpdate] = useState(true)
   const attendanceEditLock = useEditLock()
   const consumedPrefillRef = useRef<string | null>(null)
 
@@ -321,6 +366,18 @@ export function AppointmentsCalendar({
   useEffect(() => {
     loadMonth()
   }, [loadMonth])
+
+  useEffect(() => {
+    if (!token || readOnly) {
+      setInviteSettings(null)
+      return
+    }
+
+    therapistApi
+      .getAppointmentInviteSettings(token)
+      .then(setInviteSettings)
+      .catch(() => setInviteSettings(null))
+  }, [token, readOnly])
 
   useEffect(() => {
     if (!token || readOnly) return
@@ -518,6 +575,7 @@ export function AppointmentsCalendar({
     setEditingId(appointment.id)
     setEditingAppointment(appointment)
     setEditScope('single')
+    setSendCalendarUpdate(true)
     setPendingDelete(null)
     setForm({
       patientId: appointment.patientId,
@@ -539,6 +597,7 @@ export function AppointmentsCalendar({
     setEditingId(null)
     setEditingAppointment(null)
     setEditScope('single')
+    setSendCalendarUpdate(true)
     setForm(initialForm(
       locationFilter || locations[0]?.id || '',
       resolveGabineteForLocation(locationFilter || locations[0]?.id || '', gabinetes),
@@ -620,6 +679,8 @@ export function AppointmentsCalendar({
         const result = await therapistApi.updateAppointment(token, editingId, {
           ...body,
           scope: editingAppointment?.recurrenceGroupId ? editScope : undefined,
+          sendCalendarUpdate:
+            inviteSettings?.allowed && inviteSettings.enabled ? sendCalendarUpdate : undefined,
         })
         await loadMonth()
         if (selectedDate) {
@@ -647,6 +708,19 @@ export function AppointmentsCalendar({
       setDialogError(err instanceof ApiError ? err.message : 'Não foi possível guardar a consulta')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function retryInvite(appointmentId: string) {
+    setRetryingInviteId(appointmentId)
+    setDialogError('')
+    try {
+      await therapistApi.retryAppointmentCalendarInvite(token, appointmentId)
+      await loadMonth()
+    } catch (err) {
+      setDialogError(err instanceof ApiError ? err.message : 'Não foi possível reenviar o convite')
+    } finally {
+      setRetryingInviteId(null)
     }
   }
 
@@ -735,6 +809,13 @@ export function AppointmentsCalendar({
 
       {readOnly && <p className={layout.muted}>Modo consulta — não pode alterar marcações.</p>}
 
+      {!readOnly && inviteSettings?.allowed && inviteSettings.enabled && !inviteSettings.configured && (
+        <p className={styles.inviteWarning}>
+          Os convites de calendário estão ativos, mas o envio de email (SMTP) ainda não está configurado no
+          servidor.
+        </p>
+      )}
+
       {error && <p className={layout.error}>{error}</p>}
       {loading ? (
         <p className={layout.muted}>A carregar…</p>
@@ -813,6 +894,13 @@ export function AppointmentsCalendar({
                 {selectedDayAppointments.map((appointment) => {
                   const attendanceKey = `${appointment.patientId}:${selectedDate}`
                   const attendanceStatus = attendanceByKey.get(attendanceKey)
+                  const patient = patients.find((entry) => entry.id === appointment.patientId)
+                  const showInviteStatus =
+                    !readOnly && inviteSettings?.allowed && inviteSettings.enabled
+                  const missingPatientEmail =
+                    showInviteStatus &&
+                    !patientHasInviteEmail(patient, inviteSettings.inviteRecipients)
+                  const inviteError = formatInviteError(appointment.calendarInviteError)
                   return (
                   <article
                     key={appointment.id}
@@ -831,6 +919,33 @@ export function AppointmentsCalendar({
                           )}
                         </h3>
                         {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
+                        {showInviteStatus && appointment.calendarInviteStatus && (
+                          <div className={styles.inviteRow}>
+                            <span
+                              className={`${styles.inviteBadge} ${inviteBadgeClass(appointment.calendarInviteStatus)}`}
+                            >
+                              {INVITE_STATUS_LABELS[appointment.calendarInviteStatus]}
+                            </span>
+                            {inviteError && (
+                              <span className={styles.inviteError}>{inviteError}</span>
+                            )}
+                            {missingPatientEmail && appointment.calendarInviteStatus !== 'cancelled' && (
+                              <span className={styles.inviteError}>
+                                O paciente não tem email para receber o convite.
+                              </span>
+                            )}
+                            {appointment.calendarInviteStatus === 'failed' && (
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => void retryInvite(appointment.id)}
+                                disabled={submitting || retryingInviteId === appointment.id}
+                              >
+                                {retryingInviteId === appointment.id ? 'A reenviar…' : 'Reenviar convite'}
+                              </button>
+                            )}
+                          </div>
+                        )}
                         {!readOnly && (
                           <div className={styles.existingActions}>
                             <button
@@ -1136,6 +1251,17 @@ export function AppointmentsCalendar({
                   )}
                   <div className={styles.formActions}>
                     {dialogError && <p className={`${layout.error} ${styles.formError}`}>{dialogError}</p>}
+                    {editingId && inviteSettings?.allowed && inviteSettings.enabled && (
+                      <label className={styles.calendarUpdateCheckbox}>
+                        <input
+                          type="checkbox"
+                          checked={sendCalendarUpdate}
+                          disabled={submitting}
+                          onChange={(event) => setSendCalendarUpdate(event.target.checked)}
+                        />
+                        Enviar evento atualizado para o calendário
+                      </label>
+                    )}
                     <div className={styles.formActionsRow}>
                     <Button
                       type="submit"

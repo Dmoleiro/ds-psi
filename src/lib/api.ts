@@ -164,6 +164,18 @@ async function fetchDocumentBlob(
   return response.blob()
 }
 
+export type CalendarInviteStatus = 'not_sent' | 'pending' | 'sent' | 'failed' | 'cancelled'
+
+export type InviteRecipients = 'email' | 'email2' | 'both'
+
+export type AppointmentInviteSettings = {
+  allowed: boolean
+  configured: boolean
+  enabled: boolean
+  inviteRecipients: InviteRecipients
+  copyToTherapist: boolean
+}
+
 export type StaffUser = {
   id: string
   email: string
@@ -172,6 +184,7 @@ export type StaffUser = {
   role: 'admin' | 'therapist' | 'coordinator'
   financialOverviewEnabled?: boolean
   piccaEnabled?: boolean
+  appointmentInvitesAllowed?: boolean
   active?: boolean
 }
 
@@ -354,6 +367,9 @@ export type AppointmentSummary = {
   sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
+  calendarInviteStatus?: CalendarInviteStatus
+  calendarInviteError?: string | null
+  calendarInvitedAt?: string | null
 }
 
 export type LocationDaySchedule = {
@@ -396,6 +412,32 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  getAppointmentInviteSettings: (token: string) =>
+    apiRequest<AppointmentInviteSettings>('/api/therapist/appointment-invites/settings', { token }),
+  updateAppointmentInviteSettings: (
+    token: string,
+    body: {
+      enabled?: boolean
+      inviteRecipients?: InviteRecipients
+      copyToTherapist?: boolean
+    },
+  ) =>
+    apiRequest<{
+      settings: {
+        enabled: boolean
+        inviteRecipients: InviteRecipients
+        copyToTherapist: boolean
+      }
+    }>('/api/therapist/appointment-invites/settings', {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  retryAppointmentCalendarInvite: (token: string, appointmentId: string) =>
+    apiRequest<{ ok: true; calendarInviteStatus?: CalendarInviteStatus; calendarInviteError?: string | null }>(
+      `/api/therapist/appointments/${appointmentId}/calendar-invite/retry`,
+      { method: 'POST', token },
+    ),
   getDashboard: (token: string) =>
     apiRequest<TherapistDashboard>('/api/therapist/dashboard', { token }),
   getNotepad: (token: string) =>
@@ -738,6 +780,7 @@ export const therapistApi = {
       sessionFee?: number
       notes?: string | null
       scope?: 'single' | 'following' | 'series'
+      sendCalendarUpdate?: boolean
     },
   ) =>
     apiRequest<{
@@ -896,7 +939,14 @@ export const adminApi = {
   updateTherapist: (
     token: string,
     id: string,
-    body: { name?: string; active?: boolean; financialOverviewEnabled?: boolean; piccaEnabled?: boolean; password?: string },
+    body: {
+      name?: string
+      active?: boolean
+      financialOverviewEnabled?: boolean
+      piccaEnabled?: boolean
+      appointmentInvitesAllowed?: boolean
+      password?: string
+    },
   ) =>
     apiRequest<{ therapist: StaffUser & { active: boolean; createdAt: string } }>(`/api/admin/therapists/${id}`, {
       method: 'PATCH',

@@ -180,3 +180,48 @@ export async function sendTestEmail(to: string, name: string): Promise<void> {
     html,
   })
 }
+
+type AppointmentCalendarInviteParams = {
+  to: string
+  toName: string
+  subject: string
+  text: string
+  ics: string
+  method: 'REQUEST' | 'CANCEL' | 'PUBLISH'
+}
+
+export async function sendAppointmentCalendarInvite(
+  params: AppointmentCalendarInviteParams,
+): Promise<void> {
+  const config = getMailConfig()
+  if (!config) {
+    throw new Error('SMTP_NOT_CONFIGURED')
+  }
+
+  const html = `
+    <p>Olá ${escapeHtml(params.toName)},</p>
+    <p>${escapeHtml(params.text)}</p>
+    <p>O ficheiro de calendário (.ics) está em anexo.</p>
+  `
+
+  await sendMail(config, {
+    from: config.from,
+    to: params.to,
+    subject: params.subject,
+    text: params.text,
+    html,
+    alternatives: [
+      {
+        contentType: `text/calendar; charset=UTF-8; method=${params.method}`,
+        content: params.ics,
+      },
+    ],
+    attachments: [
+      {
+        filename: 'consulta.ics',
+        content: params.ics,
+        contentType: `text/calendar; charset=UTF-8; method=${params.method}`,
+      },
+    ],
+  })
+}
