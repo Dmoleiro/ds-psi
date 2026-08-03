@@ -6,6 +6,7 @@ import { config, createPatientSchema, createSessionSchema, updatePatientSchema }
 import { shouldCompleteSession } from '../lib/formIds.js'
 import { formatTherapistPatientWithPicca } from './piccaSessions.js'
 import { formatTherapistPatientWithPiccaInteractive } from './piccaInteractiveSessions.js'
+import { formatPatientEvaluationSelections } from './patientEvaluations.js'
 import { decimalToNumber } from './financialSettings.js'
 import { updatePatientAppointmentFees } from './appointments.js'
 
@@ -96,6 +97,7 @@ export function formatTherapistPatient(patient: TherapistPatient) {
   return {
     ...formatPatientSummary(patient),
     internalNotes: patient.internalNotes,
+    ...formatPatientEvaluationSelections(patient),
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,
       status: session.status,

@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma.js'
 import { assertCoordinatorHasTherapist } from './coordinatorTherapists.js'
 import { formatPatientSummary } from './sessions.js'
+import { formatPatientEvaluationSelections } from './patientEvaluations.js'
 
 const patientListInclude = {
   location: { select: { id: true, name: true } },
@@ -58,6 +59,7 @@ export async function getCoordinatorPatient(coordinatorId: string, patientId: st
   return {
     ...formatPatientSummary(patient),
     internalNotes: patient.internalNotes,
+    ...formatPatientEvaluationSelections(patient),
     therapist: patient.therapist,
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,

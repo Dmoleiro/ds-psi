@@ -92,6 +92,8 @@ model Patient {
   birthDate     DateTime? @map("birth_date") @db.Date
   sessionFee    Decimal?  @map("session_fee") @db.Decimal(10, 2)
   internalNotes String?   @map("internal_notes") @db.Text
+  wiscSelections Json     @default("[]") @map("wisc_selections")
+  bancSelections Json     @default("[]") @map("banc_selections")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

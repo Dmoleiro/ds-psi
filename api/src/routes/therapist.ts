@@ -33,7 +33,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -53,6 +53,7 @@ import {
 } from '../services/patientDocuments.js'
 import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapistNotepad.js'
 import { getPatientTimeline } from '../services/patientTimeline.js'
+import { updateTherapistPatientEvaluations } from '../services/patientEvaluations.js'
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
@@ -276,6 +277,23 @@ export async function therapistRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string }
     try {
       return await getPatientTimeline(id, request.user.sub)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put('/api/therapist/patients/:id/evaluations', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = patientEvaluationsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await updateTherapistPatientEvaluations(request.user.sub, id, parsed.data)
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })

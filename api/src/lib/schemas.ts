@@ -86,6 +86,11 @@ export const updatePatientSchema = z.object({
     }),
 })
 
+export const patientEvaluationsSchema = z.object({
+  wiscSelections: z.array(z.string()).default([]),
+  bancSelections: z.array(z.string()).default([]),
+})
+
 export const createLocationSchema = z.object({
   name: z.string().min(2),
   address: z.string().optional(),

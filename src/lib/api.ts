@@ -421,6 +421,19 @@ export const therapistApi = {
     ),
   getPatientTimeline: (token: string, id: string) =>
     apiRequest<PatientTimeline>(`/api/therapist/patients/${id}/timeline`, { token }),
+  updatePatientEvaluations: (
+    token: string,
+    id: string,
+    body: { wiscSelections: string[]; bancSelections: string[] },
+  ) =>
+    apiRequest<{ wiscSelections: string[]; bancSelections: string[] }>(
+      `/api/therapist/patients/${id}/evaluations`,
+      {
+        method: 'PUT',
+        token,
+        body,
+      },
+    ),
   updatePatient: (
     token: string,
     id: string,

@@ -24,6 +24,7 @@ import {
 } from '../../lib/intakeStatus'
 import tabStyles from './PatientDetailPage.module.css'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
+import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 
 type PatientTab = 'dados' | 'intake' | 'picca' | 'documentos'
 
@@ -54,6 +55,8 @@ type PatientDetail = {
   internalNotes: string | null
   location?: { id: string; name: string }
   therapist?: { id: string; name: string }
+  wiscSelections: string[]
+  bancSelections: string[]
   intakeSessions: SessionRow[]
   piccaSessions?: PiccaSessionRow[]
   piccaInteractiveSessions?: PiccaInteractiveSessionRow[]
@@ -631,6 +634,18 @@ export function PatientDetailPage() {
               </div>
             )}
           </Card>
+
+          {token && id && (
+            <PatientEvaluationsPanel
+              token={token}
+              patientId={id}
+              readOnly={readOnly}
+              initialSelections={{
+                wiscSelections: patient.wiscSelections ?? [],
+                bancSelections: patient.bancSelections ?? [],
+              }}
+            />
+          )}
 
           {patient.internalNotes && (
             <Card as="section">
