@@ -1,9 +1,14 @@
+import { GoogleSyncStatus } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
 import { getActiveGabineteOrThrow, listActiveGabinetes } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
+import {
+  deleteGoogleEventsForAppointments,
+  queueAppointmentSync,
+} from './googleCalendarSync.js'
 
 export type AppointmentRecurrenceCadence = 'weekly' | 'biweekly' | 'monthly'
 
@@ -324,19 +329,25 @@ export async function getActiveLocationOrThrow(locationId: string) {
   return location
 }
 
-export function formatAppointment(record: {
-  id: string
-  gabineteId: string
-  scheduledAt: Date
-  durationMinutes: number
-  sessionFee: { toString(): string } | number
-  notes: string | null
-  recurrenceGroupId: string | null
-  patient: { id: string; fullName: string }
-  location: { id: string; name: string }
-  gabinete: { id: string; name: string }
-}) {
-  return {
+export function formatAppointment(
+  record: {
+    id: string
+    gabineteId: string
+    scheduledAt: Date
+    durationMinutes: number
+    sessionFee: { toString(): string } | number
+    notes: string | null
+    recurrenceGroupId: string | null
+    googleSyncStatus?: GoogleSyncStatus
+    googleSyncError?: string | null
+    googleSyncedAt?: Date | null
+    patient: { id: string; fullName: string }
+    location: { id: string; name: string }
+    gabinete: { id: string; name: string }
+  },
+  options?: { includeGoogleSync?: boolean },
+) {
+  const base = {
     id: record.id,
     patientId: record.patient.id,
     patientName: record.patient.fullName,
@@ -351,6 +362,17 @@ export function formatAppointment(record: {
     sessionFee: decimalToNumber(record.sessionFee),
     notes: record.notes,
     recurrenceGroupId: record.recurrenceGroupId,
+  }
+
+  if (!options?.includeGoogleSync) {
+    return base
+  }
+
+  return {
+    ...base,
+    googleSyncStatus: record.googleSyncStatus ?? GoogleSyncStatus.not_linked,
+    googleSyncError: record.googleSyncError ?? null,
+    googleSyncedAt: record.googleSyncedAt?.toISOString() ?? null,
   }
 }
 
@@ -380,6 +402,7 @@ export async function listTherapistAppointments(
   year: number,
   month: number,
   locationId?: string,
+  options?: { includeGoogleSync?: boolean },
 ) {
   const range = parseAppointmentMonth(year, month)
   if (!range) {
@@ -401,7 +424,9 @@ export async function listTherapistAppointments(
     orderBy: { scheduledAt: 'asc' },
   })
 
-  return appointments.map(formatAppointment)
+  return appointments.map((appointment) =>
+    formatAppointment(appointment, { includeGoogleSync: options?.includeGoogleSync ?? false }),
+  )
 }
 
 export async function createTherapistAppointment(therapistId: string, input: AppointmentInput) {
@@ -464,7 +489,13 @@ export async function createTherapistAppointment(therapistId: string, input: App
     ),
   )
 
-  const formatted = appointments.map(formatAppointment)
+  const formatted = appointments.map((appointment) =>
+    formatAppointment(appointment, { includeGoogleSync: true }),
+  )
+  queueAppointmentSync(
+    appointments.map((appointment) => appointment.id),
+    'create',
+  )
   return {
     appointment: formatted[0],
     appointments: formatted,
@@ -520,7 +551,8 @@ export async function updateTherapistAppointment(
       include: appointmentInclude,
     })
 
-    const formatted = formatAppointment(appointment)
+    const formatted = formatAppointment(appointment, { includeGoogleSync: true })
+    queueAppointmentSync([appointment.id], 'update')
     return {
       appointment: formatted,
       appointments: [formatted],
@@ -580,7 +612,13 @@ export async function updateTherapistAppointment(
     ),
   )
 
-  const formatted = appointments.map(formatAppointment)
+  const formatted = appointments.map((appointment) =>
+    formatAppointment(appointment, { includeGoogleSync: true }),
+  )
+  queueAppointmentSync(
+    appointments.map((appointment) => appointment.id),
+    'update',
+  )
   return {
     appointment: formatted.find((appointment) => appointment.id === appointmentId) ?? formatted[0],
     appointments: formatted,
@@ -601,9 +639,27 @@ export async function deleteTherapistAppointment(
   }
 
   if (scope === 'single' || !existing.recurrenceGroupId) {
+    await deleteGoogleEventsForAppointments(therapistId, [
+      {
+        id: existing.id,
+        googleCalendarId: existing.googleCalendarId,
+        googleEventId: existing.googleEventId,
+      },
+    ])
     await prisma.appointment.delete({ where: { id: appointmentId } })
     return { deletedCount: 1 }
   }
+
+  const targets = await prisma.appointment.findMany({
+    where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),
+    select: {
+      id: true,
+      googleCalendarId: true,
+      googleEventId: true,
+    },
+  })
+
+  await deleteGoogleEventsForAppointments(therapistId, targets)
 
   const result = await prisma.appointment.deleteMany({
     where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),

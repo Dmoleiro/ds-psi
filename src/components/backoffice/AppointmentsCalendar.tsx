@@ -5,6 +5,7 @@ import {
   therapistApi,
   type AppointmentSummary,
   type AttendanceStatus,
+  type GoogleCalendarStatus,
   type LocationSummary,
   type PatientSummary,
 } from '../../lib/api'
@@ -114,6 +115,24 @@ function patientsForLocation(patients: PatientSummary[], locationId: string, sel
   return filtered
 }
 
+function googleSyncLabel(status: AppointmentSummary['googleSyncStatus']) {
+  switch (status) {
+    case 'synced':
+      return 'Google ✓'
+    case 'pending':
+      return 'Google…'
+    case 'failed':
+      return 'Google ⚠'
+    case 'not_linked':
+    default:
+      return 'Sem Google'
+  }
+}
+
+function shouldWarnGoogleNotConnected(status: GoogleCalendarStatus | null) {
+  return Boolean(status?.allowed && status.configured && !status.connected)
+}
+
 export function AppointmentsCalendar({
   token,
   therapistName,
@@ -146,6 +165,8 @@ export function AppointmentsCalendar({
   const [dayOccupancy, setDayOccupancy] = useState<RoomOccupancy[]>([])
   const [attendanceByKey, setAttendanceByKey] = useState<Map<string, AttendanceStatus>>(new Map())
   const [savingAttendanceKey, setSavingAttendanceKey] = useState<string | null>(null)
+  const [googleCalendarStatus, setGoogleCalendarStatus] = useState<GoogleCalendarStatus | null>(null)
+  const [retryingSyncId, setRetryingSyncId] = useState<string | null>(null)
   const attendanceEditLock = useEditLock()
   const consumedPrefillRef = useRef<string | null>(null)
 
@@ -357,6 +378,18 @@ export function AppointmentsCalendar({
       .then((data) => setLocations(data.locations))
       .catch(() => setLocations([]))
   }, [token, readOnly, therapistId])
+
+  useEffect(() => {
+    if (!token || readOnly) {
+      setGoogleCalendarStatus(null)
+      return
+    }
+
+    therapistApi
+      .getGoogleCalendarStatus(token)
+      .then(setGoogleCalendarStatus)
+      .catch(() => setGoogleCalendarStatus(null))
+  }, [token, readOnly])
 
   useEffect(() => {
     if (!prefill || !prefillKey || loading) return
@@ -597,6 +630,13 @@ export function AppointmentsCalendar({
       return
     }
 
+    if (shouldWarnGoogleNotConnected(googleCalendarStatus)) {
+      const proceed = window.confirm(
+        'O Google Calendar não está ligado. A consulta será guardada apenas na plataforma. Continuar?',
+      )
+      if (!proceed) return
+    }
+
     setSubmitting(true)
     setDialogError('')
     try {
@@ -681,6 +721,21 @@ export function AppointmentsCalendar({
       setDialogError(err instanceof ApiError ? err.message : 'Não foi possível eliminar a consulta')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  async function retryGoogleSync(appointmentId: string) {
+    setRetryingSyncId(appointmentId)
+    setDialogError('')
+    try {
+      await therapistApi.retryAppointmentGoogleSync(token, appointmentId)
+      await loadMonth()
+    } catch (err) {
+      setDialogError(
+        err instanceof ApiError ? err.message : 'Não foi possível sincronizar com o Google Calendar',
+      )
+    } finally {
+      setRetryingSyncId(null)
     }
   }
 
@@ -829,8 +884,29 @@ export function AppointmentsCalendar({
                           {appointment.recurrenceGroupId && (
                             <span className={styles.seriesBadge}>Série</span>
                           )}
+                          {!readOnly && appointment.googleSyncStatus && (
+                            <span
+                              className={styles.googleSyncBadge}
+                              data-status={appointment.googleSyncStatus}
+                              title={appointment.googleSyncError ?? undefined}
+                            >
+                              {googleSyncLabel(appointment.googleSyncStatus)}
+                            </span>
+                          )}
                         </h3>
                         {appointment.notes && <p className={layout.muted}>{appointment.notes}</p>}
+                        {!readOnly && appointment.googleSyncStatus === 'failed' && (
+                          <button
+                            type="button"
+                            className={styles.textButton}
+                            onClick={() => void retryGoogleSync(appointment.id)}
+                            disabled={retryingSyncId === appointment.id}
+                          >
+                            {retryingSyncId === appointment.id
+                              ? 'A sincronizar…'
+                              : 'Tentar sincronizar com Google'}
+                          </button>
+                        )}
                         {!readOnly && (
                           <div className={styles.existingActions}>
                             <button
@@ -917,6 +993,13 @@ export function AppointmentsCalendar({
 
                 <form ref={formRef} className={styles.form} onSubmit={handleSubmit} noValidate>
               <h3>{editingId ? 'Editar consulta' : 'Nova consulta'}</h3>
+              {shouldWarnGoogleNotConnected(googleCalendarStatus) && (
+                <p className={styles.googleWarning}>
+                  O Google Calendar não está ligado. Ligue a conta em{' '}
+                  <a href="/backoffice/profile">O meu perfil</a> para sincronizar consultas e enviar
+                  convites.
+                </p>
+              )}
               {editingAppointment?.recurrenceGroupId && (
                 <div className={styles.seriesActionBox}>
                   <p className={layout.muted}>Esta consulta faz parte de uma série repetida.</p>

@@ -12,6 +12,7 @@ import {
   setCoordinatorTherapists,
 } from '../services/coordinatorTherapists.js'
 import { getAdminDashboard } from '../services/adminDashboard.js'
+import { disconnectGoogleCalendar } from '../services/googleCalendar.js'
 
 export async function adminRoutes(app: FastifyInstance) {
   const adminOnly = [requireAuth, requireRole(UserRole.admin)]
@@ -30,6 +31,7 @@ export async function adminRoutes(app: FastifyInstance) {
         active: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
+        googleCalendarSyncAllowed: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },
@@ -81,6 +83,7 @@ export async function adminRoutes(app: FastifyInstance) {
       active?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
+      googleCalendarSyncAllowed?: boolean
       passwordHash?: string
     } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
@@ -91,12 +94,27 @@ export async function adminRoutes(app: FastifyInstance) {
     if (parsed.data.piccaEnabled !== undefined) {
       data.piccaEnabled = parsed.data.piccaEnabled
     }
+    if (parsed.data.googleCalendarSyncAllowed !== undefined) {
+      data.googleCalendarSyncAllowed = parsed.data.googleCalendarSyncAllowed
+      if (!parsed.data.googleCalendarSyncAllowed) {
+        await disconnectGoogleCalendar(id)
+      }
+    }
     if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password)
 
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        googleCalendarSyncAllowed: true,
+        createdAt: true,
+      },
     })
 
     return { therapist: updated }
@@ -180,6 +198,7 @@ export async function adminRoutes(app: FastifyInstance) {
         active: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
+        googleCalendarSyncAllowed: true,
         createdAt: true,
       },
       orderBy: { name: 'asc' },

@@ -16,6 +16,9 @@ export type AppointmentSummary = {
   sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
+  googleSyncStatus?: 'not_linked' | 'pending' | 'synced' | 'failed'
+  googleSyncError?: string | null
+  googleSyncedAt?: string | null
 }
 
 export type FinancialSettings = {

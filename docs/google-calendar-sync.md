@@ -53,10 +53,18 @@ Relevant code:
 
 ### FR-1 — Google account connection
 
-- Therapist can **connect** and **disconnect** Google Calendar from profile/settings.
-- OAuth uses Google Calendar scopes sufficient for create/update/delete events on the therapist’s primary (or chosen) calendar.
+**Two-level opt-in:**
+
+1. **Admin** enables Google Calendar sync for a therapist (`googleCalendarSyncAllowed` on the user). If disabled, the therapist never sees connect/sync UI.
+2. **Therapist** connects their own Google account when they want. If they prefer to use only the platform calendar, they simply never connect — appointments work as today.
+
+- One Google account per therapist (no shared clinic calendar in phase 1).
+- Therapist can **connect** and **disconnect** Google Calendar from profile/settings (only when admin has allowed it).
+- OAuth uses Google Calendar scopes for listing calendars, and create/update/delete events on the therapist’s **chosen** calendar (not necessarily `primary`).
+- After connecting, therapist **selects target calendar** from a dropdown (e.g. “Psicologia Daniela Santos”). They must create that calendar in Google first if it doesn’t exist — we don’t create calendars in phase 1.
+- Changing target calendar affects **new** appointments only; already-synced events stay on the calendar where they were created.
 - Refresh token is stored securely server-side; access token is refreshed automatically.
-- Connection status is shown in the UI (connected / not connected / error).
+- Connection status is shown in the UI (connected / not connected / error). **Coordinators do not see sync status** (phase 1).
 
 ### FR-2 — Appointment create sync
 
@@ -83,7 +91,7 @@ Relevant code:
 | `scheduledAt` + `durationMinutes` | `start` / `end` (timezone: `Europe/Lisbon`) |
 | Location name (+ address if available) | `location` |
 | `notes` | `description` |
-| Patient `email` or `email2` (configurable) | `attendees[]` |
+| Patient `email` and/or `email2` (therapist-configurable) | `attendees[]` |
 | Therapist | Event owner (authenticated Google account) |
 
 ### FR-6 — Recurrence strategy (phase 1)
@@ -104,11 +112,25 @@ Relevant code:
 
 ### FR-8 — Settings
 
-Per therapist (or global default):
+**Admin (per therapist):**
 
-- Enable/disable Google sync
-- Which patient email to prefer (`email` vs `email2`)
-- Optional: send Google invite emails to patient (`sendUpdates=all` vs `none`)
+- Allow / disallow Google Calendar sync for this therapist (`googleCalendarSyncAllowed`). Default: off until explicitly enabled.
+
+**Therapist (only when allowed by admin):**
+
+- Connect / disconnect Google account
+- **Target calendar:** pick which Google calendar receives appointments (dropdown of calendars they can write to, e.g. “Psicologia Daniela Santos”)
+- Toggle: sync appointments automatically when connected
+- Toggle: send invite emails to patients via Google (`sendUpdates=all` vs `none`)
+- **Invite recipients:** which patient address(es) to add as attendees:
+  - `email` only
+  - `email2` only
+  - `both` (when both exist; dedupe if same address)
+
+**UX when sync is allowed but not connected:**
+
+- Warn before saving a new appointment that Google is not connected (non-blocking).
+- After save, show sync status as `not_linked` on the appointment if they expected Google sync.
 
 ---
 
@@ -136,14 +158,15 @@ model GoogleCalendarConnection {
   id              String   @id @default(uuid())
   therapistId     String   @unique @map("therapist_id")
   googleEmail     String   @map("google_email")
-  calendarId      String   @map("calendar_id")      // usually "primary"
+  calendarId      String   @map("calendar_id")      // e.g. "abc123@group.calendar.google.com", not always "primary"
+  calendarName    String?  @map("calendar_name")    // display label, e.g. "Psicologia Daniela Santos"
   accessToken     String   @map("access_token") @db.Text   // encrypted
   refreshToken    String   @map("refresh_token") @db.Text  // encrypted
   tokenExpiresAt  DateTime @map("token_expires_at")
   scopes          String   @db.Text
   syncEnabled     Boolean  @default(true) @map("sync_enabled")
   sendInvites     Boolean  @default(true) @map("send_invites")
-  preferredEmail  String   @default("email") @map("preferred_email") // "email" | "email2"
+  inviteRecipients String  @default("email") @map("invite_recipients") // "email" | "email2" | "both"
   connectedAt     DateTime @default(now()) @map("connected_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -158,7 +181,8 @@ model GoogleCalendarConnection {
 ```prisma
 model User {
   // ...existing fields
-  googleCalendarConnection GoogleCalendarConnection?
+  googleCalendarSyncAllowed Boolean @default(false) @map("google_calendar_sync_allowed")
+  googleCalendarConnection  GoogleCalendarConnection?
 }
 ```
 
@@ -253,10 +277,17 @@ Sync runs **asynchronously** (in-process queue for MVP; background job later if 
 | `GET` | `/api/therapist/google-calendar/connect` | Start OAuth (redirect URL) |
 | `GET` | `/api/therapist/google-calendar/callback` | OAuth callback (server-handled) |
 | `DELETE` | `/api/therapist/google-calendar/disconnect` | Revoke + delete connection |
-| `PATCH` | `/api/therapist/google-calendar/settings` | `syncEnabled`, `sendInvites`, `preferredEmail` |
+| `PATCH` | `/api/therapist/google-calendar/settings` | `syncEnabled`, `sendInvites`, `inviteRecipients`, `calendarId` |
+| `GET` | `/api/therapist/google-calendar/calendars` | List writable calendars for the connected account (for picker) |
 | `POST` | `/api/therapist/appointments/:id/google-sync/retry` | Manual retry |
 
-Existing appointment endpoints unchanged; response may include `googleSyncStatus` for UI badges.
+**Admin (new):**
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `PATCH` | `/api/admin/therapists/:id/google-calendar` | Set `googleCalendarSyncAllowed` |
+
+Existing appointment endpoints unchanged; response may include `googleSyncStatus` for **therapist** UI badges only (not exposed to coordinators in phase 1).
 
 ---
 
@@ -264,16 +295,25 @@ Existing appointment endpoints unchanged; response may include `googleSyncStatus
 
 ### Settings page (therapist profile area)
 
-- “Ligar Google Calendar” / “Desligar”
-- Toggle: sync appointments automatically
-- Toggle: send invite emails to patients
-- Show connected Google account email
+*Only shown when admin has enabled Google sync for this therapist.*
 
-### Appointments calendar
+- “Ligar Google Calendar” / “Desligar”
+- **Dropdown:** “Calendário de destino” — lists their Google calendars (name + colour); e.g. “Psicologia Daniela Santos”
+- Toggle: sync appointments automatically (when connected)
+- Toggle: send invite emails to patients
+- Select: invite recipients — `email`, `email2`, or `both`
+- Show connected Google account email
+- If allowed but not connected: soft warning when creating appointments
+
+### Admin — therapist edit
+
+- Checkbox: “Permitir sincronização com Google Calendar” (`googleCalendarSyncAllowed`)
+
+### Appointments calendar (therapist only)
 
 - Small badge on appointment cards: ✓ synced / ⚠ failed / — not linked
 - Retry action on failed items
-- Optional: warn when creating appointment if Google not connected
+- Warn when creating appointment if Google not connected (dismissible / non-blocking)
 
 ---
 
@@ -286,7 +326,8 @@ Existing appointment endpoints unchanged; response may include `googleSyncStatus
    - `https://api.danielasantos.work/api/therapist/google-calendar/callback`
    - `http://localhost:3001/api/therapist/google-calendar/callback` (local)
 5. Scopes (minimum):
-   - `https://www.googleapis.com/auth/calendar.events`
+   - `https://www.googleapis.com/auth/calendar.events` — create/update/delete events
+   - `https://www.googleapis.com/auth/calendar.calendarlist.readonly` — list calendars for the picker
 6. Environment variables:
 
 ```env
@@ -347,13 +388,22 @@ GOOGLE_TOKEN_ENCRYPTION_KEY=   # 32-byte random secret
 
 ---
 
-## Open questions (for therapist sign-off)
+## Decisions (confirmed)
 
-1. Should invites go to `email`, `email2`, or both?
-2. Is one Google account per therapist sufficient, or does the clinic use a shared calendar?
-3. For past appointments, do they want a one-off “create Google events for this month” tool?
-4. If Google sync fails, should the UI warn before save or only after?
-5. Should coordinators see sync status when viewing a therapist’s calendar?
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | Patient invite emails | Therapist chooses: `email`, `email2`, or **both** (when available) |
+| 2 | Accounts | **One Google account per therapist** |
+| 3 | Who enables sync? | **Admin** allows sync per therapist; **therapist** optionally connects. Platform-only use remains fully valid |
+| 4 | Coordinator visibility | **No** sync status for coordinators (phase 1) |
+| 5 | Warn if not connected? | **Yes** — warn before save and show status after (non-blocking) |
+| 6 | Target calendar | **Yes** — therapist picks a specific Google calendar (e.g. “Psicologia Daniela Santos”); must exist in their Google account |
+| 7 | Backfill | **No** — only new/changed appointments after connect |
+
+### Still open (optional later)
+
+- Migrate existing synced events when therapist changes target calendar
+- Full recurrence hardening timeline (phase 2)
 
 ---
 

@@ -4,6 +4,7 @@ import { ApiError, therapistApi } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { GoogleCalendarSettings } from '../../components/backoffice/GoogleCalendarSettings'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
 export function TherapistProfilePage() {
@@ -133,6 +134,8 @@ export function TherapistProfilePage() {
             </form>
           </Card>
         )}
+
+        {!loading && token && <GoogleCalendarSettings token={token} />}
 
         {!loading && (
           <Card as="section" className={styles.sectionSpaced}>

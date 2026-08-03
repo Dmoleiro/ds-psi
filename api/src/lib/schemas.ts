@@ -33,6 +33,7 @@ export const updateTherapistSchema = z.object({
   active: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
   piccaEnabled: z.boolean().optional(),
+  googleCalendarSyncAllowed: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
 
@@ -89,6 +90,17 @@ export const updatePatientSchema = z.object({
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
+})
+
+export const googleCalendarSettingsSchema = z.object({
+  syncEnabled: z.boolean().optional(),
+  sendInvites: z.boolean().optional(),
+  inviteRecipients: z.enum(['email', 'email2', 'both']).optional(),
+  calendarId: z.string().min(1).optional(),
+})
+
+export const updateTherapistGoogleCalendarSchema = z.object({
+  googleCalendarSyncAllowed: z.boolean(),
 })
 
 export const createLocationSchema = z.object({

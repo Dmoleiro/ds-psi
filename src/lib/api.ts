@@ -172,7 +172,25 @@ export type StaffUser = {
   role: 'admin' | 'therapist' | 'coordinator'
   financialOverviewEnabled?: boolean
   piccaEnabled?: boolean
+  googleCalendarSyncAllowed?: boolean
   active?: boolean
+}
+
+export type GoogleSyncStatus = 'not_linked' | 'pending' | 'synced' | 'failed'
+
+export type InviteRecipients = 'email' | 'email2' | 'both'
+
+export type GoogleCalendarStatus = {
+  allowed: boolean
+  configured: boolean
+  connected: boolean
+  googleEmail: string | null
+  calendarId: string | null
+  calendarName: string | null
+  syncEnabled: boolean
+  sendInvites: boolean
+  inviteRecipients: InviteRecipients
+  connectionError: string | null
 }
 
 export type LoginResponse = {
@@ -354,6 +372,9 @@ export type AppointmentSummary = {
   sessionFee: number
   notes: string | null
   recurrenceGroupId: string | null
+  googleSyncStatus?: GoogleSyncStatus
+  googleSyncError?: string | null
+  googleSyncedAt?: string | null
 }
 
 export type LocationDaySchedule = {
@@ -396,6 +417,51 @@ export const therapistApi = {
       method: 'POST',
       token,
     }),
+  getGoogleCalendarStatus: (token: string) =>
+    apiRequest<GoogleCalendarStatus>('/api/therapist/google-calendar/status', { token }),
+  getGoogleCalendarConnectUrl: (token: string) =>
+    apiRequest<{ url: string }>('/api/therapist/google-calendar/connect', { token }),
+  disconnectGoogleCalendar: (token: string) =>
+    apiRequest<{ ok: true }>('/api/therapist/google-calendar/disconnect', {
+      method: 'DELETE',
+      token,
+    }),
+  listGoogleCalendars: (token: string) =>
+    apiRequest<{
+      calendars: Array<{
+        id: string
+        summary: string
+        primary: boolean
+        backgroundColor: string | null
+      }>
+    }>('/api/therapist/google-calendar/calendars', { token }),
+  updateGoogleCalendarSettings: (
+    token: string,
+    body: {
+      syncEnabled?: boolean
+      sendInvites?: boolean
+      inviteRecipients?: InviteRecipients
+      calendarId?: string
+    },
+  ) =>
+    apiRequest<{
+      settings: {
+        syncEnabled: boolean
+        sendInvites: boolean
+        inviteRecipients: InviteRecipients
+        calendarId: string
+        calendarName: string | null
+      }
+    }>('/api/therapist/google-calendar/settings', {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  retryAppointmentGoogleSync: (token: string, appointmentId: string) =>
+    apiRequest<{ ok: true; googleSyncStatus?: GoogleSyncStatus; googleSyncError?: string | null }>(
+      `/api/therapist/appointments/${appointmentId}/google-sync/retry`,
+      { method: 'POST', token },
+    ),
   getDashboard: (token: string) =>
     apiRequest<TherapistDashboard>('/api/therapist/dashboard', { token }),
   getNotepad: (token: string) =>
@@ -896,7 +962,14 @@ export const adminApi = {
   updateTherapist: (
     token: string,
     id: string,
-    body: { name?: string; active?: boolean; financialOverviewEnabled?: boolean; piccaEnabled?: boolean; password?: string },
+    body: {
+      name?: string
+      active?: boolean
+      financialOverviewEnabled?: boolean
+      piccaEnabled?: boolean
+      googleCalendarSyncAllowed?: boolean
+      password?: string
+    },
   ) =>
     apiRequest<{ therapist: StaffUser & { active: boolean; createdAt: string } }>(`/api/admin/therapists/${id}`, {
       method: 'PATCH',

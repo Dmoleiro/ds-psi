@@ -14,6 +14,7 @@ type TherapistRow = {
   active: boolean
   financialOverviewEnabled: boolean
   piccaEnabled: boolean
+  googleCalendarSyncAllowed: boolean
   createdAt: string
 }
 
@@ -130,6 +131,7 @@ export function AdminTherapistsPage() {
         ...therapist,
         financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
         piccaEnabled: therapist.piccaEnabled ?? false,
+        googleCalendarSyncAllowed: therapist.googleCalendarSyncAllowed ?? false,
       })),
     )
   }
@@ -165,6 +167,14 @@ export function AdminTherapistsPage() {
     if (!token) return
     await adminApi.updateTherapist(token, therapist.id, {
       piccaEnabled: !therapist.piccaEnabled,
+    })
+    await load()
+  }
+
+  async function toggleGoogleCalendarAccess(therapist: TherapistRow) {
+    if (!token) return
+    await adminApi.updateTherapist(token, therapist.id, {
+      googleCalendarSyncAllowed: !therapist.googleCalendarSyncAllowed,
     })
     await load()
   }
@@ -223,6 +233,7 @@ export function AdminTherapistsPage() {
               <th>Estado</th>
               <th>Finanças</th>
               <th>PICCA</th>
+              <th>Google</th>
               <th />
             </tr>
           </thead>
@@ -234,6 +245,7 @@ export function AdminTherapistsPage() {
                 <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
                 <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
                 <td>{therapist.piccaEnabled ? 'Ativo' : '—'}</td>
+                <td>{therapist.googleCalendarSyncAllowed ? 'Ativo' : '—'}</td>
                 <td>
                   <div className={styles.rowActions}>
                     <button
@@ -256,6 +268,13 @@ export function AdminTherapistsPage() {
                       onClick={() => togglePiccaAccess(therapist)}
                     >
                       {therapist.piccaEnabled ? 'Revogar PICCA' : 'Dar acesso PICCA'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => toggleGoogleCalendarAccess(therapist)}
+                    >
+                      {therapist.googleCalendarSyncAllowed ? 'Revogar Google' : 'Permitir Google'}
                     </button>
                     <button
                       type="button"
