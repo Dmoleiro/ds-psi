@@ -33,7 +33,10 @@ import {
   type RecurrenceCadence,
   type RoomOccupancy,
 } from '../../lib/appointments'
-import { exportAppointmentsPdf } from '../../lib/exportAppointmentsPdf'
+import {
+  exportAppointmentsCalendarPdf,
+  exportAppointmentsListPdf,
+} from '../../lib/exportAppointmentsPdf'
 import { AttendanceStatusTile } from './AttendanceStatusTile'
 import { PatientSearchPicker } from './PatientSearchPicker'
 import { useEditLock } from '../../hooks/useEditLock'
@@ -758,11 +761,19 @@ export function AppointmentsCalendar({
     }
   }
 
-  function handleExportPdf() {
+  function handleExportListPdf() {
     try {
-      exportAppointmentsPdf(viewYear, viewMonth, therapistName, appointments, selectedLocationName)
+      exportAppointmentsListPdf(viewYear, viewMonth, therapistName, appointments, selectedLocationName)
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar a lista')
+    }
+  }
+
+  function handleExportCalendarPdf() {
+    try {
+      exportAppointmentsCalendarPdf(viewYear, viewMonth, therapistName, appointments, selectedLocationName)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o calendário')
     }
   }
 
@@ -801,8 +812,11 @@ export function AppointmentsCalendar({
               ))}
             </select>
           </label>
-          <Button type="button" variant="outline" onClick={handleExportPdf}>
-            Imprimir / guardar PDF
+          <Button type="button" variant="outline" onClick={handleExportListPdf}>
+            PDF — Lista
+          </Button>
+          <Button type="button" variant="outline" onClick={handleExportCalendarPdf}>
+            PDF — Calendário
           </Button>
         </div>
       </div>

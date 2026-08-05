@@ -2,6 +2,9 @@ import {
   formatAppointmentRange,
   formatDayLabel,
   formatMonthTitle,
+  getCalendarCells,
+  groupAppointmentsByDate,
+  WEEKDAY_LABELS,
   type AppointmentSummary,
 } from './appointments'
 
@@ -17,14 +20,32 @@ function nl2br(value: string): string {
   return value.replace(/\n/g, '<br>')
 }
 
-function buildPrintHtml(
+function buildHeaderMeta(
+  year: number,
+  month: number,
+  therapistName: string,
+  locationLabel: string,
+  subtitle: string,
+): string {
+  const generatedAt = new Date().toLocaleString('pt-PT')
+  return `
+    <h1>Consultas — ${escapeHtml(formatMonthTitle(year, month))}</h1>
+    <p class="header-meta">
+      <strong>Vista:</strong> ${escapeHtml(subtitle)}<br />
+      <strong>Terapeuta:</strong> ${escapeHtml(therapistName)}<br />
+      <strong>Local:</strong> ${escapeHtml(locationLabel)}<br />
+      <strong>Documento gerado:</strong> ${escapeHtml(generatedAt)}
+    </p>
+  `
+}
+
+function buildListPrintHtml(
   year: number,
   month: number,
   therapistName: string,
   appointments: AppointmentSummary[],
   locationLabel: string,
 ): string {
-  const generatedAt = new Date().toLocaleString('pt-PT')
   const byDate = new Map<string, AppointmentSummary[]>()
 
   for (const appointment of appointments) {
@@ -80,7 +101,7 @@ function buildPrintHtml(
 <html lang="pt">
   <head>
     <meta charset="utf-8" />
-    <title>Consultas — ${escapeHtml(formatMonthTitle(year, month))}</title>
+    <title>Consultas (lista) — ${escapeHtml(formatMonthTitle(year, month))}</title>
     <style>
       body {
         font-family: "Helvetica Neue", Arial, sans-serif;
@@ -135,25 +156,193 @@ function buildPrintHtml(
     </style>
   </head>
   <body>
-    <h1>Consultas — ${escapeHtml(formatMonthTitle(year, month))}</h1>
-    <p class="header-meta">
-      <strong>Terapeuta:</strong> ${escapeHtml(therapistName)}<br />
-      <strong>Local:</strong> ${escapeHtml(locationLabel)}<br />
-      <strong>Documento gerado:</strong> ${escapeHtml(generatedAt)}
-    </p>
+    ${buildHeaderMeta(year, month, therapistName, locationLabel, 'Lista')}
     ${daysHtml}
     <p class="footer">Daniela Santos Psicologia — agenda de consultas</p>
   </body>
 </html>`
 }
 
-export function exportAppointmentsPdf(
+function buildCalendarPrintHtml(
   year: number,
   month: number,
   therapistName: string,
   appointments: AppointmentSummary[],
-  locationLabel = 'Todos os locais',
-): void {
+  locationLabel: string,
+): string {
+  const cells = getCalendarCells(year, month)
+  const appointmentsByDate = groupAppointmentsByDate(appointments)
+  const weeks: ReturnType<typeof getCalendarCells>[] = []
+
+  for (let index = 0; index < cells.length; index += 7) {
+    weeks.push(cells.slice(index, index + 7))
+  }
+
+  const weekdaysHtml = WEEKDAY_LABELS.map(
+    (label) => `<th scope="col">${escapeHtml(label)}</th>`,
+  ).join('')
+
+  const weeksHtml = weeks
+    .map((week) => {
+      const daysHtml = week
+        .map((cell) => {
+          if (!cell.inMonth || !cell.date) {
+            return '<td class="day-cell day-cell-outside"></td>'
+          }
+
+          const dayAppointments = appointmentsByDate.get(cell.date) ?? []
+          const chipsHtml =
+            dayAppointments.length === 0
+              ? ''
+              : dayAppointments
+                  .map(
+                    (appointment) => `
+                      <div class="appointment-chip">
+                        <span class="appointment-time">${escapeHtml(appointment.time)} ${escapeHtml(appointment.patientName)}</span>
+                        <span class="appointment-meta">${escapeHtml(appointment.gabineteName)} · ${escapeHtml(appointment.locationName)}</span>
+                      </div>
+                    `,
+                  )
+                  .join('')
+
+          return `
+            <td class="day-cell">
+              <div class="day-number">${cell.day}</div>
+              <div class="appointment-list">${chipsHtml}</div>
+            </td>
+          `
+        })
+        .join('')
+
+      return `<tr class="week-row">${daysHtml}</tr>`
+    })
+    .join('')
+
+  return `<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <title>Consultas (calendário) — ${escapeHtml(formatMonthTitle(year, month))}</title>
+    <style>
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: #1a1a1a;
+        line-height: 1.35;
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0 0 6px;
+      }
+      .header-meta {
+        color: #4a4a4a;
+        margin: 0 0 12px;
+        font-size: 0.8125rem;
+      }
+      .calendar {
+        width: 100%;
+        border: 1px solid #d8d0c8;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .weekday-row th {
+        background: #e8f1ec;
+        border: 1px solid #d8d0c8;
+        padding: 6px 4px;
+        text-align: center;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #4a4a4a;
+      }
+      .week-row td {
+        border: 1px solid #d8d0c8;
+        vertical-align: top;
+        width: 14.285%;
+        height: 22mm;
+        padding: 3px;
+      }
+      .day-cell-outside {
+        background: #faf8f5;
+      }
+      .day-cell {
+        overflow: hidden;
+      }
+      .day-number {
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #1a1a1a;
+      }
+      .appointment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .appointment-chip {
+        background: #e8f4ec;
+        border-left: 2px solid #2f6b4f;
+        border-radius: 2px;
+        padding: 1px 3px;
+        overflow: hidden;
+      }
+      .appointment-time {
+        display: block;
+        font-size: 6.5pt;
+        font-weight: 600;
+        color: #1f4d38;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .appointment-meta {
+        display: block;
+        font-size: 6pt;
+        color: #6b6b6b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .footer {
+        margin-top: 10px;
+        font-size: 0.75rem;
+        color: #6b6b6b;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    ${buildHeaderMeta(year, month, therapistName, locationLabel, 'Calendário')}
+    <table class="calendar" aria-label="Calendário mensal">
+      <thead>
+        <tr class="weekday-row">
+          ${weekdaysHtml}
+        </tr>
+      </thead>
+      <tbody>
+        ${weeksHtml}
+      </tbody>
+    </table>
+    <p class="footer">Daniela Santos Psicologia — agenda de consultas</p>
+  </body>
+</html>`
+}
+
+function openPrintDocument(html: string): void {
   const iframe = document.createElement('iframe')
   iframe.setAttribute('title', 'Pré-visualização de impressão')
   iframe.setAttribute('aria-hidden', 'true')
@@ -179,7 +368,7 @@ export function exportAppointmentsPdf(
   }
 
   printDocument.open()
-  printDocument.write(buildPrintHtml(year, month, therapistName, appointments, locationLabel))
+  printDocument.write(html)
   printDocument.close()
 
   const cleanup = () => {
@@ -199,3 +388,26 @@ export function exportAppointmentsPdf(
     iframe.addEventListener('load', () => window.setTimeout(runPrint, 150), { once: true })
   }
 }
+
+export function exportAppointmentsListPdf(
+  year: number,
+  month: number,
+  therapistName: string,
+  appointments: AppointmentSummary[],
+  locationLabel = 'Todos os locais',
+): void {
+  openPrintDocument(buildListPrintHtml(year, month, therapistName, appointments, locationLabel))
+}
+
+export function exportAppointmentsCalendarPdf(
+  year: number,
+  month: number,
+  therapistName: string,
+  appointments: AppointmentSummary[],
+  locationLabel = 'Todos os locais',
+): void {
+  openPrintDocument(buildCalendarPrintHtml(year, month, therapistName, appointments, locationLabel))
+}
+
+/** @deprecated Use exportAppointmentsListPdf */
+export const exportAppointmentsPdf = exportAppointmentsListPdf
