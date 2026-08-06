@@ -8,6 +8,7 @@ import { ApiError, coordinatorApi, therapistApi, type LocationSummary, type Pati
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 import { formatPatientSessionFee } from '../../lib/dashboard'
 import { matchesPatientSearch } from '../../lib/patientSearch'
+import { exportPatientsListPdf } from '../../lib/exportPatientsListPdf'
 import { useAuth } from '../../hooks/useAuth'
 import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
@@ -40,6 +41,25 @@ export function PatientsListPage() {
     })
     return matches.sort((a, b) => a.fullName.localeCompare(b.fullName, 'pt-PT'))
   }, [patients, search, locationFilter])
+
+  const selectedLocationName = useMemo(
+    () => locations.find((location) => location.id === locationFilter)?.name ?? null,
+    [locations, locationFilter],
+  )
+
+  const therapistName = readOnly ? selectedTherapist?.name : user?.name
+
+  function handleExportPdf() {
+    try {
+      exportPatientsListPdf(filteredPatients, {
+        therapistName,
+        search,
+        locationName: selectedLocationName,
+      })
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
+    }
+  }
 
   useEffect(() => {
     if (!token) return
@@ -135,7 +155,19 @@ export function PatientsListPage() {
             <p className={styles.muted} style={{ margin: 0 }}>
               {readOnly ? 'Consulta de dados dos pacientes (apenas leitura).' : null}
             </p>
-            {!readOnly && <Button href="/backoffice/patients/new">Novo paciente</Button>}
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
+              {!loading && patients.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExportPdf}
+                  disabled={filteredPatients.length === 0}
+                >
+                  Exportar PDF
+                </Button>
+              )}
+              {!readOnly && <Button href="/backoffice/patients/new">Novo paciente</Button>}
+            </div>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
