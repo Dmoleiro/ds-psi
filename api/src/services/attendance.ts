@@ -200,6 +200,29 @@ export async function listTherapistAttendance(
   }
 }
 
+export async function deleteAttendanceForAppointments(
+  appointments: Array<{ patientId: string; scheduledAt: Date }>,
+) {
+  const uniqueSessions = new Map<string, { patientId: string; sessionDate: Date }>()
+
+  for (const appointment of appointments) {
+    const sessionDate = parseDateOnly(formatAppointmentDate(appointment.scheduledAt))
+    if (!sessionDate) continue
+    const key = `${appointment.patientId}:${formatDateOnly(sessionDate)}`
+    uniqueSessions.set(key, { patientId: appointment.patientId, sessionDate })
+  }
+
+  if (uniqueSessions.size === 0) return
+
+  await prisma.$transaction(
+    [...uniqueSessions.values()].map(({ patientId, sessionDate }) =>
+      prisma.attendanceRecord.deleteMany({
+        where: { patientId, sessionDate },
+      }),
+    ),
+  )
+}
+
 export async function upsertPatientAttendance(
   therapistId: string,
   patientId: string,

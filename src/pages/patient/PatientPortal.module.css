@@ -53,6 +53,7 @@
 
 .error {
   color: var(--color-primary);
+  white-space: pre-line;
 }
 
 .progressWrap {

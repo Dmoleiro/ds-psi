@@ -5,7 +5,12 @@ import { buildCalendarUid } from '../lib/icalendar.js'
 import { getActiveGabineteOrThrow, listActiveGabinetes } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
-import { formatDateOnly, getTherapistPatientOrThrow, parseDateOnly } from './attendance.js'
+import {
+  deleteAttendanceForAppointments,
+  formatDateOnly,
+  getTherapistPatientOrThrow,
+  parseDateOnly,
+} from './attendance.js'
 import {
   formatCalendarInviteStatusForAppointment,
   prepareDeletionCancellationJobs,
@@ -706,6 +711,9 @@ export async function deleteTherapistAppointment(
       ],
       scope,
     )
+    await deleteAttendanceForAppointments([
+      { patientId: existing.patientId, scheduledAt: existing.scheduledAt },
+    ])
     await prisma.appointment.delete({ where: { id: appointmentId } })
     queueDeletionCancellationInvites(cancellationJobs)
     return { deletedCount: 1 }
@@ -715,14 +723,16 @@ export async function deleteTherapistAppointment(
     where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),
     select: {
       id: true,
+      patientId: true,
+      scheduledAt: true,
       recurrenceGroupId: true,
       calendarInviteStatus: true,
-      scheduledAt: true,
     },
   })
 
   const cancellationJobs = await prepareDeletionCancellationJobs(targets, scope)
 
+  await deleteAttendanceForAppointments(targets)
   const result = await prisma.appointment.deleteMany({
     where: buildSeriesWhere(therapistId, existing.recurrenceGroupId, existing.scheduledAt, scope),
   })

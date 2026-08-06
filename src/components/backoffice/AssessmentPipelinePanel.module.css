@@ -1,0 +1,122 @@
+.card h2 {
+  margin: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.muted {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-ink-muted);
+}
+
+.stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 720px) {
+  .stepper {
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  }
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface, #fff);
+}
+
+.stepCurrent {
+  border-color: var(--color-accent, #2f6b4f);
+  box-shadow: 0 0 0 1px var(--color-accent, #2f6b4f);
+}
+
+.stepComplete .stepMarker {
+  background: var(--color-accent, #2f6b4f);
+  color: #fff;
+}
+
+.stepMarker {
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--color-surface-muted, #f3f3f3);
+  color: var(--color-ink-muted);
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.stepLabel {
+  font-weight: 600;
+}
+
+.stepStatus {
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+.blockers {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.blockers h3 {
+  margin: 0 0 var(--space-sm);
+  font-size: 1rem;
+}
+
+.blockers ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.quickLinks {
+  margin-top: var(--space-sm);
+}
+
+.linkButton {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-accent, #2f6b4f);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reportAction,
+.footer {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.error {
+  margin: var(--space-md) 0 0;
+  color: var(--color-danger, #b42318);
+}

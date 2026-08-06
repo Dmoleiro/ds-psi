@@ -92,6 +92,10 @@ export const patientEvaluationsSchema = z.object({
   bancSelections: z.array(z.string()).default([]),
 })
 
+export const patientAppointmentNotesSchema = z.object({
+  appointmentNotes: z.string().max(100000).nullable(),
+})
+
 export const appointmentInviteSettingsSchema = z.object({
   enabled: z.boolean().optional(),
   inviteRecipients: z.enum(['email', 'email2', 'both']).optional(),
@@ -271,30 +275,32 @@ export const deleteAppointmentQuerySchema = z.object({
 
 export const fichaInscricaoFormSchema = z
   .object({
-    recordedAt: z.string().min(1),
-    childName: z.string().min(2),
+    recordedAt: z.string().min(1, 'Indique a data e hora'),
+    childName: z.string().trim().min(2, 'Indique o nome com pelo menos 2 caracteres'),
     address: z.string().optional(),
     postalCodeLocality: z.string().optional(),
     nif: z.string().optional(),
     birthDate: z.string().optional(),
     childPhone: z.string().optional(),
-    childEmail: z.string().email().optional().or(z.literal('')),
+    childEmail: z.union([z.literal(''), z.string().email('Email inválido')]).optional(),
     healthConditions: z.string().optional(),
     insuranceNumber: z.string().optional(),
     insurer: z.string().optional(),
     schoolName: z.string().optional(),
     schoolYear: z.string().optional(),
     retentionsCount: z.string().optional(),
-    reasonForRequest: z.string().min(5),
-    guardianName: z.string().min(2),
-    relationshipType: z.string().min(2),
+    reasonForRequest: z.string().trim().min(5, 'Descreva o motivo do pedido com pelo menos 5 caracteres'),
+    guardianName: z.string().trim().min(2, 'Indique o nome do responsável'),
+    relationshipType: z.string().trim().min(2, 'Indique o tipo de parentesco'),
     profession: z.string().optional(),
     guardianPhone: z.string().optional(),
-    guardianEmail: z.string().email().optional().or(z.literal('')),
-    declarationAccepted: z.literal(true),
+    guardianEmail: z.union([z.literal(''), z.string().email('Email inválido')]).optional(),
+    declarationAccepted: z.literal(true, {
+      errorMap: () => ({ message: 'Tem de aceitar a declaração de veracidade' }),
+    }),
     additionalInfo: z.string().optional(),
-    signatureName: z.string().min(2),
-    signedAt: z.string().min(1),
+    signatureName: z.string().trim().min(2, 'Indique o nome na assinatura'),
+    signedAt: z.string().min(1, 'Indique a data da assinatura'),
   })
   .refine((data) => Boolean(data.guardianPhone?.trim() || data.guardianEmail?.trim()), {
     message: 'Indique pelo menos um contacto do responsável',
@@ -303,15 +309,23 @@ export const fichaInscricaoFormSchema = z
 
 export type FichaInscricaoFormData = z.infer<typeof fichaInscricaoFormSchema>
 
+const requiredFormText = (min: number) =>
+  z
+    .string()
+    .trim()
+    .min(min, `Preencha com pelo menos ${min} caracteres`)
+
+const optionalFormText = z.string().nullish()
+
 export const queixaInicialFormSchema = z.object({
-  concernOrigin: z.string().min(5),
-  mainSymptoms: z.string().optional(),
-  concernStartAge: z.string().optional(),
-  interventionsAtHome: z.string().optional(),
-  interventionsAtSchool: z.string().optional(),
-  familyDynamicsEffect: z.string().optional(),
-  referredBy: z.string().optional(),
-  requestObjective: z.string().min(5),
+  concernOrigin: requiredFormText(5),
+  mainSymptoms: optionalFormText,
+  concernStartAge: optionalFormText,
+  interventionsAtHome: optionalFormText,
+  interventionsAtSchool: optionalFormText,
+  familyDynamicsEffect: optionalFormText,
+  referredBy: optionalFormText,
+  requestObjective: requiredFormText(5),
 })
 
 export type QueixaInicialFormData = z.infer<typeof queixaInicialFormSchema>

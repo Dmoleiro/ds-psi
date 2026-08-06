@@ -1,5 +1,9 @@
 type FormFieldLabels = Record<string, string>
 
+export function getFormFieldLabels(formId: string): FormFieldLabels {
+  return FORM_FIELD_LABELS[formId] ?? {}
+}
+
 const FORM_FIELD_LABELS: Record<string, FormFieldLabels> = {
   intake: {
     fullName: 'Nome completo',

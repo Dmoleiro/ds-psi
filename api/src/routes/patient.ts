@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs'
 import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { consentSchema, draftSchema, getFormSchema } from '../lib/schemas.js'
+import { formatZodFormValidationError } from '../lib/formValidationErrors.js'
 import { isDocumentUploadForm } from '../lib/formIds.js'
 import { requirePatientToken } from '../middleware/patientToken.js'
 import { completeSessionIfReady } from '../services/sessions.js'
@@ -140,7 +141,10 @@ export async function patientRoutes(app: FastifyInstance) {
 
     const parsed = draftSchema.safeParse(request.body)
     if (!parsed.success) {
-      return reply.status(400).send({ error: 'Dados inválidos' })
+      return reply.status(400).send({
+        error: 'Não foi possível guardar o rascunho. Recarregue a página e tente novamente.',
+        details: parsed.error.flatten(),
+      })
     }
 
     const sessionForm = await prisma.sessionForm.findFirst({
@@ -197,7 +201,7 @@ export async function patientRoutes(app: FastifyInstance) {
       const parsed = schema.safeParse(request.body)
       if (!parsed.success) {
         return reply.status(400).send({
-          error: 'Dados inválidos',
+          error: formatZodFormValidationError(formId, parsed.error),
           details: parsed.error.flatten(),
         })
       }

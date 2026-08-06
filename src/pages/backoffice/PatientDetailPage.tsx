@@ -25,8 +25,10 @@ import {
 import tabStyles from './PatientDetailPage.module.css'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
+import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
+import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
 
-type PatientTab = 'dados' | 'intake' | 'picca' | 'documentos'
+type PatientTab = 'avaliacao' | 'historico' | 'dados' | 'notas' | 'intake' | 'picca' | 'documentos'
 
 type SessionRow = {
   id: string
@@ -53,6 +55,7 @@ type PatientDetail = {
   birthDate: string | null
   sessionFee: number | null
   internalNotes: string | null
+  appointmentNotes: string | null
   location?: { id: string; name: string }
   therapist?: { id: string; name: string }
   wiscSelections: string[]
@@ -67,7 +70,7 @@ export function PatientDetailPage() {
   const navigate = useNavigate()
   const { token, user } = useAuth()
   const readOnly = user?.role === 'coordinator'
-  const [activeTab, setActiveTab] = useState<PatientTab>('dados')
+  const [activeTab, setActiveTab] = useState<PatientTab>('avaliacao')
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
   const [availableForms, setAvailableForms] = useState<FormOption[]>([])
@@ -548,22 +551,16 @@ export function PatientDetailPage() {
         </p>
       </div>
 
-      {token && id && (
-        <PatientTimelinePanel
-          token={token}
-          patientId={id}
-          readOnly={readOnly}
-          onOpenIntakeTab={() => setActiveTab('intake')}
-        />
-      )}
-
       <div className={tabStyles.tabs} role="tablist" aria-label="Secções do utente">
         {(
           [
+            ['avaliacao', 'Estado da avaliação'],
             ['dados', 'Dados'],
+            ['notas', 'Notas'],
             ['intake', 'Formulários'],
             ...(!readOnly && user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
             ['documentos', 'Documentos'],
+            ['historico', 'Histórico recente'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -580,6 +577,26 @@ export function PatientDetailPage() {
       </div>
 
       <div className={tabStyles.tabPanel}>
+      {activeTab === 'avaliacao' && token && id && (
+        <AssessmentPipelinePanel
+          token={token}
+          patientId={id}
+          readOnly={readOnly}
+          onOpenIntakeTab={() => setActiveTab('intake')}
+          onOpenPiccaTab={() => setActiveTab('picca')}
+          onOpenDocumentsTab={() => setActiveTab('documentos')}
+        />
+      )}
+
+      {activeTab === 'historico' && token && id && (
+        <PatientTimelinePanel
+          token={token}
+          patientId={id}
+          readOnly={readOnly}
+          onOpenIntakeTab={() => setActiveTab('intake')}
+        />
+      )}
+
       {activeTab === 'dados' && !editingPatient && (
         <>
           <Card as="section" className={tabStyles.detailCard}>
@@ -897,6 +914,26 @@ export function PatientDetailPage() {
         <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />
       )}
       </>
+      )}
+
+      {token && id && (
+        <div hidden={activeTab !== 'notas'}>
+          <PatientAppointmentNotesPanel
+            token={token}
+            patientId={id}
+            readOnly={readOnly}
+            isActive={activeTab === 'notas'}
+            initialNotes={patient.appointmentNotes}
+            exportMeta={{
+              fullName: patient.fullName,
+              birthDate: patient.birthDate,
+              locationName: patient.location?.name ?? null,
+              therapistName: patient.therapist?.name ?? null,
+              email: patient.email,
+              phone: patient.phone,
+            }}
+          />
+        </div>
       )}
 
       {activeTab === 'picca' && user?.piccaEnabled && token && id && (

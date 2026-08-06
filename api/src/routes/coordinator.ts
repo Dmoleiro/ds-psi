@@ -20,6 +20,7 @@ import {
   listCoordinatorPatientDocuments,
 } from '../services/patientDocuments.js'
 import { getPatientTimeline } from '../services/patientTimeline.js'
+import { getCoordinatorAssessmentPipeline } from '../services/assessmentPipeline.js'
 import {
   coordinatorAppointmentsQuerySchema,
   coordinatorAttendanceQuerySchema,
@@ -104,6 +105,22 @@ export async function coordinatorRoutes(app: FastifyInstance) {
       throw error
     }
   })
+
+  app.get(
+    '/api/coordinator/patients/:id/assessment-pipeline',
+    { preHandler: coordinatorOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      try {
+        const pipeline = await getCoordinatorAssessmentPipeline(request.user.sub, id)
+        return { pipeline }
+      } catch (error) {
+        const response = patientAccessError(reply, error)
+        if (response) return response
+        throw error
+      }
+    },
+  )
 
   app.get(
     '/api/coordinator/patients/:patientId/documents',

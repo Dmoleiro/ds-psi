@@ -2,11 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import '../../components/forms/registerForms'
 import { GenericFormAnswers } from '../../components/forms/GenericFormAnswers'
-import { hasPatientFormRenderer, patientFormRenderers } from '../../components/forms/formRegistry'
+import {
+  hasPatientFormRenderer,
+  normalizePatientFormValues,
+  patientFormRenderers,
+} from '../../components/forms/formRegistry'
 import { Container } from '../../components/layout/Container'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { ApiError, patientApi } from '../../lib/api'
+import { resolvePatientFormErrorMessage } from '../../lib/patientFormErrors'
 import { isDocumentUploadForm } from '../../lib/formIds'
 import { useDraftAutosave } from '../../hooks/useDraftAutosave'
 import styles from './PatientPortal.module.css'
@@ -56,14 +61,22 @@ export function PatientFormPage() {
     setSubmitting(true)
     setError('')
     try {
-      const result = await patientApi.submitForm(token, formId, values)
+      const result = await patientApi.submitForm(
+        token,
+        formId,
+        normalizePatientFormValues(formId, values),
+      )
       if (result.allComplete) {
         navigate(`/formularios/p/${token}/concluido`, { replace: true })
       } else {
         navigate(`/formularios/p/${token}`)
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível submeter o formulário')
+      if (err instanceof ApiError) {
+        setError(resolvePatientFormErrorMessage(formId, err.message, err.details))
+      } else {
+        setError('Não foi possível submeter o formulário')
+      }
     } finally {
       setSubmitting(false)
     }

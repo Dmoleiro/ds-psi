@@ -249,6 +249,29 @@ export type PatientTimeline = {
   events: PatientTimelineEvent[]
 }
 
+export type AssessmentPipelineStageId = 'intake' | 'avaliacao' | 'picca' | 'relatorio' | 'concluido'
+export type AssessmentPipelineStageStatus = 'pending' | 'in_progress' | 'complete' | 'skipped'
+
+export type AssessmentPipelineStage = {
+  id: AssessmentPipelineStageId
+  label: string
+  status: AssessmentPipelineStageStatus
+  blockers: string[]
+}
+
+export type AssessmentPipeline = {
+  currentStage: AssessmentPipelineStageId
+  currentStageLabel: string
+  notes: string | null
+  reportDeliveredAt: string | null
+  piccaEnabled: boolean
+  stages: AssessmentPipelineStage[]
+  currentStageBlockers: string[]
+  nextStage: AssessmentPipelineStageId | null
+  nextStageLabel: string | null
+  canAdvance: boolean
+}
+
 export type DashboardAppointment = {
   id: string
   patientId: string
@@ -476,6 +499,38 @@ export const therapistApi = {
         body,
       },
     ),
+  updatePatientAppointmentNotes: (
+    token: string,
+    id: string,
+    body: { appointmentNotes: string | null },
+  ) =>
+    apiRequest<{ appointmentNotes: string | null }>(
+      `/api/therapist/patients/${id}/appointment-notes`,
+      {
+        method: 'PUT',
+        token,
+        body,
+      },
+    ),
+  getAssessmentPipeline: (token: string, id: string) =>
+    apiRequest<{ pipeline: AssessmentPipeline }>(`/api/therapist/patients/${id}/assessment-pipeline`, {
+      token,
+    }),
+  updateAssessmentPipeline: (
+    token: string,
+    id: string,
+    body: {
+      currentStage?: AssessmentPipelineStageId
+      notes?: string | null
+      reportDeliveredAt?: string | null
+      advance?: boolean
+    },
+  ) =>
+    apiRequest<{ pipeline: AssessmentPipeline }>(`/api/therapist/patients/${id}/assessment-pipeline`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
   updatePatient: (
     token: string,
     id: string,
@@ -839,6 +894,10 @@ export const coordinatorApi = {
     ),
   getPatientTimeline: (token: string, id: string) =>
     apiRequest<PatientTimeline>(`/api/coordinator/patients/${id}/timeline`, { token }),
+  getAssessmentPipeline: (token: string, id: string) =>
+    apiRequest<{ pipeline: AssessmentPipeline }>(`/api/coordinator/patients/${id}/assessment-pipeline`, {
+      token,
+    }),
   getSessionSubmissions: (token: string, sessionId: string) =>
     apiRequest<{
       session: {

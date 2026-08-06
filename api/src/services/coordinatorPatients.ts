@@ -59,6 +59,7 @@ export async function getCoordinatorPatient(coordinatorId: string, patientId: st
   return {
     ...formatPatientSummary(patient),
     internalNotes: patient.internalNotes,
+    appointmentNotes: patient.appointmentNotes,
     ...formatPatientEvaluationSelections(patient),
     therapist: patient.therapist,
     intakeSessions: patient.intakeSessions.map((session) => ({

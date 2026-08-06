@@ -58,6 +58,14 @@ enum CalendarInviteStatus {
   cancelled
 }
 
+enum AssessmentPipelineStage {
+  intake
+  avaliacao
+  picca
+  relatorio
+  concluido
+}
+
 model User {
   id           String    @id @default(uuid())
   email        String    @unique
@@ -104,8 +112,12 @@ model Patient {
   birthDate     DateTime? @map("birth_date") @db.Date
   sessionFee    Decimal?  @map("session_fee") @db.Decimal(10, 2)
   internalNotes String?   @map("internal_notes") @db.Text
+  appointmentNotes String? @map("appointment_notes") @db.Text
   wiscSelections Json     @default("[]") @map("wisc_selections")
   bancSelections Json     @default("[]") @map("banc_selections")
+  assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")
+  assessmentPipelineNotes String? @map("assessment_pipeline_notes") @db.Text
+  assessmentReportDeliveredAt DateTime? @map("assessment_report_delivered_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

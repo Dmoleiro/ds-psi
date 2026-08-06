@@ -97,6 +97,7 @@ export function formatTherapistPatient(patient: TherapistPatient) {
   return {
     ...formatPatientSummary(patient),
     internalNotes: patient.internalNotes,
+    appointmentNotes: patient.appointmentNotes,
     ...formatPatientEvaluationSelections(patient),
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,

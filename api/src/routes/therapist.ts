@@ -33,7 +33,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -54,6 +54,13 @@ import {
 import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapistNotepad.js'
 import { getPatientTimeline } from '../services/patientTimeline.js'
 import { updateTherapistPatientEvaluations } from '../services/patientEvaluations.js'
+import { updateTherapistPatientAppointmentNotes } from '../services/patientAppointmentNotes.js'
+import {
+  getCoordinatorAssessmentPipeline,
+  getTherapistAssessmentPipeline,
+  updateAssessmentPipelineSchema,
+  updateTherapistAssessmentPipeline,
+} from '../services/assessmentPipeline.js'
 import {
   getAppointmentInviteSettings,
   retryAppointmentCalendarInvite,
@@ -343,6 +350,71 @@ export async function therapistRoutes(app: FastifyInstance) {
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put(
+    '/api/therapist/patients/:id/appointment-notes',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = patientAppointmentNotesSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        return await updateTherapistPatientAppointmentNotes(
+          request.user.sub,
+          id,
+          parsed.data.appointmentNotes,
+        )
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get('/api/therapist/patients/:id/assessment-pipeline', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    try {
+      const pipeline = await getTherapistAssessmentPipeline(request.user.sub, id)
+      return { pipeline }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.patch('/api/therapist/patients/:id/assessment-pipeline', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = updateAssessmentPipelineSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const pipeline = await updateTherapistAssessmentPipeline(request.user.sub, id, parsed.data)
+      return { pipeline }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'PIPELINE_ALREADY_COMPLETE') {
+        return reply.status(400).send({ error: 'O caso de avaliação já está concluído' })
+      }
+      if (error instanceof Error && error.message === 'PIPELINE_BLOCKERS_PRESENT') {
+        return reply.status(400).send({ error: 'Resolva os bloqueios da etapa atual antes de avançar' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_PIPELINE_STAGE') {
+        return reply.status(400).send({ error: 'Etapa inválida para este caso' })
       }
       throw error
     }

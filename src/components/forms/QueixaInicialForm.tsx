@@ -24,8 +24,24 @@ export const emptyQueixaInicialForm = (): QueixaInicialValues => ({
   requestObjective: '',
 })
 
+export function normalizeQueixaInicialValues(values: Record<string, unknown>): QueixaInicialValues {
+  const defaults = emptyQueixaInicialForm()
+  const normalized = { ...defaults }
+
+  for (const key of Object.keys(defaults) as (keyof QueixaInicialValues)[]) {
+    const raw = values[key]
+    if (typeof raw === 'string') {
+      normalized[key] = raw
+    } else if (typeof raw === 'number' || typeof raw === 'boolean') {
+      normalized[key] = String(raw)
+    }
+  }
+
+  return normalized
+}
+
 function mergeValues(values: Record<string, unknown>): QueixaInicialValues {
-  return { ...emptyQueixaInicialForm(), ...values } as QueixaInicialValues
+  return normalizeQueixaInicialValues(values)
 }
 
 export function QueixaInicialForm({ values, onChange, readOnly }: PatientFormRendererProps) {
@@ -48,6 +64,7 @@ export function QueixaInicialForm({ values, onChange, readOnly }: PatientFormRen
           onChange={(event) => update('concernOrigin', event.target.value)}
           readOnly={readOnly}
           required
+          minLength={5}
         />
       </FormField>
 
@@ -129,6 +146,7 @@ export function QueixaInicialForm({ values, onChange, readOnly }: PatientFormRen
           readOnly={readOnly}
           placeholder="Ex.: início de consultas de acompanhamento, avaliação neuropsicológica para despiste de dificuldades, por precaução, etc."
           required
+          minLength={5}
         />
       </FormField>
     </div>
