@@ -15,8 +15,11 @@ import { MONTH_LABELS, shiftMonth } from '../../lib/appointments'
 import {
   formatFinancialPeriodRange,
   financialPeriodModeLabel,
+  readCustomFinancialRange,
   readFinancialPeriodMode,
+  storeCustomFinancialRange,
   storeFinancialPeriodMode,
+  clampCustomRange,
   type FinancialPeriodMode,
 } from '../../lib/financialPeriod'
 import {
@@ -202,6 +205,7 @@ export function FinancialOverviewPage() {
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
   const [periodMode, setPeriodMode] = useState<FinancialPeriodMode>(() => readFinancialPeriodMode())
+  const [customRange, setCustomRange] = useState(() => readCustomFinancialRange())
   const [overview, setOverview] = useState<FinancialOverview | null>(null)
   const [charts, setCharts] = useState<FinancialYearCharts | null>(null)
   const [settingsDraft, setSettingsDraft] = useState<FinancialSettings | null>(null)
@@ -215,11 +219,23 @@ export function FinancialOverviewPage() {
 
     setLoading(true)
     setError('')
-    Promise.all([
-      therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode),
-      therapistApi.getFinancialCharts(token, viewYear, periodMode),
-      therapistApi.getFinancialSettings(token),
-    ])
+    const overviewPromise =
+      periodMode === 'custom'
+        ? therapistApi.getFinancialOverview(
+            token,
+            Number(customRange.from.slice(0, 4)),
+            Number(customRange.from.slice(5, 7)),
+            'custom',
+            customRange,
+          )
+        : therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode)
+
+    const chartsPromise =
+      periodMode === 'custom'
+        ? Promise.resolve(null)
+        : therapistApi.getFinancialCharts(token, viewYear, periodMode)
+
+    Promise.all([overviewPromise, chartsPromise, therapistApi.getFinancialSettings(token)])
       .then(([overviewData, chartsData, settingsData]) => {
         setOverview(overviewData)
         setCharts(chartsData)
@@ -227,11 +243,17 @@ export function FinancialOverviewPage() {
       })
       .catch(() => setError('Não foi possível carregar as finanças.'))
       .finally(() => setLoading(false))
-  }, [token, user?.financialOverviewEnabled, viewYear, viewMonth, periodMode])
+  }, [token, user?.financialOverviewEnabled, viewYear, viewMonth, periodMode, customRange])
 
   function handlePeriodChange(mode: FinancialPeriodMode) {
     setPeriodMode(mode)
     storeFinancialPeriodMode(mode)
+  }
+
+  function handleCustomRangeChange(nextFrom: string, nextTo: string) {
+    const clamped = clampCustomRange(nextFrom, nextTo)
+    setCustomRange(clamped)
+    storeCustomFinancialRange(clamped.from, clamped.to)
   }
 
   const maxChartGross = useMemo(() => {
@@ -265,8 +287,20 @@ export function FinancialOverviewPage() {
       const result = await therapistApi.updateFinancialSettings(token, settingsDraft)
       setSettingsDraft(result.settings)
       setSettingsMessage('Parâmetros guardados.')
-      const overviewData = await therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode)
-      const chartsData = await therapistApi.getFinancialCharts(token, viewYear, periodMode)
+      const overviewData =
+        periodMode === 'custom'
+          ? await therapistApi.getFinancialOverview(
+              token,
+              Number(customRange.from.slice(0, 4)),
+              Number(customRange.from.slice(5, 7)),
+              'custom',
+              customRange,
+            )
+          : await therapistApi.getFinancialOverview(token, viewYear, viewMonth, periodMode)
+      const chartsData =
+        periodMode === 'custom'
+          ? null
+          : await therapistApi.getFinancialCharts(token, viewYear, periodMode)
       setOverview(overviewData)
       setCharts(chartsData)
     } catch {
@@ -300,6 +334,11 @@ export function FinancialOverviewPage() {
       overview.unpaidRows.length > 0 ||
       overview.forecastRows.length > 0)
 
+  const periodRangeLabel =
+    periodMode === 'custom'
+      ? formatFinancialPeriodRange(viewYear, viewMonth, periodMode, customRange)
+      : formatFinancialPeriodRange(viewYear, viewMonth, periodMode)
+
   return (
     <BackofficeLayout>
       <div className={styles.periodToggle} role="group" aria-label="Tipo de mês">
@@ -321,6 +360,15 @@ export function FinancialOverviewPage() {
           Mês financeiro
           <span className={styles.periodHint}>21 do mês anterior – 20</span>
         </button>
+        <button
+          type="button"
+          className={`${styles.periodOption} ${periodMode === 'custom' ? styles.periodOptionActive : ''}`}
+          onClick={() => handlePeriodChange('custom')}
+          aria-pressed={periodMode === 'custom'}
+        >
+          Período personalizado
+          <span className={styles.periodHint}>Escolha datas de início e fim</span>
+        </button>
       </div>
 
       <div className={styles.header}>
@@ -332,22 +380,47 @@ export function FinancialOverviewPage() {
           </p>
         </div>
         <div className={styles.headerActions}>
-          <div className={styles.monthNav}>
-            <button type="button" className={styles.navButton} onClick={() => changeMonth(-1)} aria-label="Mês anterior">
-              ←
-            </button>
-            <div className={styles.monthTitleBlock}>
-              <strong>
-                {MONTH_LABELS[viewMonth - 1]} {viewYear}
-              </strong>
-              <span className={styles.monthRange}>
-                {formatFinancialPeriodRange(viewYear, viewMonth, periodMode)}
-              </span>
+          {periodMode === 'custom' ? (
+            <div className={styles.customRangeNav}>
+              <div className={styles.customRangeFields}>
+                <label className={styles.customRangeField}>
+                  <span>De</span>
+                  <input
+                    type="date"
+                    value={customRange.from}
+                    onChange={(event) => handleCustomRangeChange(event.target.value, customRange.to)}
+                    aria-label="Data de início"
+                  />
+                </label>
+                <label className={styles.customRangeField}>
+                  <span>Até</span>
+                  <input
+                    type="date"
+                    value={customRange.to}
+                    min={customRange.from}
+                    onChange={(event) => handleCustomRangeChange(customRange.from, event.target.value)}
+                    aria-label="Data de fim"
+                  />
+                </label>
+              </div>
+              <span className={styles.monthRange}>{periodRangeLabel}</span>
             </div>
-            <button type="button" className={styles.navButton} onClick={() => changeMonth(1)} aria-label="Mês seguinte">
-              →
-            </button>
-          </div>
+          ) : (
+            <div className={styles.monthNav}>
+              <button type="button" className={styles.navButton} onClick={() => changeMonth(-1)} aria-label="Mês anterior">
+                ←
+              </button>
+              <div className={styles.monthTitleBlock}>
+                <strong>
+                  {MONTH_LABELS[viewMonth - 1]} {viewYear}
+                </strong>
+                <span className={styles.monthRange}>{periodRangeLabel}</span>
+              </div>
+              <button type="button" className={styles.navButton} onClick={() => changeMonth(1)} aria-label="Mês seguinte">
+                →
+              </button>
+            </div>
+          )}
           {!loading && overview && (
             <div className={styles.exportActions}>
               <Button type="button" variant="outline" onClick={handleExportPdf} disabled={!hasExportableRows}>
@@ -365,7 +438,7 @@ export function FinancialOverviewPage() {
         <p className={layout.muted}>A carregar…</p>
       ) : error ? (
         <p className={layout.error}>{error}</p>
-      ) : overview && charts && settingsDraft ? (
+      ) : overview && settingsDraft ? (
         <>
           <div className={styles.summaryGrid}>
             <SummaryCard
@@ -395,6 +468,7 @@ export function FinancialOverviewPage() {
             />
           </div>
 
+          {charts && (
           <Card as="section" className={styles.chartCard}>
             <div className={styles.chartHeader}>
               <h2>
@@ -433,6 +507,7 @@ export function FinancialOverviewPage() {
               </span>
             </div>
           </Card>
+          )}
 
           <Card as="section" className={styles.settingsCard}>
             <h2>Parâmetros</h2>
@@ -525,7 +600,11 @@ export function FinancialOverviewPage() {
             title="Realizado — presenças pagas"
             rows={overview.realizedRows}
             totals={overview.summary.realized}
-            emptyMessage="Ainda não existem presenças pagas neste mês."
+            emptyMessage={
+              periodMode === 'custom'
+                ? 'Ainda não existem presenças pagas neste período.'
+                : 'Ainda não existem presenças pagas neste mês.'
+            }
           />
 
           <FinancialTable
@@ -533,7 +612,11 @@ export function FinancialOverviewPage() {
             title="Por receber — presenças por pagar"
             rows={overview.unpaidRows}
             totals={overview.summary.unpaid}
-            emptyMessage="Ainda não existem presenças por pagar neste mês."
+            emptyMessage={
+              periodMode === 'custom'
+                ? 'Ainda não existem presenças por pagar neste período.'
+                : 'Ainda não existem presenças por pagar neste mês.'
+            }
           />
 
           <FinancialTable
@@ -541,7 +624,11 @@ export function FinancialOverviewPage() {
             title="Previsto — consultas futuras"
             rows={overview.forecastRows}
             totals={overview.summary.forecast}
-            emptyMessage="Não existem consultas futuras neste mês."
+            emptyMessage={
+              periodMode === 'custom'
+                ? 'Não existem consultas futuras neste período.'
+                : 'Não existem consultas futuras neste mês.'
+            }
           />
         </>
       ) : null}

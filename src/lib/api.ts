@@ -864,11 +864,24 @@ export const therapistApi = {
       token,
       body,
     }),
-  getFinancialOverview: (token: string, year: number, month: number, period: 'calendar' | 'fiscal' = 'calendar') =>
-    apiRequest<FinancialOverview>(
-      `/api/therapist/financial/overview?year=${year}&month=${month}&period=${period}`,
-      { token },
-    ),
+  getFinancialOverview: (
+    token: string,
+    year: number,
+    month: number,
+    period: 'calendar' | 'fiscal' | 'custom' = 'calendar',
+    customRange?: { from: string; to: string },
+  ) => {
+    const params = new URLSearchParams({
+      year: String(year),
+      month: String(month),
+      period,
+    })
+    if (period === 'custom' && customRange) {
+      params.set('from', customRange.from)
+      params.set('to', customRange.to)
+    }
+    return apiRequest<FinancialOverview>(`/api/therapist/financial/overview?${params.toString()}`, { token })
+  },
   getFinancialCharts: (token: string, year: number, period: 'calendar' | 'fiscal' = 'calendar') =>
     apiRequest<FinancialYearCharts>(
       `/api/therapist/financial/charts?year=${year}&period=${period}`,

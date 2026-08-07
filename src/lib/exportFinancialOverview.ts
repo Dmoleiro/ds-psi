@@ -100,7 +100,11 @@ function buildPrintHtml(overview: FinancialOverview, therapistName: string): str
   const generatedAt = new Date().toLocaleString('pt-PT')
   const monthTitle = formatMonthTitle(overview.year, overview.month)
   const periodTitle =
-    overview.period === 'fiscal' ? `Mês financeiro (${overview.periodLabel})` : `Mês civil (${overview.periodLabel})`
+    overview.period === 'custom'
+      ? `Período personalizado (${overview.periodLabel})`
+      : overview.period === 'fiscal'
+        ? `Mês financeiro (${overview.periodLabel})`
+        : `Mês civil (${overview.periodLabel})`
   const sections: TableSection[] = [
     {
       title: 'Realizado — presenças pagas',
@@ -233,7 +237,10 @@ export function exportFinancialOverviewPdf(overview: FinancialOverview, therapis
 }
 
 export function exportFinancialOverviewCsv(overview: FinancialOverview): void {
-  const monthTitle = formatMonthTitle(overview.year, overview.month)
+  const monthTitle =
+    overview.period === 'custom' && overview.from && overview.to
+      ? `${overview.from}_${overview.to}`
+      : formatMonthTitle(overview.year, overview.month)
   const sections: TableSection[] = [
     {
       title: 'Realizado — presenças pagas',
@@ -261,7 +268,10 @@ export function exportFinancialOverviewCsv(overview: FinancialOverview): void {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `financas-${overview.year}-${String(overview.month).padStart(2, '0')}.csv`
+  anchor.download =
+    overview.period === 'custom' && overview.from && overview.to
+      ? `financas-${overview.from}_${overview.to}.csv`
+      : `financas-${overview.year}-${String(overview.month).padStart(2, '0')}.csv`
   anchor.click()
   URL.revokeObjectURL(url)
 }

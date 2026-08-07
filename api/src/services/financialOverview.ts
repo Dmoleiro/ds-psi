@@ -2,7 +2,13 @@ import { AttendanceStatus } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { formatAppointmentDate, formatAppointmentTime } from './appointments.js'
 import { formatDateOnly } from './attendance.js'
-import { formatFinancialPeriodRange, parseFinancialPeriod, type FinancialPeriodMode } from '../lib/financialPeriod.js'
+import {
+  formatFinancialPeriodRange,
+  parseCustomFinancialPeriod,
+  parseFinancialPeriod,
+  type FinancialPeriodMode,
+  type FinancialPeriodRange,
+} from '../lib/financialPeriod.js'
 import { getClinicTodayIso } from './dashboard.js'
 import {
   decimalToNumber,
@@ -198,16 +204,18 @@ function buildAttendanceFinancialRows(
   })
 }
 
-async function loadMonthContext(
+async function loadRangeContext(
   therapistId: string,
-  year: number,
-  month: number,
-  period: FinancialPeriodMode = 'calendar',
+  range: FinancialPeriodRange,
+  meta: {
+    year: number
+    month: number
+    period: FinancialPeriodMode
+    periodLabel: string
+    from?: string
+    to?: string
+  },
 ) {
-  const range = parseFinancialPeriod(year, month, period)
-  if (!range) {
-    throw new Error('INVALID_MONTH')
-  }
 
   const rates = await getOrCreateFinancialSettings(therapistId)
 
@@ -304,10 +312,12 @@ async function loadMonthContext(
     })
 
   return {
-    year,
-    month,
-    period,
-    periodLabel: formatFinancialPeriodRange(year, month, period),
+    year: meta.year,
+    month: meta.month,
+    period: meta.period,
+    periodLabel: meta.periodLabel,
+    from: meta.from,
+    to: meta.to,
     today,
     rates,
     realizedRows,
@@ -321,12 +331,67 @@ async function loadMonthContext(
   }
 }
 
-export async function getTherapistFinancialOverview(
+async function loadMonthContext(
   therapistId: string,
   year: number,
   month: number,
   period: FinancialPeriodMode = 'calendar',
 ) {
+  const range = parseFinancialPeriod(year, month, period)
+  if (!range) {
+    throw new Error('INVALID_MONTH')
+  }
+
+  return loadRangeContext(therapistId, range, {
+    year,
+    month,
+    period,
+    periodLabel: formatFinancialPeriodRange(year, month, period),
+  })
+}
+
+export async function getTherapistFinancialOverview(
+  therapistId: string,
+  year: number,
+  month: number,
+  period: FinancialPeriodMode = 'calendar',
+  customRange?: { from: string; to: string },
+) {
+  if (period === 'custom') {
+    if (!customRange) {
+      throw new Error('INVALID_MONTH')
+    }
+
+    const range = parseCustomFinancialPeriod(customRange.from, customRange.to)
+    if (!range) {
+      throw new Error('INVALID_MONTH')
+    }
+
+    const [anchorYear, anchorMonth] = customRange.from.split('-').map(Number)
+    const context = await loadRangeContext(therapistId, range, {
+      year: anchorYear,
+      month: anchorMonth,
+      period,
+      periodLabel: formatFinancialPeriodRange(anchorYear, anchorMonth, period, customRange),
+      from: customRange.from,
+      to: customRange.to,
+    })
+
+    return {
+      year: context.year,
+      month: context.month,
+      period: context.period,
+      periodLabel: context.periodLabel,
+      from: context.from,
+      to: context.to,
+      rates: context.rates,
+      summary: context.summary,
+      realizedRows: context.realizedRows,
+      unpaidRows: context.unpaidRows,
+      forecastRows: context.forecastRows,
+    }
+  }
+
   const context = await loadMonthContext(therapistId, year, month, period)
   return {
     year: context.year,

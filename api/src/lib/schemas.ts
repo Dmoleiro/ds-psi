@@ -232,11 +232,30 @@ export const financialSettingsSchema = z.object({
   defaultSessionFee: z.coerce.number().positive().max(10000).optional(),
 })
 
-export const financialMonthQuerySchema = z.object({
-  year: z.coerce.number().int().min(2000).max(2100),
-  month: z.coerce.number().int().min(1).max(12),
-  period: z.enum(['calendar', 'fiscal']).default('calendar'),
-})
+export const financialMonthQuerySchema = z
+  .object({
+    year: z.coerce.number().int().min(2000).max(2100).optional(),
+    month: z.coerce.number().int().min(1).max(12).optional(),
+    period: z.enum(['calendar', 'fiscal', 'custom']).default('calendar'),
+    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.period === 'custom') {
+      if (!data.from || !data.to) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Datas obrigatórias', path: ['from'] })
+        return
+      }
+      if (data.to < data.from) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Data final inválida', path: ['to'] })
+      }
+      return
+    }
+
+    if (!data.year || !data.month) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Mês obrigatório', path: ['year'] })
+    }
+  })
 
 export const financialYearQuerySchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),

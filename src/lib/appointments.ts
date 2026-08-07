@@ -60,8 +60,10 @@ export type FinancialRow = {
 export type FinancialOverview = {
   year: number
   month: number
-  period: 'calendar' | 'fiscal'
+  period: 'calendar' | 'fiscal' | 'custom'
   periodLabel: string
+  from?: string
+  to?: string
   rates: FinancialSettings
   summary: {
     realized: FinancialSummary

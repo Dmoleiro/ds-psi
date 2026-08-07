@@ -912,9 +912,12 @@ export async function therapistRoutes(app: FastifyInstance) {
     try {
       return await getTherapistFinancialOverview(
         request.user.sub,
-        parsed.data.year,
-        parsed.data.month,
+        parsed.data.year ?? new Date().getFullYear(),
+        parsed.data.month ?? new Date().getMonth() + 1,
         parsed.data.period,
+        parsed.data.period === 'custom' && parsed.data.from && parsed.data.to
+          ? { from: parsed.data.from, to: parsed.data.to }
+          : undefined,
       )
     } catch (error) {
       if (error instanceof Error && error.message === 'INVALID_MONTH') {
