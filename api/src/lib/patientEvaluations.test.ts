@@ -23,8 +23,8 @@ describe('patientEvaluations', () => {
 
   it('keeps only valid additional method keys in canonical order', () => {
     expect(
-      sanitizeAdditionalMethodSelections(['stroop', 'invalid', 'd2']),
-    ).toEqual(['d2', 'stroop'])
+      sanitizeAdditionalMethodSelections(['stroop', 'invalid', 'd2', 'prova_pre_escolar_verbal']),
+    ).toEqual(['d2', 'stroop', 'prova_pre_escolar_verbal'])
   })
 
   it('keeps only valid questionnaire keys in canonical order', () => {

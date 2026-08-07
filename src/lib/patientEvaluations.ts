@@ -64,6 +64,19 @@ export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
     title: 'STROOP',
     options: [{ key: 'stroop', label: 'STROOP' }],
   },
+  {
+    title: 'Prova Avaliação Pré-Escolar',
+    options: [
+      { key: 'prova_pre_escolar_verbal', label: 'Verbal' },
+      { key: 'prova_pre_escolar_conceitos_quantitativos', label: 'Conceitos Quantitativos' },
+      { key: 'prova_pre_escolar_memoria_auditiva', label: 'Memória Auditiva' },
+      { key: 'prova_pre_escolar_constancia_de_forma', label: 'Constância de Forma' },
+      { key: 'prova_pre_escolar_posicoes_espaco', label: 'Posições Espaço' },
+      { key: 'prova_pre_escolar_orientacao_espacial', label: 'Orientação Espacial' },
+      { key: 'prova_pre_escolar_coordenacao_visiomotora', label: 'Coordenação Visiomotora' },
+      { key: 'prova_pre_escolar_figura_fundo', label: 'Figura Fundo' },
+    ],
+  },
 ]
 
 export const ADDITIONAL_METHOD_EVALUATION_OPTIONS: ReadonlyArray<EvaluationOption> =
