@@ -90,6 +90,8 @@ export const updatePatientSchema = z.object({
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
+  additionalMethodSelections: z.array(z.string()).default([]),
+  questionnaireSelections: z.array(z.string()).default([]),
 })
 
 export const patientAppointmentNotesSchema = z.object({

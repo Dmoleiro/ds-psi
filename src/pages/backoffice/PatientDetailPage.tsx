@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { FormSubmissionsPanel } from '../../components/backoffice/FormSubmissionsPanel'
 import { PiccaPatientSection, type PiccaSessionRow } from '../../components/backoffice/PiccaPatientSection'
 import {
@@ -29,6 +29,21 @@ import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentP
 import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
 
 type PatientTab = 'avaliacao' | 'historico' | 'dados' | 'notas' | 'intake' | 'picca' | 'documentos'
+
+function parsePatientTab(value: string | null): PatientTab | null {
+  if (
+    value === 'avaliacao' ||
+    value === 'historico' ||
+    value === 'dados' ||
+    value === 'notas' ||
+    value === 'intake' ||
+    value === 'picca' ||
+    value === 'documentos'
+  ) {
+    return value
+  }
+  return null
+}
 
 type SessionRow = {
   id: string
@@ -60,6 +75,8 @@ type PatientDetail = {
   therapist?: { id: string; name: string }
   wiscSelections: string[]
   bancSelections: string[]
+  additionalMethodSelections?: string[]
+  questionnaireSelections?: string[]
   intakeSessions: SessionRow[]
   piccaSessions?: PiccaSessionRow[]
   piccaInteractiveSessions?: PiccaInteractiveSessionRow[]
@@ -68,6 +85,7 @@ type PatientDetail = {
 export function PatientDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { token, user } = useAuth()
   const readOnly = user?.role === 'coordinator'
   const [activeTab, setActiveTab] = useState<PatientTab>('avaliacao')
@@ -112,6 +130,13 @@ export function PatientDetailPage() {
       .then((data) => setPatient(data.patient as unknown as PatientDetail))
       .finally(() => setLoading(false))
   }, [token, id, readOnly])
+
+  useEffect(() => {
+    const tab = parsePatientTab(searchParams.get('tab'))
+    if (!tab) return
+    if (tab === 'picca' && (readOnly || !user?.piccaEnabled)) return
+    setActiveTab(tab)
+  }, [searchParams, readOnly, user?.piccaEnabled])
 
   useEffect(() => {
     if (!token || readOnly) return
@@ -660,6 +685,8 @@ export function PatientDetailPage() {
               initialSelections={{
                 wiscSelections: patient.wiscSelections ?? [],
                 bancSelections: patient.bancSelections ?? [],
+                additionalMethodSelections: patient.additionalMethodSelections ?? [],
+                questionnaireSelections: patient.questionnaireSelections ?? [],
               }}
             />
           )}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ApiError,
@@ -960,25 +961,36 @@ export function AppointmentsCalendar({
                             )}
                           </div>
                         )}
-                        {!readOnly && (
-                          <div className={styles.existingActions}>
-                            <button
-                              type="button"
-                              className={styles.textButton}
-                              onClick={() => startEdit(appointment)}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              className={`${styles.textButton} ${styles.textButtonDanger}`}
-                              onClick={() => requestDelete(appointment)}
-                              disabled={submitting}
-                            >
-                              Eliminar
-                            </button>
-                          </div>
-                        )}
+                        <div className={styles.existingActions}>
+                          {!readOnly && (
+                            <div className={styles.existingPrimaryActions}>
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => startEdit(appointment)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles.textButton} ${styles.textButtonDanger}`}
+                                onClick={() => requestDelete(appointment)}
+                                disabled={submitting}
+                              >
+                                Eliminar
+                              </button>
+                            </div>
+                          )}
+                          {!readOnly && <span className={styles.actionDivider} aria-hidden="true" />}
+                          <Link
+                            to={`/backoffice/patients/${appointment.patientId}?tab=notas`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`${styles.textButton} ${styles.notesLink}`}
+                          >
+                            Ir para notas
+                          </Link>
+                        </div>
                       </div>
                       <AttendanceStatusTile
                         status={attendanceStatus}

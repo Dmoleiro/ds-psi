@@ -6,7 +6,7 @@ import {
   getVisiblePipelineStages,
   type PipelineStageId,
 } from '../lib/assessmentPipeline.js'
-import { sanitizeBancSelections, sanitizeWiscSelections } from '../lib/patientEvaluations.js'
+import { sanitizeAdditionalMethodSelections, sanitizeBancSelections, sanitizeWiscSelections } from '../lib/patientEvaluations.js'
 import { assertCoordinatorPatientAccess } from './coordinatorPatients.js'
 
 const pipelinePatientInclude = {
@@ -59,6 +59,7 @@ async function loadPipelinePatient(where: { id: string; therapistId?: string }) 
 function formatPipelinePatient(patient: NonNullable<Awaited<ReturnType<typeof loadPipelinePatient>>>) {
   const wiscSelections = sanitizeWiscSelections(patient.wiscSelections)
   const bancSelections = sanitizeBancSelections(patient.bancSelections)
+  const additionalMethodSelections = sanitizeAdditionalMethodSelections(patient.additionalMethodSelections)
   const piccaEnabled = patient.therapist.piccaEnabled
 
   return buildAssessmentPipelineView({
@@ -68,6 +69,7 @@ function formatPipelinePatient(patient: NonNullable<Awaited<ReturnType<typeof lo
     piccaEnabled,
     wiscSelections,
     bancSelections,
+    additionalMethodSelections,
     intakeSessions: patient.intakeSessions,
     piccaSessions: patient.piccaSessions,
     piccaInteractiveSessions: patient.piccaInteractiveSessions,

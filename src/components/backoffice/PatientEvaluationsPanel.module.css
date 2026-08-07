@@ -82,3 +82,7 @@
 .readOnlyOption {
   color: var(--color-ink);
 }
+
+.questionnaireSection > .muted:first-of-type {
+  margin-bottom: var(--space-md);
+}

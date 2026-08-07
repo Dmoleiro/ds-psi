@@ -115,6 +115,8 @@ model Patient {
   appointmentNotes String? @map("appointment_notes") @db.Text
   wiscSelections Json     @default("[]") @map("wisc_selections")
   bancSelections Json     @default("[]") @map("banc_selections")
+  additionalMethodSelections Json @default("[]") @map("additional_method_selections")
+  questionnaireSelections Json @default("[]") @map("questionnaire_selections")
   assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")
   assessmentPipelineNotes String? @map("assessment_pipeline_notes") @db.Text
   assessmentReportDeliveredAt DateTime? @map("assessment_report_delivered_at")

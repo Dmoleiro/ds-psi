@@ -125,14 +125,19 @@ export function getIntakePipelineState(sessions: IntakeSessionInput[]): {
 export function getAvaliacaoPipelineState(
   wiscSelections: string[],
   bancSelections: string[],
+  additionalMethodSelections: string[],
   intakeComplete: boolean,
 ): { status: PipelineStageStatus; blockers: string[] } {
   if (!intakeComplete) {
     return { status: 'pending', blockers: ['Concluir admissão primeiro'] }
   }
 
-  if (wiscSelections.length === 0 && bancSelections.length === 0) {
-    return { status: 'in_progress', blockers: ['Indicar testes planeados (WISC / BANC)'] }
+  if (
+    wiscSelections.length === 0 &&
+    bancSelections.length === 0 &&
+    additionalMethodSelections.length === 0
+  ) {
+    return { status: 'in_progress', blockers: ['Indicar testes planeados'] }
   }
 
   return { status: 'complete', blockers: [] }
@@ -224,6 +229,7 @@ export function buildAssessmentPipelineView(input: {
   piccaEnabled: boolean
   wiscSelections: string[]
   bancSelections: string[]
+  additionalMethodSelections: string[]
   intakeSessions: IntakeSessionInput[]
   piccaSessions: PiccaSessionInput[]
   piccaInteractiveSessions: PiccaInteractiveSessionInput[]
@@ -234,6 +240,7 @@ export function buildAssessmentPipelineView(input: {
   const avaliacao = getAvaliacaoPipelineState(
     input.wiscSelections,
     input.bancSelections,
+    input.additionalMethodSelections,
     intakeComplete,
   )
   const picca = input.piccaEnabled

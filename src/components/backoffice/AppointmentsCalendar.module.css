@@ -451,8 +451,22 @@
 
 .existingActions {
   display: flex;
+  align-items: center;
   gap: var(--space-sm);
   margin-top: var(--space-sm);
+}
+
+.existingPrimaryActions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.actionDivider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 1rem;
+  background: var(--color-border);
+  margin: 0 var(--space-sm);
 }
 
 .textButton {
@@ -462,6 +476,16 @@
   cursor: pointer;
   font-size: 0.875rem;
   padding: 0;
+  text-decoration: none;
+}
+
+a.textButton:hover {
+  text-decoration: underline;
+}
+
+.notesLink {
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
 .textButtonDanger {

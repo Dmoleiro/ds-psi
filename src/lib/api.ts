@@ -1,5 +1,6 @@
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/\/$/, '')
 
+import type { PatientEvaluationSelections } from './patientEvaluations'
 import type {
   FinancialOverview,
   FinancialSettings,
@@ -489,9 +490,9 @@ export const therapistApi = {
   updatePatientEvaluations: (
     token: string,
     id: string,
-    body: { wiscSelections: string[]; bancSelections: string[] },
+    body: PatientEvaluationSelections,
   ) =>
-    apiRequest<{ wiscSelections: string[]; bancSelections: string[] }>(
+    apiRequest<PatientEvaluationSelections>(
       `/api/therapist/patients/${id}/evaluations`,
       {
         method: 'PUT',

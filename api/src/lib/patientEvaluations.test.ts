@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { sanitizeBancSelections, sanitizeWiscSelections } from '../lib/patientEvaluations.js'
+import {
+  sanitizeAdditionalMethodSelections,
+  sanitizeBancSelections,
+  sanitizeQuestionnaireSelections,
+  sanitizeWiscSelections,
+} from '../lib/patientEvaluations.js'
 
 describe('patientEvaluations', () => {
   it('keeps only valid WISC keys in canonical order', () => {
@@ -13,6 +18,19 @@ describe('patientEvaluations', () => {
     expect(sanitizeBancSelections(['torre', 'invalid', 'lateralidade'])).toEqual([
       'lateralidade',
       'torre',
+    ])
+  })
+
+  it('keeps only valid additional method keys in canonical order', () => {
+    expect(
+      sanitizeAdditionalMethodSelections(['stroop', 'invalid', 'd2']),
+    ).toEqual(['d2', 'stroop'])
+  })
+
+  it('keeps only valid questionnaire keys in canonical order', () => {
+    expect(sanitizeQuestionnaireSelections(['cdi', 'invalid', 'sdq_por'])).toEqual([
+      'sdq_por',
+      'cdi',
     ])
   })
 })

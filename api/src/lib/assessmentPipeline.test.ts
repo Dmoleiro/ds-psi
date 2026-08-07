@@ -60,6 +60,7 @@ describe('buildAssessmentPipelineView', () => {
       piccaEnabled: false,
       wiscSelections: [],
       bancSelections: [],
+      additionalMethodSelections: [],
       intakeSessions: [
         {
           status: 'completed',
@@ -86,6 +87,7 @@ describe('buildAssessmentPipelineView', () => {
       piccaEnabled: false,
       wiscSelections: [],
       bancSelections: [],
+      additionalMethodSelections: [],
       intakeSessions: [
         {
           status: 'completed',
@@ -101,6 +103,6 @@ describe('buildAssessmentPipelineView', () => {
     })
 
     expect(view.canAdvance).toBe(false)
-    expect(view.currentStageBlockers).toContain('Indicar testes planeados (WISC / BANC)')
+    expect(view.currentStageBlockers).toContain('Indicar testes planeados')
   })
 })
