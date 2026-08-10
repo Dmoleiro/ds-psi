@@ -4,7 +4,7 @@ export type PiccaModulo4Answers = {
   primeirosPassos: string
   subiaEscadas: string
   motorGrossoObs: string
-  preensaoAdequada: string
+  preensaoAdequada: '' | 'sim' | 'nao'
   manipulacaoObjetos: string
   grafomotricidade: string
   primeirasPalavras: string
@@ -12,16 +12,19 @@ export type PiccaModulo4Answers = {
   compreensao: string
   expressao: string
   pragmatica: string
+  atrasoLinguagem: '' | 'sim' | 'nao'
   comunicacaoSocial: string[]
   brincadeira: string[]
   brincadeirasPreferidas: string
   reconheceEmocoes: string
   expressaEmocoes: string
   regulacaoEmocional: string
+  regulacaoSemAdulto: '' | 'sim' | 'nao'
   vestir: string
   alimentacaoAutonomia: string
   higiene: string
   controloEsfinteres: string
+  controloEsfinteresTipo: string[]
   perfilSensorial: string[]
   perfilSensorialObs: string
   alertas: Record<string, { presente: boolean; notas: string; gravidade?: string }>
@@ -46,16 +49,19 @@ export const defaultPiccaModulo4Answers = (): PiccaModulo4Answers => ({
   compreensao: '',
   expressao: '',
   pragmatica: '',
+  atrasoLinguagem: '',
   comunicacaoSocial: [],
   brincadeira: [],
   brincadeirasPreferidas: '',
   reconheceEmocoes: '',
   expressaEmocoes: '',
   regulacaoEmocional: '',
+  regulacaoSemAdulto: '',
   vestir: '',
   alimentacaoAutonomia: '',
   higiene: '',
   controloEsfinteres: '',
+  controloEsfinteresTipo: [],
   perfilSensorial: [],
   perfilSensorialObs: '',
   alertas: {},
@@ -67,5 +73,15 @@ export const defaultPiccaModulo4Answers = (): PiccaModulo4Answers => ({
 })
 
 export function mergePiccaModulo4Answers(raw: Record<string, unknown>): PiccaModulo4Answers {
-  return { ...defaultPiccaModulo4Answers(), ...(raw as Partial<PiccaModulo4Answers>) }
+  const defaults = defaultPiccaModulo4Answers()
+  const partial = raw as Partial<PiccaModulo4Answers>
+  const legacyPreensao = raw.preensaoAdequada
+  let preensaoAdequada = partial.preensaoAdequada ?? defaults.preensaoAdequada
+  if (legacyPreensao === 'Sim') preensaoAdequada = 'sim'
+  if (legacyPreensao === 'Não' || legacyPreensao === 'Nao') preensaoAdequada = 'nao'
+  return {
+    ...defaults,
+    ...partial,
+    preensaoAdequada,
+  }
 }

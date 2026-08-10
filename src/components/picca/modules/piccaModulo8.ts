@@ -33,7 +33,8 @@ export type PiccaModulo8Answers = {
 export const PICCA_MOD8_INSTRUMENTS = [
   { id: 'griffiths', label: 'Griffiths' },
   { id: 'wisc', label: 'WPPSI/WISC' },
-  { id: 'bancd2', label: 'BANCD2' },
+  { id: 'banc', label: 'BANC' },
+  { id: 'd2', label: 'D2' },
   { id: 'figura_rey', label: 'Figura Complexa de Rey' },
   { id: 'aseba', label: 'ASEBA' },
   { id: 'conners', label: 'Conners' },
@@ -73,9 +74,18 @@ export const defaultPiccaModulo8Answers = (): PiccaModulo8Answers => ({
 export function mergePiccaModulo8Answers(raw: Record<string, unknown>): PiccaModulo8Answers {
   const defaults = defaultPiccaModulo8Answers()
   const partial = raw as Partial<PiccaModulo8Answers>
+  const instrumentos = { ...defaults.instrumentos, ...partial.instrumentos }
+  const legacy = instrumentos.bancd2
+  if (legacy && !instrumentos.banc?.resultados && !instrumentos.banc?.integracao) {
+    instrumentos.banc = { ...legacy }
+  }
+  if (legacy && !instrumentos.d2?.resultados && !instrumentos.d2?.integracao) {
+    instrumentos.d2 = { ...legacy }
+  }
   return {
     ...defaults,
     ...partial,
+    instrumentos,
     objetivosCurtoPrazo: partial.objetivosCurtoPrazo ?? defaults.objetivosCurtoPrazo,
     objetivosMedioPrazo: partial.objetivosMedioPrazo ?? defaults.objetivosMedioPrazo,
     objetivosLongoPrazo: partial.objetivosLongoPrazo ?? defaults.objetivosLongoPrazo,

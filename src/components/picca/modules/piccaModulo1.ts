@@ -19,14 +19,23 @@ export type PiccaModulo1Answers = {
   contacto: string
   nif: string
   sns: string
+  seguroSaude: string
   mae: PiccaCaregiverInfo
   pai: PiccaCaregiverInfo
-  outrosCuidadores: string
+  outrosCuidadoresQuem: string
+  outroCuidador: PiccaCaregiverInfo
   encaminhado: string[]
   encaminhadoOutro: string
   motivoPrincipal: string
+  consultaPsicologia: '' | 'sim' | 'nao'
+  consultaPsicologiaMotivo: string
   objetivos: string[]
   objetivosOutro: string
+  principaisPreocupacoes: string
+  consultaOutraEspecialidade: '' | 'sim' | 'nao'
+  consultaOutraEspecialidadeQual: string
+  consultaOutraEspecialidadeMotivo: string
+  consultaOutraEspecialidadeResultado: string
   sintesePreocupacoes: string
   sintesePredisponentes: string
   sinteseProtetores: string
@@ -54,14 +63,23 @@ export const defaultPiccaModulo1Answers = (): PiccaModulo1Answers => ({
   contacto: '',
   nif: '',
   sns: '',
+  seguroSaude: '',
   mae: emptyCaregiver(),
   pai: emptyCaregiver(),
-  outrosCuidadores: '',
+  outrosCuidadoresQuem: '',
+  outroCuidador: emptyCaregiver(),
   encaminhado: [],
   encaminhadoOutro: '',
   motivoPrincipal: '',
+  consultaPsicologia: '',
+  consultaPsicologiaMotivo: '',
   objetivos: [],
   objetivosOutro: '',
+  principaisPreocupacoes: '',
+  consultaOutraEspecialidade: '',
+  consultaOutraEspecialidadeQual: '',
+  consultaOutraEspecialidadeMotivo: '',
+  consultaOutraEspecialidadeResultado: '',
   sintesePreocupacoes: '',
   sintesePredisponentes: '',
   sinteseProtetores: '',
@@ -76,5 +94,9 @@ export function mergePiccaModulo1Answers(raw: Record<string, unknown>): PiccaMod
     ...partial,
     mae: { ...defaults.mae, ...(partial.mae ?? {}) },
     pai: { ...defaults.pai, ...(partial.pai ?? {}) },
+    outroCuidador: { ...defaults.outroCuidador, ...(partial.outroCuidador ?? {}) },
+    outrosCuidadoresQuem:
+      partial.outrosCuidadoresQuem ??
+      (typeof raw.outrosCuidadores === 'string' ? raw.outrosCuidadores : defaults.outrosCuidadoresQuem),
   }
 }

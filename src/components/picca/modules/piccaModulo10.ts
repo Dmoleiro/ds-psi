@@ -21,7 +21,8 @@ export type PiccaModulo10Answers = {
 export const PICCA_MOD10_INSTRUMENTS = [
   { id: 'griffiths', label: 'Griffiths' },
   { id: 'wisc', label: 'WPPSI/WISC' },
-  { id: 'bancd2', label: 'BANCD2' },
+  { id: 'banc', label: 'BANC' },
+  { id: 'd2', label: 'D2' },
   { id: 'figura_rey', label: 'Figura Complexa de Rey' },
   { id: 'aseba', label: 'ASEBA' },
   { id: 'conners', label: 'Conners' },
@@ -54,9 +55,18 @@ export const defaultPiccaModulo10Answers = (): PiccaModulo10Answers => ({
 export function mergePiccaModulo10Answers(raw: Record<string, unknown>): PiccaModulo10Answers {
   const defaults = defaultPiccaModulo10Answers()
   const partial = raw as Partial<PiccaModulo10Answers>
+  const instrumentosAplicados = { ...defaults.instrumentosAplicados, ...partial.instrumentosAplicados }
+  const legacy = instrumentosAplicados.bancd2
+  if (legacy && !instrumentosAplicados.banc?.data && !instrumentosAplicados.banc?.conclusoes) {
+    instrumentosAplicados.banc = { ...legacy }
+  }
+  if (legacy && !instrumentosAplicados.d2?.data && !instrumentosAplicados.d2?.conclusoes) {
+    instrumentosAplicados.d2 = { ...legacy }
+  }
   return {
     ...defaults,
     ...partial,
+    instrumentosAplicados,
     planoFollowup: partial.planoFollowup?.length ? partial.planoFollowup : defaults.planoFollowup,
   }
 }

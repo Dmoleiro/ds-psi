@@ -68,6 +68,13 @@ export function PiccaModulo5Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaTextField
+          label="Completa tarefas e conclui as mesmas"
+          value={answers.completaTarefas}
+          onChange={(completaTarefas) => set({ completaTarefas })}
+          readOnly={readOnly}
+          multiline
+        />
       </PiccaSection>
 
       <PiccaSection title="Memória e Aprendizagem">
@@ -168,6 +175,27 @@ export function PiccaModulo5Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaTextField
+          label="Medos"
+          value={answers.medos}
+          onChange={(medos) => set({ medos })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaTextField
+          label="Evitamentos"
+          value={answers.evitamentos}
+          onChange={(evitamentos) => set({ evitamentos })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaTextField
+          label="Recusas"
+          value={answers.recusas}
+          onChange={(recusas) => set({ recusas })}
+          readOnly={readOnly}
+          multiline
+        />
       </PiccaSection>
 
       <PiccaSection title="Comportamento">
@@ -230,6 +258,30 @@ export function PiccaModulo5Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaRadioGroup
+          label="Prefere estar com adultos"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.prefereAdultos}
+          onChange={(prefereAdultos) =>
+            set({ prefereAdultos: prefereAdultos as PiccaModulo5Answers['prefereAdultos'] })
+          }
+          readOnly={readOnly}
+        />
+        <PiccaRadioGroup
+          label="Tem amigos preferidos"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.amigosPreferidos}
+          onChange={(amigosPreferidos) =>
+            set({ amigosPreferidos: amigosPreferidos as PiccaModulo5Answers['amigosPreferidos'] })
+          }
+          readOnly={readOnly}
+        />
       </PiccaSection>
 
       <PiccaSection title="Autonomia">
@@ -254,6 +306,20 @@ export function PiccaModulo5Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaRadioGroup
+          label="Precisa de ajuda para estas tarefas?"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.precisaAjudaTarefas}
+          onChange={(precisaAjudaTarefas) =>
+            set({
+              precisaAjudaTarefas: precisaAjudaTarefas as PiccaModulo5Answers['precisaAjudaTarefas'],
+            })
+          }
+          readOnly={readOnly}
+        />
       </PiccaSection>
 
       <PiccaSection title="Sono e Alimentação">
@@ -270,6 +336,40 @@ export function PiccaModulo5Form({ value, onChange, readOnly }: Props) {
           onChange={(habitosAlimentares) => set({ habitosAlimentares })}
           readOnly={readOnly}
           multiline
+        />
+        <div className={styles.inlineFields}>
+          <PiccaTextField
+            label="N.º horas de sono"
+            value={answers.horasSono}
+            onChange={(horasSono) => set({ horasSono })}
+            readOnly={readOnly}
+          />
+          <PiccaTextField
+            label="Hora de deitar"
+            value={answers.horaDeitar}
+            onChange={(horaDeitar) => set({ horaDeitar })}
+            readOnly={readOnly}
+          />
+          <PiccaTextField
+            label="Hora de acordar"
+            value={answers.horaAcordar}
+            onChange={(horaAcordar) => set({ horaAcordar })}
+            readOnly={readOnly}
+          />
+        </div>
+        <PiccaRadioGroup
+          label="Despertares noturnos?"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.despertaresNoturnos}
+          onChange={(despertaresNoturnos) =>
+            set({
+              despertaresNoturnos: despertaresNoturnos as PiccaModulo5Answers['despertaresNoturnos'],
+            })
+          }
+          readOnly={readOnly}
         />
       </PiccaSection>
 

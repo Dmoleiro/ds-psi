@@ -108,6 +108,12 @@ function text(value: string | null | undefined): string {
   return trimmed ? trimmed : EM_DASH
 }
 
+function simNao(value: '' | 'sim' | 'nao' | string | undefined): string {
+  if (value === 'sim') return 'Sim'
+  if (value === 'nao') return 'Não'
+  return EM_DASH
+}
+
 function labelsFromIds(ids: string[], options: Record<string, string>): string {
   if (!ids.length) return EM_DASH
   return ids.map((id) => options[id] ?? id).join(', ')
@@ -337,6 +343,8 @@ function formatModulo3(answers: Record<string, unknown>): PiccaPresentationSecti
           planeada: 'Gravidez planeada',
           nao_planeada: 'Não planeada',
           fertilidade: 'Fertilidade medicamente assistida',
+          risco: 'Gravidez de risco',
+          sem_intercorrencias_final: 'Gravidez sem intercorrências até ao final da gestação',
         }),
       ),
       field('Idade materna', text(a.idadeMaterna)),
@@ -354,13 +362,25 @@ function formatModulo3(answers: Record<string, unknown>): PiccaPresentationSecti
           infeccoes: 'Infeções',
           hemorragias: 'Hemorragias',
           hospitalizacoes: 'Hospitalizações',
+          alcool_tabaco_drogas: 'Consumo de álcool/tabaco/drogas',
           alcool_tabaco: 'Consumo de álcool/tabaco',
+          enjoos_vomitos: 'Enjoos e vómitos',
           stress: 'Stress significativo',
           ansiedade: 'Ansiedade',
           depressao: 'Depressão',
         }),
       ),
       field('Medicação durante a gravidez', text(a.gravidezMedicacao)),
+      field(
+        'Durante a gravidez a criança era',
+        labelsFromIds(a.gravidezCrianca, {
+          agitada: 'Agitada',
+          muito_mexida: 'Muito mexida',
+          muito_calma: 'Demasiado calma e sem se mexer muito',
+          ativa_noite: 'Mais ativa à noite',
+          ativa_dia: 'Mais ativa durante o dia',
+        }),
+      ),
       field('Observações', text(a.gravidezObs)),
     ]),
     section('3. Parto', [
@@ -390,6 +410,7 @@ function formatModulo3(answers: Record<string, unknown>): PiccaPresentationSecti
           ictericia: 'Icterícia',
           convulsoes: 'Convulsões',
           respiratorias: 'Dificuldades respiratórias',
+          alimentacao_materna: 'Alimentação materna',
           alimentacao: 'Alimentação',
         }),
       ),
@@ -397,7 +418,25 @@ function formatModulo3(answers: Record<string, unknown>): PiccaPresentationSecti
     ]),
     section('5. Primeiros Meses de Vida', [
       field('Sono', text(a.sono)),
+      field(
+        'Padrão de sono',
+        labelsFromIds(a.sonoRegular, {
+          regular: 'Regular',
+          interrupcoes: 'Com interrupções',
+        }),
+      ),
+      field('Horas de sono noturnas', text(a.sonoHorasNoturnas)),
+      field('Berço no quarto dos pais até (meses)', text(a.berçoQuartosPaisMeses)),
+      field('Quarto próprio aos (meses/anos)', text(a.quartoProprioIdade)),
       field('Alimentação', text(a.alimentacao)),
+      field(
+        'Tipo de alimentação',
+        labelsFromIds(a.alimentacaoTipo, {
+          materna: 'Alimentação exclusivamente materna',
+          formula: 'Alimentação com leite de fórmula',
+          ambas: 'Ambas',
+        }),
+      ),
       field(
         'Temperamento',
         labelsFromIds(a.temperamento, {
@@ -408,6 +447,18 @@ function formatModulo3(answers: Record<string, unknown>): PiccaPresentationSecti
         }),
       ),
       field('Vinculação precoce', text(a.vinculacaoPrecoce)),
+      field(
+        'Vinculação com',
+        labelsFromIds(a.vinculacaoTipo, {
+          mae: 'Mãe exclusivamente',
+          pai: 'Pai exclusivamente',
+          ambos: 'Ambos',
+          outro: 'Outro cuidador/familiar',
+        }),
+      ),
+      field('Outro cuidador/familiar', text(a.vinculacaoOutroCuidador)),
+      field('Alterações auditivas', simNao(a.alteracoesAuditivas)),
+      field('Convulsões febris', simNao(a.convulsoesFebris)),
     ]),
     section('Indicadores Clínicos de Alerta', [
       field(
@@ -443,7 +494,7 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Observações', text(a.motorGrossoObs)),
     ]),
     section('2. Desenvolvimento Motor Fino', [
-      field('Preensão adequada', text(a.preensaoAdequada)),
+      field('Preensão adequada', simNao(a.preensaoAdequada)),
       field('Manipulação de objetos', text(a.manipulacaoObjetos)),
       field('Grafomotricidade', text(a.grafomotricidade)),
     ]),
@@ -453,6 +504,7 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Compreensão', text(a.compreensao)),
       field('Expressão', text(a.expressao)),
       field('Pragmática', text(a.pragmatica)),
+      field('Atraso no desenvolvimento da linguagem', simNao(a.atrasoLinguagem)),
     ]),
     section('4. Comunicação Social', [
       field(
@@ -463,6 +515,7 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
           responde_nome: 'Responde ao nome',
           inicia_interacao: 'Inicia interação',
           mantem_conversa: 'Mantém conversação',
+          adulto_extensao: 'Usa o adulto como extensão dele próprio para atingir o que quer',
         }),
       ),
     ]),
@@ -482,12 +535,20 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Reconhece emoções', text(a.reconheceEmocoes)),
       field('Expressa emoções', text(a.expressaEmocoes)),
       field('Regulação emocional', text(a.regulacaoEmocional)),
+      field('Regula emoções sem adulto', simNao(a.regulacaoSemAdulto)),
     ]),
     section('7. Autonomia', [
       field('Vestir-se', text(a.vestir)),
       field('Alimentação', text(a.alimentacaoAutonomia)),
       field('Higiene', text(a.higiene)),
       field('Controlo de esfíncteres', text(a.controloEsfinteres)),
+      field(
+        'Tipo de controlo',
+        labelsFromIds(a.controloEsfinteresTipo, {
+          noturno: 'Noturno',
+          diurno: 'Diurno',
+        }),
+      ),
     ]),
     section('8. Perfil Sensorial', [
       field(
@@ -612,11 +673,13 @@ function formatModulo1(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Contacto', text(a.contacto)),
       field('NIF', text(a.nif)),
       field('N.º SNS', text(a.sns)),
+      field('Seguro de Saúde n.º', text(a.seguroSaude)),
     ]),
     section('2. Pais/Cuidadores', [
       field('Mãe', formatCaregiver('Mãe', a.mae)),
       field('Pai', formatCaregiver('Pai', a.pai)),
-      field('Outros cuidadores', text(a.outrosCuidadores)),
+      field('Outros cuidadores — quem?', text(a.outrosCuidadoresQuem)),
+      field('Outro cuidador', formatCaregiver('Outro cuidador', a.outroCuidador)),
     ]),
     section('3. Motivo da Referenciação', [
       field(
@@ -634,7 +697,14 @@ function formatModulo1(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Outro (especificar)', text(a.encaminhadoOutro)),
       field('Motivo principal', text(a.motivoPrincipal)),
     ]),
-    section('4. Objetivos da Avaliação', [
+    section('3.1 Consulta de Psicologia', [
+      field(
+        'Alguma vez esteve em consulta de Psicologia?',
+        a.consultaPsicologia === 'sim' ? 'Sim' : a.consultaPsicologia === 'nao' ? 'Não' : EM_DASH,
+      ),
+      field('Motivo da consulta', text(a.consultaPsicologiaMotivo)),
+    ]),
+    section('4. Objetivos da Referenciação/Avaliação', [
       field(
         'Objetivos',
         labelsFromIds(a.objetivos, {
@@ -646,9 +716,22 @@ function formatModulo1(answers: Record<string, unknown>): PiccaPresentationSecti
           emocoes: 'Emoções',
           comportamento: 'Comportamento',
           outro: 'Outro',
+          sem_motivo_diagnosticado: 'Sem motivo aparentemente diagnosticado',
         }),
       ),
       field('Outro objetivo', text(a.objetivosOutro)),
+      field('Principais preocupações até ao momento', text(a.principaisPreocupacoes)),
+      field(
+        'Já fez consultas de outra especialidade?',
+        a.consultaOutraEspecialidade === 'sim'
+          ? 'Sim'
+          : a.consultaOutraEspecialidade === 'nao'
+            ? 'Não'
+            : EM_DASH,
+      ),
+      field('Especialidade', text(a.consultaOutraEspecialidadeQual)),
+      field('Motivo da consulta (outra especialidade)', text(a.consultaOutraEspecialidadeMotivo)),
+      field('Resultado da consulta', text(a.consultaOutraEspecialidadeResultado)),
     ]),
     section('Síntese Clínica Inicial', [
       field('Principais preocupações', text(a.sintesePreocupacoes)),
@@ -674,6 +757,7 @@ function formatModulo5(answers: Record<string, unknown>): PiccaPresentationSecti
       ),
       field('Planeamento/organização', text(a.planeamentoOrganizacao)),
       field('Flexibilidade cognitiva', text(a.flexibilidadeCognitiva)),
+      field('Completa tarefas e conclui as mesmas', text(a.completaTarefas)),
     ]),
     section('Memória e Aprendizagem', [
       field('Memória imediata', text(a.memoriaImediata)),
@@ -695,6 +779,9 @@ function formatModulo5(answers: Record<string, unknown>): PiccaPresentationSecti
         a.ansiedade ? ANSIEDADE_LABELS[a.ansiedade] ?? a.ansiedade : EM_DASH,
       ),
       field('Autoestima', text(a.autoestima)),
+      field('Medos', text(a.medos)),
+      field('Evitamentos', text(a.evitamentos)),
+      field('Recusas', text(a.recusas)),
     ]),
     section('Comportamento', [
       field('Impulsividade', text(a.impulsividade)),
@@ -707,15 +794,22 @@ function formatModulo5(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Relação com adultos', text(a.relacaoAdultos)),
       field('Empatia', text(a.empatia)),
       field('Bullying', text(a.bullying)),
+      field('Prefere estar com adultos', simNao(a.prefereAdultos)),
+      field('Tem amigos preferidos', simNao(a.amigosPreferidos)),
     ]),
     section('Autonomia', [
       field('Higiene pessoal', text(a.higienePessoal)),
       field('Gestão de rotinas', text(a.gestaoRotinas)),
       field('Trabalhos de casa', text(a.trabalhosCasa)),
+      field('Precisa de ajuda para estas tarefas', simNao(a.precisaAjudaTarefas)),
     ]),
     section('Sono e Alimentação', [
       field('Qualidade do sono', text(a.qualidadeSono)),
       field('Hábitos alimentares', text(a.habitosAlimentares)),
+      field('N.º horas de sono', text(a.horasSono)),
+      field('Hora de deitar', text(a.horaDeitar)),
+      field('Hora de acordar', text(a.horaAcordar)),
+      field('Despertares noturnos', simNao(a.despertaresNoturnos)),
     ]),
     section('Integração com Instrumentos de Avaliação', [
       field('Instrumentos', formatInstrumentTable(a.instrumentos, PICCA_MOD5_INSTRUMENTS)),
@@ -735,7 +829,7 @@ function formatModulo6(answers: Record<string, unknown>): PiccaPresentationSecti
   const a = mergePiccaModulo6Answers(answers)
 
   return [
-    section('Creche e Pré-Escolar', [
+    section('Creche', [
       field('Idade de ingresso', text(a.crecheIngresso)),
       field(
         'Adaptação',
@@ -744,6 +838,20 @@ function formatModulo6(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Relação com educadores', text(a.crecheEducadores)),
       field('Relação com pares', text(a.crechePares)),
       field('Principais observações', text(a.crecheObs)),
+      field('N.º horas por semana na creche', text(a.crecheHorasSemana)),
+    ]),
+    section('Pré-Escolar', [
+      field('Idade de ingresso', text(a.preEscolarIngresso)),
+      field(
+        'Adaptação',
+        a.preEscolarAdaptacao
+          ? ADAPTACAO_LABELS[a.preEscolarAdaptacao] ?? a.preEscolarAdaptacao
+          : EM_DASH,
+      ),
+      field('Relação com educadores', text(a.preEscolarEducadores)),
+      field('Relação com pares', text(a.preEscolarPares)),
+      field('Principais observações', text(a.preEscolarObs)),
+      field('N.º horas por semana na pré-escola', text(a.preEscolarHorasSemana)),
     ]),
     section('1.º Ciclo', [
       field('Adaptação ao 1.º ciclo', text(a.ciclo1Adaptacao)),

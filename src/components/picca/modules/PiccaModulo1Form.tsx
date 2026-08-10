@@ -2,6 +2,7 @@ import {
   PiccaCaregiverFields,
   PiccaCheckboxGroup,
   PiccaObjective,
+  PiccaRadioGroup,
   PiccaReadOnlyText,
   PiccaSection,
   PiccaTextField,
@@ -28,6 +29,12 @@ const OBJETIVOS = [
   { id: 'emocoes', label: 'Emoções' },
   { id: 'comportamento', label: 'Comportamento' },
   { id: 'outro', label: 'Outro' },
+  { id: 'sem_motivo_diagnosticado', label: 'Sem motivo aparentemente diagnosticado' },
+]
+
+const SIM_NAO = [
+  { id: 'sim', label: 'Sim' },
+  { id: 'nao', label: 'Não' },
 ]
 
 type Props = {
@@ -95,7 +102,7 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
             readOnly={readOnly}
           />
           <PiccaTextField
-            label="Professor(a)/DT"
+            label="Professor(a)/DT/Educador"
             value={answers.professor}
             onChange={(professor) => set({ professor })}
             readOnly={readOnly}
@@ -124,6 +131,12 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
             onChange={(sns) => set({ sns })}
             readOnly={readOnly}
           />
+          <PiccaTextField
+            label="Seguro de Saúde n.º"
+            value={answers.seguroSaude}
+            onChange={(seguroSaude) => set({ seguroSaude })}
+            readOnly={readOnly}
+          />
         </div>
       </PiccaSection>
 
@@ -141,11 +154,16 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
         />
         <PiccaTextField
-          label="Outros cuidadores"
-          value={answers.outrosCuidadores}
-          onChange={(outrosCuidadores) => set({ outrosCuidadores })}
+          label="Outros cuidadores — quem?"
+          value={answers.outrosCuidadoresQuem}
+          onChange={(outrosCuidadoresQuem) => set({ outrosCuidadoresQuem })}
           readOnly={readOnly}
-          multiline
+        />
+        <PiccaCaregiverFields
+          title="Outro cuidador"
+          value={answers.outroCuidador}
+          onChange={(outroCuidador) => set({ outroCuidador })}
+          readOnly={readOnly}
         />
       </PiccaSection>
 
@@ -174,7 +192,28 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
         />
       </PiccaSection>
 
-      <PiccaSection title="4. Objetivos da Avaliação">
+      <PiccaSection title="3.1 Consulta de Psicologia">
+        <PiccaRadioGroup
+          label="Alguma vez esteve em consulta de Psicologia?"
+          options={SIM_NAO}
+          value={answers.consultaPsicologia}
+          onChange={(consultaPsicologia) =>
+            set({ consultaPsicologia: consultaPsicologia as PiccaModulo1Answers['consultaPsicologia'] })
+          }
+          readOnly={readOnly}
+        />
+        {answers.consultaPsicologia === 'sim' && (
+          <PiccaTextField
+            label="Motivo da consulta"
+            value={answers.consultaPsicologiaMotivo}
+            onChange={(consultaPsicologiaMotivo) => set({ consultaPsicologiaMotivo })}
+            readOnly={readOnly}
+            multiline
+          />
+        )}
+      </PiccaSection>
+
+      <PiccaSection title="4. Objetivos da Referenciação/Avaliação">
         <PiccaCheckboxGroup
           options={OBJETIVOS}
           value={answers.objetivos}
@@ -189,9 +228,54 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
             readOnly={readOnly}
           />
         )}
+        <PiccaTextField
+          label="Principais preocupações até ao momento"
+          value={answers.principaisPreocupacoes}
+          onChange={(principaisPreocupacoes) => set({ principaisPreocupacoes })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaRadioGroup
+          label="Já fez consultas de outra especialidade?"
+          options={SIM_NAO}
+          value={answers.consultaOutraEspecialidade}
+          onChange={(consultaOutraEspecialidade) =>
+            set({
+              consultaOutraEspecialidade:
+                consultaOutraEspecialidade as PiccaModulo1Answers['consultaOutraEspecialidade'],
+            })
+          }
+          readOnly={readOnly}
+        />
+        {answers.consultaOutraEspecialidade === 'sim' && (
+          <>
+            <PiccaTextField
+              label="Especialidade"
+              value={answers.consultaOutraEspecialidadeQual}
+              onChange={(consultaOutraEspecialidadeQual) => set({ consultaOutraEspecialidadeQual })}
+              readOnly={readOnly}
+            />
+            <PiccaTextField
+              label="Motivo da consulta"
+              value={answers.consultaOutraEspecialidadeMotivo}
+              onChange={(consultaOutraEspecialidadeMotivo) => set({ consultaOutraEspecialidadeMotivo })}
+              readOnly={readOnly}
+              multiline
+            />
+            <PiccaTextField
+              label="Resultado da consulta"
+              value={answers.consultaOutraEspecialidadeResultado}
+              onChange={(consultaOutraEspecialidadeResultado) =>
+                set({ consultaOutraEspecialidadeResultado })
+              }
+              readOnly={readOnly}
+              multiline
+            />
+          </>
+        )}
       </PiccaSection>
 
-      <PiccaSection title="Síntese Clínica Inicial">
+      <PiccaSection title="Síntese Clínica Inicial (a preencher apenas pelo Psicólogo)">
         <PiccaTextField
           label="Principais preocupações"
           value={answers.sintesePreocupacoes}
@@ -222,19 +306,16 @@ export function PiccaModulo1Form({ value, onChange, readOnly }: Props) {
         />
       </PiccaSection>
 
-      <PiccaSection title="Plano do Volume I">
+      <PiccaSection title="Plano do Volume I e II">
         <PiccaReadOnlyText>
-          {`Este documento será desenvolvido em módulos:
-1. Identificação e referenciação
+          {`1. Identificação e referenciação
 2. História familiar
 3. Gravidez, parto e período neonatal
 4. História do desenvolvimento
-5. Funcionamento atual
-6. Percurso escolar
-7. Observação clínica
-8. Síntese clínica inicial
-
-Cada módulo integrará notas clínicas, indicadores de alerta, fatores dos 5 P's e espaço para formulação de caso.`}
+5. História médica
+6. Funcionamento atual
+7. História escolar
+8. Síntese clínica inicial`}
         </PiccaReadOnlyText>
       </PiccaSection>
     </div>

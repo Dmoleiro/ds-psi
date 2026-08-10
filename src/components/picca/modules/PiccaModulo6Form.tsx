@@ -44,7 +44,7 @@ export function PiccaModulo6Form({ value, onChange, readOnly }: Props) {
         dificuldades académicas, adaptações, impacto funcional e necessidades educativas.
       </PiccaObjective>
 
-      <PiccaSection title="Creche e Pré-Escolar">
+      <PiccaSection title="Creche">
         <PiccaTextField
           label="Idade de ingresso"
           value={answers.crecheIngresso}
@@ -84,6 +84,63 @@ export function PiccaModulo6Form({ value, onChange, readOnly }: Props) {
           onChange={(crecheObs) => set({ crecheObs })}
           readOnly={readOnly}
           multiline
+        />
+        <PiccaTextField
+          label="N.º horas por semana na creche"
+          value={answers.crecheHorasSemana}
+          onChange={(crecheHorasSemana) => set({ crecheHorasSemana })}
+          readOnly={readOnly}
+        />
+      </PiccaSection>
+
+      <PiccaSection title="Pré-Escolar">
+        <PiccaTextField
+          label="Idade de ingresso"
+          value={answers.preEscolarIngresso}
+          onChange={(preEscolarIngresso) => set({ preEscolarIngresso })}
+          readOnly={readOnly}
+        />
+        <PiccaRadioGroup
+          label="Adaptação"
+          options={[
+            { id: 'facil', label: 'Fácil' },
+            { id: 'moderada', label: 'Moderada' },
+            { id: 'dificil', label: 'Difícil' },
+          ]}
+          value={answers.preEscolarAdaptacao}
+          onChange={(preEscolarAdaptacao) =>
+            set({
+              preEscolarAdaptacao: preEscolarAdaptacao as PiccaModulo6Answers['preEscolarAdaptacao'],
+            })
+          }
+          readOnly={readOnly}
+        />
+        <PiccaTextField
+          label="Relação com educadores"
+          value={answers.preEscolarEducadores}
+          onChange={(preEscolarEducadores) => set({ preEscolarEducadores })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaTextField
+          label="Relação com pares"
+          value={answers.preEscolarPares}
+          onChange={(preEscolarPares) => set({ preEscolarPares })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaTextField
+          label="Principais observações"
+          value={answers.preEscolarObs}
+          onChange={(preEscolarObs) => set({ preEscolarObs })}
+          readOnly={readOnly}
+          multiline
+        />
+        <PiccaTextField
+          label="N.º horas por semana na pré-escola"
+          value={answers.preEscolarHorasSemana}
+          onChange={(preEscolarHorasSemana) => set({ preEscolarHorasSemana })}
+          readOnly={readOnly}
         />
       </PiccaSection>
 

@@ -2,6 +2,7 @@ import {
   PiccaAlertTable,
   PiccaCheckboxGroup,
   PiccaObjective,
+  PiccaRadioGroup,
   PiccaSection,
   PiccaTextField,
 } from '../PiccaFields'
@@ -35,8 +36,9 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
   return (
     <div className={styles.form}>
       <PiccaObjective>
-        Marcos do desenvolvimento, competências, sinais de alerta e áreas de vulnerabilidade para a
-        formulação de caso.
+        Avaliar os principais marcos do desenvolvimento, identificar fatores predisponentes do
+        neurodesenvolvimento, áreas de competência e sinais de alerta relevantes para a formulação
+        de caso.
       </PiccaObjective>
 
       <PiccaSection title="1. Desenvolvimento Motor Grosso">
@@ -76,10 +78,16 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
       </PiccaSection>
 
       <PiccaSection title="2. Desenvolvimento Motor Fino">
-        <PiccaTextField
-          label="Preensão adequada (Sim/Não)"
+        <PiccaRadioGroup
+          label="Preensão adequada (uso da pinça indicador e polegar)"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
           value={answers.preensaoAdequada}
-          onChange={(preensaoAdequada) => set({ preensaoAdequada })}
+          onChange={(preensaoAdequada) =>
+            set({ preensaoAdequada: preensaoAdequada as PiccaModulo4Answers['preensaoAdequada'] })
+          }
           readOnly={readOnly}
         />
         <PiccaTextField
@@ -132,6 +140,18 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaRadioGroup
+          label="Atraso no desenvolvimento da linguagem"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.atrasoLinguagem}
+          onChange={(atrasoLinguagem) =>
+            set({ atrasoLinguagem: atrasoLinguagem as PiccaModulo4Answers['atrasoLinguagem'] })
+          }
+          readOnly={readOnly}
+        />
       </PiccaSection>
 
       <PiccaSection title="4. Comunicação Social">
@@ -142,6 +162,10 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
             { id: 'responde_nome', label: 'Responde ao nome' },
             { id: 'inicia_interacao', label: 'Inicia interação' },
             { id: 'mantem_conversa', label: 'Mantém conversação' },
+            {
+              id: 'adulto_extensao',
+              label: 'Usa o adulto como extensão dele próprio para atingir o que quer',
+            },
           ]}
           value={answers.comunicacaoSocial}
           onChange={(comunicacaoSocial) => set({ comunicacaoSocial })}
@@ -191,6 +215,18 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
           readOnly={readOnly}
           multiline
         />
+        <PiccaRadioGroup
+          label="Consegue regular as suas emoções sem a presença do adulto?"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.regulacaoSemAdulto}
+          onChange={(regulacaoSemAdulto) =>
+            set({ regulacaoSemAdulto: regulacaoSemAdulto as PiccaModulo4Answers['regulacaoSemAdulto'] })
+          }
+          readOnly={readOnly}
+        />
       </PiccaSection>
 
       <PiccaSection title="7. Autonomia">
@@ -206,6 +242,16 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
           label="Controlo de esfíncteres"
           value={answers.controloEsfinteres}
           onChange={(controloEsfinteres) => set({ controloEsfinteres })}
+          readOnly={readOnly}
+        />
+        <PiccaCheckboxGroup
+          label="Tipo de controlo"
+          options={[
+            { id: 'noturno', label: 'Noturno' },
+            { id: 'diurno', label: 'Diurno' },
+          ]}
+          value={answers.controloEsfinteresTipo}
+          onChange={(controloEsfinteresTipo) => set({ controloEsfinteresTipo })}
           readOnly={readOnly}
         />
       </PiccaSection>

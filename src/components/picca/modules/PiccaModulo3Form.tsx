@@ -2,6 +2,7 @@ import {
   PiccaAlertTable,
   PiccaCheckboxGroup,
   PiccaObjective,
+  PiccaRadioGroup,
   PiccaSection,
   PiccaTextField,
 } from '../PiccaFields'
@@ -33,7 +34,8 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
   return (
     <div className={styles.form}>
       <PiccaObjective>
-        Fatores pré-natais, peri-natais e neonatais relevantes para a conceptualização clínica e
+        Recolher informação sobre fatores pré-natais, peri-natais e neonatais relevantes para a
+        conceptualização clínica, identificando fatores predisponentes e fatores de risco do
         neurodesenvolvimento.
       </PiccaObjective>
 
@@ -43,6 +45,8 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
             { id: 'planeada', label: 'Gravidez planeada' },
             { id: 'nao_planeada', label: 'Não planeada' },
             { id: 'fertilidade', label: 'Fertilidade medicamente assistida' },
+            { id: 'risco', label: 'Gravidez de risco' },
+            { id: 'sem_intercorrencias_final', label: 'Gravidez sem intercorrências até ao final da gestação' },
           ]}
           value={answers.gravidezPlaneada}
           onChange={(gravidezPlaneada) => set({ gravidezPlaneada })}
@@ -81,7 +85,8 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
             { id: 'infecoes', label: 'Infeções' },
             { id: 'hemorragias', label: 'Hemorragias' },
             { id: 'hospitalizacoes', label: 'Hospitalizações' },
-            { id: 'alcool_tabaco', label: 'Consumo de álcool/tabaco' },
+            { id: 'alcool_tabaco_drogas', label: 'Consumo de álcool/tabaco/drogas' },
+            { id: 'enjoos_vomitos', label: 'Enjoos e vómitos' },
             { id: 'stress', label: 'Stress significativo' },
             { id: 'ansiedade', label: 'Ansiedade' },
             { id: 'depressao', label: 'Depressão' },
@@ -94,6 +99,19 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
           label="Medicação durante a gravidez"
           value={answers.gravidezMedicacao}
           onChange={(gravidezMedicacao) => set({ gravidezMedicacao })}
+          readOnly={readOnly}
+        />
+        <PiccaCheckboxGroup
+          label="Durante a gravidez a criança era"
+          options={[
+            { id: 'agitada', label: 'Agitada' },
+            { id: 'muito_mexida', label: 'Muito mexida' },
+            { id: 'muito_calma', label: 'Demasiado calma e sem se mexer muito' },
+            { id: 'ativa_noite', label: 'Mais ativa à noite' },
+            { id: 'ativa_dia', label: 'Mais ativa durante o dia' },
+          ]}
+          value={answers.gravidezCrianca}
+          onChange={(gravidezCrianca) => set({ gravidezCrianca })}
           readOnly={readOnly}
         />
         <PiccaTextField
@@ -153,7 +171,7 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
             { id: 'ictericia', label: 'Icterícia' },
             { id: 'convulsoes', label: 'Convulsões' },
             { id: 'respiratorias', label: 'Dificuldades respiratórias' },
-            { id: 'alimentacao', label: 'Alimentação' },
+            { id: 'alimentacao_materna', label: 'Alimentação materna' },
           ]}
           value={answers.neonatal}
           onChange={(neonatal) => set({ neonatal })}
@@ -170,12 +188,51 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
 
       <PiccaSection title="5. Primeiros Meses de Vida">
         <PiccaTextField label="Sono" value={answers.sono} onChange={(sono) => set({ sono })} readOnly={readOnly} multiline />
+        <PiccaCheckboxGroup
+          label="Padrão de sono"
+          options={[
+            { id: 'regular', label: 'Regular' },
+            { id: 'interrupcoes', label: 'Com interrupções' },
+          ]}
+          value={answers.sonoRegular}
+          onChange={(sonoRegular) => set({ sonoRegular })}
+          readOnly={readOnly}
+        />
+        <PiccaTextField
+          label="Horas de sono noturnas"
+          value={answers.sonoHorasNoturnas}
+          onChange={(sonoHorasNoturnas) => set({ sonoHorasNoturnas })}
+          readOnly={readOnly}
+        />
+        <PiccaTextField
+          label="Dormiu no berço no quarto dos pais até (meses)"
+          value={answers.berçoQuartosPaisMeses}
+          onChange={(berçoQuartosPaisMeses) => set({ berçoQuartosPaisMeses })}
+          readOnly={readOnly}
+        />
+        <PiccaTextField
+          label="Quarto próprio aos (meses/anos)"
+          value={answers.quartoProprioIdade}
+          onChange={(quartoProprioIdade) => set({ quartoProprioIdade })}
+          readOnly={readOnly}
+        />
         <PiccaTextField
           label="Alimentação"
           value={answers.alimentacao}
           onChange={(alimentacao) => set({ alimentacao })}
           readOnly={readOnly}
           multiline
+        />
+        <PiccaCheckboxGroup
+          label="Tipo de alimentação"
+          options={[
+            { id: 'materna', label: 'Alimentação exclusivamente materna' },
+            { id: 'formula', label: 'Alimentação com leite de fórmula' },
+            { id: 'ambas', label: 'Ambas' },
+          ]}
+          value={answers.alimentacaoTipo}
+          onChange={(alimentacaoTipo) => set({ alimentacaoTipo })}
+          readOnly={readOnly}
         />
         <PiccaCheckboxGroup
           label="Temperamento"
@@ -195,6 +252,50 @@ export function PiccaModulo3Form({ value, onChange, readOnly }: Props) {
           onChange={(vinculacaoPrecoce) => set({ vinculacaoPrecoce })}
           readOnly={readOnly}
           multiline
+        />
+        <PiccaCheckboxGroup
+          label="Vinculação com"
+          options={[
+            { id: 'mae', label: 'Mãe exclusivamente' },
+            { id: 'pai', label: 'Pai exclusivamente' },
+            { id: 'ambos', label: 'Ambos' },
+            { id: 'outro', label: 'Outro cuidador/familiar' },
+          ]}
+          value={answers.vinculacaoTipo}
+          onChange={(vinculacaoTipo) => set({ vinculacaoTipo })}
+          readOnly={readOnly}
+        />
+        {answers.vinculacaoTipo.includes('outro') && (
+          <PiccaTextField
+            label="Outro cuidador/familiar — quem?"
+            value={answers.vinculacaoOutroCuidador}
+            onChange={(vinculacaoOutroCuidador) => set({ vinculacaoOutroCuidador })}
+            readOnly={readOnly}
+          />
+        )}
+        <PiccaRadioGroup
+          label="Foram percecionadas alterações auditivas?"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.alteracoesAuditivas}
+          onChange={(alteracoesAuditivas) =>
+            set({ alteracoesAuditivas: alteracoesAuditivas as PiccaModulo3Answers['alteracoesAuditivas'] })
+          }
+          readOnly={readOnly}
+        />
+        <PiccaRadioGroup
+          label="Convulsões febris?"
+          options={[
+            { id: 'sim', label: 'Sim' },
+            { id: 'nao', label: 'Não' },
+          ]}
+          value={answers.convulsoesFebris}
+          onChange={(convulsoesFebris) =>
+            set({ convulsoesFebris: convulsoesFebris as PiccaModulo3Answers['convulsoesFebris'] })
+          }
+          readOnly={readOnly}
         />
       </PiccaSection>
 

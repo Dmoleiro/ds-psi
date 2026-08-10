@@ -6,6 +6,13 @@ export type PiccaModulo6Answers = {
   crecheEducadores: string
   crechePares: string
   crecheObs: string
+  crecheHorasSemana: string
+  preEscolarIngresso: string
+  preEscolarAdaptacao: '' | 'facil' | 'moderada' | 'dificil'
+  preEscolarEducadores: string
+  preEscolarPares: string
+  preEscolarObs: string
+  preEscolarHorasSemana: string
   ciclo1Adaptacao: string
   ciclo1Leitura: string
   ciclo1Escrita: string
@@ -48,6 +55,13 @@ export const defaultPiccaModulo6Answers = (): PiccaModulo6Answers => ({
   crecheEducadores: '',
   crechePares: '',
   crecheObs: '',
+  crecheHorasSemana: '',
+  preEscolarIngresso: '',
+  preEscolarAdaptacao: '',
+  preEscolarEducadores: '',
+  preEscolarPares: '',
+  preEscolarObs: '',
+  preEscolarHorasSemana: '',
   ciclo1Adaptacao: '',
   ciclo1Leitura: '',
   ciclo1Escrita: '',

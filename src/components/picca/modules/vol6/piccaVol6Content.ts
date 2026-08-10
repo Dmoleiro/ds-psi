@@ -24,6 +24,7 @@ export const PICCA_VOL6_SINTESE_TEXT_FIELDS = [
   "Fatores predisponentes",
   "Fatores precipitantes",
   "Fatores perpetuantes",
+  "Fatores protetores",
   "Problema atual e impacto funcional",
   "Decisão e próximos passos",
   "Formulação conclusiva para relatório",
