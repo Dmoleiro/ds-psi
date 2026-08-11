@@ -43,11 +43,13 @@ async function main() {
         description: form.description,
         schemaJson: {},
         active: true,
+        category: 'intake',
       },
       update: {
         title: form.title,
         description: form.description,
         active: true,
+        category: 'intake',
       },
     })
   }

@@ -13,6 +13,7 @@ import { Card } from '../../components/ui/Card'
 import { ApiError, patientApi } from '../../lib/api'
 import { resolvePatientFormErrorMessage } from '../../lib/patientFormErrors'
 import { isDocumentUploadForm } from '../../lib/formIds'
+import { isQuestionnaireId, type QuestionnaireDefinition } from '../../lib/questionnaires'
 import { useDraftAutosave } from '../../hooks/useDraftAutosave'
 import styles from './PatientPortal.module.css'
 
@@ -20,6 +21,7 @@ export function PatientFormPage() {
   const { token, formId } = useParams<{ token: string; formId: string }>()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
+  const [definition, setDefinition] = useState<QuestionnaireDefinition | null>(null)
   const [readOnly, setReadOnly] = useState(false)
   const [values, setValues] = useState<Record<string, unknown>>({})
   const [error, setError] = useState('')
@@ -27,7 +29,7 @@ export function PatientFormPage() {
   const [loading, setLoading] = useState(true)
 
   const isDocumentForm = formId ? isDocumentUploadForm(formId) : false
-  const hasRenderer = formId ? hasPatientFormRenderer(formId) : false
+  const hasRenderer = formId ? hasPatientFormRenderer(formId) || (formId ? isQuestionnaireId(formId) : false) : false
 
   useEffect(() => {
     if (!token || !formId) return
@@ -35,6 +37,7 @@ export function PatientFormPage() {
       .getForm(token, formId)
       .then(({ form }) => {
         setTitle(form.title)
+        setDefinition('definition' in form ? (form.definition as QuestionnaireDefinition | null) : null)
         setReadOnly(form.readOnly)
         setValues((form.answers as Record<string, unknown> | null) ?? {})
       })
@@ -122,16 +125,16 @@ export function PatientFormPage() {
         {FormRenderer ? (
           isDocumentForm ? (
             <>
-              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token })}
+              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token, definition })}
               {error && <p className={styles.error}>{error}</p>}
             </>
           ) : (
             <form onSubmit={handleSubmit}>
-              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token })}
+              {FormRenderer({ values, onChange: setValues, readOnly, patientToken: token, definition })}
               {error && <p className={styles.error}>{error}</p>}
               {!readOnly && (
                 <Button type="submit" disabled={submitting} style={{ marginTop: 'var(--space-lg)' }}>
-                  {submitting ? 'A submeter…' : 'Submeter formulário'}
+                  {submitting ? 'A submeter…' : isQuestionnaireId(formId ?? '') ? 'Submeter questionário' : 'Submeter formulário'}
                 </Button>
               )}
             </form>

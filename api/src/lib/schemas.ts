@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getQuestionnaireFormSchema } from './questionnaires/schema.js'
 
 function envString(key: string, fallback?: string): string {
   const value = process.env[key] ?? fallback
@@ -155,6 +156,7 @@ export const coordinatorLocationsQuerySchema = z.object({
 export const createSessionSchema = z.object({
   formIds: z.array(z.string().min(1)).min(1),
   expiresAt: z.string().datetime().optional(),
+  sessionKind: z.enum(['intake', 'questionnaire']).optional(),
 })
 
 export const createPiccaSessionSchema = z.object({
@@ -358,6 +360,6 @@ export function getFormSchema(formId: string) {
     case 'queixa-inicial':
       return queixaInicialFormSchema
     default:
-      return null
+      return getQuestionnaireFormSchema(formId)
   }
 }

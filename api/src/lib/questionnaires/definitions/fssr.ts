@@ -1,0 +1,50 @@
+import { defineQuestionnaire } from '../helpers.js'
+
+const FSSR_ITEMS = [
+  'Medo do escuro',
+  'Medo de dormir sozinho(a)',
+  'Medo de animais (cães, gatos, etc.)',
+  'Medo de insectos ou aranhas',
+  'Medo de trovoada ou relâmpago',
+  'Medo de ficar sozinho(a) em casa',
+  'Medo de estranhos',
+  'Medo de ir ao médico ou dentista',
+  'Medo de alturas',
+  'Medo de elevadores',
+  'Medo de ficar em espaços fechados',
+  'Medo de multidões',
+  'Medo de falar em público ou na turma',
+  'Medo de ir à escola',
+  'Medo de ficar doente ou vomitar',
+  'Medo de sangue ou feridas',
+  'Medo de agulhas ou injecções',
+  'Medo de barulhos altos',
+  'Medo de ficar separado(a) dos pais',
+  'Medo de ficar perdido(a)',
+  'Medo de ficar envergonhado(a)',
+  'Medo de falhar nos testes',
+  'Medo de ser criticado(a)',
+  'Medo de ser ridicularizado(a)',
+  'Medo de monstros ou pesadelos',
+  'Medo de ficar preso(a) ou não conseguir sair',
+  'Medo de água profunda ou de nadar',
+  'Medo de andar de carro ou autocarro',
+  'Medo de avião ou viagens longas',
+  'Medo de situações novas ou inesperadas',
+]
+
+export const fssrQuestionnaire = defineQuestionnaire({
+  id: 'fssr',
+  title: 'FSSR — Questionário de Medos',
+  description: 'Fear Survey Schedule for Children — inventário de medos infantis.',
+  instructions:
+    'Indique o quanto cada situação provoca medo na criança: 0 = Nada, 1 = Pouco, 2 = Moderadamente, 3 = Muito.',
+  respondent: 'Criança ou pais',
+  responseType: 'frequency0_3',
+  responseLabels: ['Nada', 'Pouco', 'Moderadamente', 'Muito'],
+  items: FSSR_ITEMS,
+  scoring: {
+    type: 'sum_subscales',
+    subscales: [{ id: 'total', label: 'Total FSSR', itemIds: FSSR_ITEMS.map((_, i) => `q${i + 1}`) }],
+  },
+})

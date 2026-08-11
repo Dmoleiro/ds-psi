@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { sendFormSubmittedEmail } from '../lib/mail.js'
 import { config } from '../lib/schemas.js'
+import { isQuestionnaireId } from '../lib/questionnaires/registry.js'
 
 export async function notifyTherapistOfFormSubmission(
   sessionId: string,
@@ -40,5 +41,6 @@ export async function notifyTherapistOfFormSubmission(
     formTitle: session.forms[0].definition.title,
     fields,
     backofficeUrl,
+    isQuestionnaire: isQuestionnaireId(formId),
   })
 }

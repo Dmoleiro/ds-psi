@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { createReadStream } from 'node:fs'
-import { UserRole } from '@prisma/client'
+import { FormCategory, SessionKind, UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
@@ -240,10 +240,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { locations }
   })
 
-  app.get('/api/therapist/forms', { preHandler: therapistOnly }, async () => {
+  app.get('/api/therapist/forms', { preHandler: therapistOnly }, async (request) => {
+    const category = (request.query as { category?: string }).category
+    const where =
+      category === 'questionnaire'
+        ? { active: true, category: FormCategory.questionnaire }
+        : category === 'intake'
+          ? { active: true, category: FormCategory.intake }
+          : { active: true }
+
     const forms = await prisma.formDefinition.findMany({
-      where: { active: true },
-      select: { id: true, title: true, description: true },
+      where,
+      select: { id: true, title: true, description: true, category: true },
       orderBy: { title: 'asc' },
     })
     return { forms }
@@ -539,6 +547,7 @@ export async function therapistRoutes(app: FastifyInstance) {
           id,
           parsed.data.formIds,
           expiresAt,
+          parsed.data.sessionKind === 'questionnaire' ? SessionKind.questionnaire : SessionKind.intake,
         )
         return reply.status(201).send({
           session: {

@@ -5,6 +5,7 @@ export type PatientFormRendererProps = {
   onChange: (values: Record<string, unknown>) => void
   readOnly: boolean
   patientToken?: string
+  definition?: import('../../lib/questionnaires').QuestionnaireDefinition | null
 }
 
 export const patientFormRenderers: Record<

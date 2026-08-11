@@ -89,6 +89,7 @@ type FormSubmittedEmailParams = {
   formTitle: string
   fields: FormattedField[]
   backofficeUrl: string
+  isQuestionnaire?: boolean
 }
 
 function escapeHtml(value: string): string {
@@ -123,11 +124,15 @@ export async function sendFormSubmittedEmail(params: FormSubmittedEmailParams): 
     )
     .join('')
 
-  const subject = `Formulário submetido — ${params.patientName}`
+  const subject = params.isQuestionnaire
+    ? `Questionário submetido — ${params.patientName}`
+    : `Formulário submetido — ${params.patientName}`
   const text = [
     `Olá ${params.therapistName},`,
     '',
-    `O paciente ${params.patientName} submeteu o formulário «${params.formTitle}».`,
+    params.isQuestionnaire
+      ? `O paciente ${params.patientName} submeteu o questionário «${params.formTitle}».`
+      : `O paciente ${params.patientName} submeteu o formulário «${params.formTitle}».`,
     `Local: ${params.locationName}`,
     '',
     fieldsText,
@@ -137,7 +142,7 @@ export async function sendFormSubmittedEmail(params: FormSubmittedEmailParams): 
 
   const html = `
     <p>Olá ${escapeHtml(params.therapistName)},</p>
-    <p>O paciente <strong>${escapeHtml(params.patientName)}</strong> submeteu o formulário <strong>${escapeHtml(params.formTitle)}</strong>.</p>
+    <p>O paciente <strong>${escapeHtml(params.patientName)}</strong> submeteu ${params.isQuestionnaire ? 'o questionário' : 'o formulário'} <strong>${escapeHtml(params.formTitle)}</strong>.</p>
     <p><strong>Local:</strong> ${escapeHtml(params.locationName)}</p>
     <table style="border-collapse:collapse;width:100%;max-width:640px;">${fieldsHtml}</table>
     <p style="margin-top:24px;"><a href="${escapeHtml(params.backofficeUrl)}">Abrir ficha do paciente no backoffice</a></p>

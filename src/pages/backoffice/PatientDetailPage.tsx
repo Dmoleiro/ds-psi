@@ -28,7 +28,7 @@ import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEval
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
 import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
 
-type PatientTab = 'avaliacao' | 'historico' | 'dados' | 'notas' | 'intake' | 'picca' | 'documentos'
+type PatientTab = 'avaliacao' | 'historico' | 'dados' | 'notas' | 'intake' | 'questionarios' | 'picca' | 'documentos'
 
 function parsePatientTab(value: string | null): PatientTab | null {
   if (
@@ -37,6 +37,7 @@ function parsePatientTab(value: string | null): PatientTab | null {
     value === 'dados' ||
     value === 'notas' ||
     value === 'intake' ||
+    value === 'questionarios' ||
     value === 'picca' ||
     value === 'documentos'
   ) {
@@ -48,6 +49,7 @@ function parsePatientTab(value: string | null): PatientTab | null {
 type SessionRow = {
   id: string
   status: string
+  sessionKind?: string
   createdAt: string
   completedAt: string | null
   url?: string | null
@@ -92,8 +94,11 @@ export function PatientDetailPage() {
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
   const [availableForms, setAvailableForms] = useState<FormOption[]>([])
+  const [availableQuestionnaires, setAvailableQuestionnaires] = useState<FormOption[]>([])
   const [selectedForms, setSelectedForms] = useState<string[]>([])
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>([])
   const [generatedUrl, setGeneratedUrl] = useState('')
+  const [generatedQuestionnaireUrl, setGeneratedQuestionnaireUrl] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -140,7 +145,8 @@ export function PatientDetailPage() {
 
   useEffect(() => {
     if (!token || readOnly) return
-    therapistApi.listForms(token).then((data) => setAvailableForms(data.forms))
+    therapistApi.listForms(token, 'intake').then((data) => setAvailableForms(data.forms))
+    therapistApi.listForms(token, 'questionnaire').then((data) => setAvailableQuestionnaires(data.forms))
     therapistApi.listLocations(token).then((data) => setLocations(data.locations))
   }, [token, readOnly])
 
@@ -150,14 +156,29 @@ export function PatientDetailPage() {
     )
   }
 
-  async function handleGenerateLink() {
+  function toggleQuestionnaire(formId: string) {
+    setSelectedQuestionnaires((current) =>
+      current.includes(formId) ? current.filter((f) => f !== formId) : [...current, formId],
+    )
+  }
+
+  async function handleGenerateLink(sessionKind: 'intake' | 'questionnaire' = 'intake') {
     if (!token || !id) return
+    const formIds = sessionKind === 'questionnaire' ? selectedQuestionnaires : selectedForms
     setSubmitting(true)
     setError('')
-    setGeneratedUrl('')
+    if (sessionKind === 'questionnaire') {
+      setGeneratedQuestionnaireUrl('')
+    } else {
+      setGeneratedUrl('')
+    }
     try {
-      const result = await therapistApi.createSession(token, id, selectedForms)
-      setGeneratedUrl(result.url)
+      const result = await therapistApi.createSession(token, id, formIds, sessionKind)
+      if (sessionKind === 'questionnaire') {
+        setGeneratedQuestionnaireUrl(result.url)
+      } else {
+        setGeneratedUrl(result.url)
+      }
       await refreshPatient()
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível gerar o link')
@@ -178,6 +199,10 @@ export function PatientDetailPage() {
     }
   }
 
+  const intakeSessions =
+    patient?.intakeSessions.filter((session) => session.sessionKind !== 'questionnaire') ?? []
+  const questionnaireSessions =
+    patient?.intakeSessions.filter((session) => session.sessionKind === 'questionnaire') ?? []
   const sessionCount = patient?.intakeSessions.length ?? 0
 
   function sessionHasSubmissions(session: SessionRow) {
@@ -583,6 +608,7 @@ export function PatientDetailPage() {
             ['dados', 'Dados'],
             ['notas', 'Notas'],
             ['intake', 'Formulários'],
+            ['questionarios', 'Questionários'],
             ...(!readOnly && user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
             ['documentos', 'Documentos'],
             ['historico', 'Histórico recente'],
@@ -686,7 +712,6 @@ export function PatientDetailPage() {
                 wiscSelections: patient.wiscSelections ?? [],
                 bancSelections: patient.bancSelections ?? [],
                 additionalMethodSelections: patient.additionalMethodSelections ?? [],
-                questionnaireSelections: patient.questionnaireSelections ?? [],
               }}
             />
           )}
@@ -770,7 +795,7 @@ export function PatientDetailPage() {
         {error && <p className={styles.error}>{error}</p>}
         <Button
           type="button"
-          onClick={handleGenerateLink}
+          onClick={() => handleGenerateLink('intake')}
           disabled={submitting || selectedForms.length === 0 || availableForms.length === 0}
         >
           {submitting ? 'A gerar…' : 'Gerar link'}
@@ -796,7 +821,7 @@ export function PatientDetailPage() {
         </p>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
-        {patient.intakeSessions.length === 0 ? (
+        {intakeSessions.length === 0 ? (
           <p className={styles.muted}>Ainda não existem formulários gerados.</p>
         ) : (
           <table className={styles.table}>
@@ -809,7 +834,7 @@ export function PatientDetailPage() {
               </tr>
             </thead>
             <tbody>
-              {patient.intakeSessions.map((session) => (
+              {intakeSessions.map((session) => (
                 <tr key={session.id}>
                   <td>{new Date(session.createdAt).toLocaleString('pt-PT')}</td>
                   <td>
@@ -937,7 +962,120 @@ export function PatientDetailPage() {
         )}
       </Card>
 
-      {submissions && (
+      {submissions && activeTab === 'intake' && (
+        <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />
+      )}
+      </>
+      )}
+
+      {activeTab === 'questionarios' && (
+      <>
+      {!readOnly && (
+      <Card as="section" className={styles.sectionSpaced}>
+        <h2>Gerar link de questionários</h2>
+        <p className={styles.muted}>Selecione os questionários a incluir no link único do paciente ou informador.</p>
+        {availableQuestionnaires.length === 0 ? (
+          <p className={styles.muted}>Ainda não existem questionários disponíveis.</p>
+        ) : (
+          <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
+            {availableQuestionnaires.map((form) => (
+              <label key={form.id}>
+                <input
+                  type="checkbox"
+                  checked={selectedQuestionnaires.includes(form.id)}
+                  onChange={() => toggleQuestionnaire(form.id)}
+                />
+                {form.title}
+              </label>
+            ))}
+          </div>
+        )}
+        {error && <p className={styles.error}>{error}</p>}
+        <Button
+          type="button"
+          onClick={() => handleGenerateLink('questionnaire')}
+          disabled={submitting || selectedQuestionnaires.length === 0 || availableQuestionnaires.length === 0}
+        >
+          {submitting ? 'A gerar…' : 'Gerar link'}
+        </Button>
+        {generatedQuestionnaireUrl && (
+          <div className={styles.successBox} style={{ marginTop: 'var(--space-md)' }}>
+            <strong>Link gerado</strong>
+            <p>{generatedQuestionnaireUrl}</p>
+          </div>
+        )}
+      </Card>
+      )}
+
+      <Card as="section">
+        <h2>Questionários</h2>
+        <p className={styles.muted}>
+          {readOnly
+            ? 'Histórico de questionários do paciente (apenas consulta).'
+            : 'Gere links para os informadores preencherem questionários de avaliação.'}
+        </p>
+        {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
+        {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
+        {questionnaireSessions.length === 0 ? (
+          <p className={styles.muted}>Ainda não existem questionários gerados.</p>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Estado</th>
+                <th>Questionários</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {questionnaireSessions.map((session) => (
+                <tr key={session.id}>
+                  <td>{new Date(session.createdAt).toLocaleString('pt-PT')}</td>
+                  <td>
+                    <Badge variant={sessionStatusBadgeVariant(session.status)}>
+                      {formatSessionStatus(session.status)}
+                    </Badge>
+                  </td>
+                  <td>
+                    <div className={styles.formStatusList}>
+                      {session.forms.map((form) => (
+                        <div key={form.formId} className={styles.formStatusItem}>
+                          <span>{form.definition?.title ?? form.formId}</span>
+                          <Badge variant={formStatusBadgeVariant(form.status)}>
+                            {formatFormStatus(form.status)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  <td>
+                    <div className={styles.sessionActions}>
+                      {!readOnly && session.url && sessionIsOpen(session) && (
+                        <>
+                          <a href={session.url} target="_blank" rel="noreferrer" className={styles.linkButton}>
+                            Abrir link
+                          </a>
+                          <button type="button" className={styles.linkButton} onClick={() => copySessionUrl(session.url!)}>
+                            Copiar link
+                          </button>
+                        </>
+                      )}
+                      {sessionHasSubmissions(session) && (
+                        <button type="button" className={styles.linkButton} onClick={() => handleViewSubmissions(session.id)}>
+                          Ver respostas
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      {submissions && activeTab === 'questionarios' && (
         <FormSubmissionsPanel session={submissions} onClose={() => setSubmissions(null)} />
       )}
       </>

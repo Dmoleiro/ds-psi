@@ -556,15 +556,20 @@ export const therapistApi = {
     }),
   deletePatient: (token: string, id: string) =>
     apiRequest<void>(`/api/therapist/patients/${id}`, { method: 'DELETE', token }),
-  listForms: (token: string) =>
+  listForms: (token: string, category?: 'intake' | 'questionnaire') =>
     apiRequest<{
       forms: Array<{ id: string; title: string; description: string | null }>
-    }>('/api/therapist/forms', { token }),
-  createSession: (token: string, patientId: string, formIds: string[]) =>
+    }>(`/api/therapist/forms${category ? `?category=${category}` : ''}`, { token }),
+  createSession: (
+    token: string,
+    patientId: string,
+    formIds: string[],
+    sessionKind?: 'intake' | 'questionnaire',
+  ) =>
     apiRequest<{ session: unknown; url: string }>(`/api/therapist/patients/${patientId}/sessions`, {
       method: 'POST',
       token,
-      body: { formIds },
+      body: { formIds, sessionKind },
     }),
   getSessionSubmissions: (token: string, sessionId: string) =>
     apiRequest<{

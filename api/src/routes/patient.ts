@@ -5,6 +5,9 @@ import { prisma } from '../lib/prisma.js'
 import { consentSchema, draftSchema, getFormSchema } from '../lib/schemas.js'
 import { formatZodFormValidationError } from '../lib/formValidationErrors.js'
 import { isDocumentUploadForm } from '../lib/formIds.js'
+import { getQuestionnaireDefinitionForClient } from '../lib/questionnaires/schema.js'
+import { attachScoresToAnswers } from '../lib/questionnaires/scoring.js'
+import { getQuestionnaireDefinition, isQuestionnaireId } from '../lib/questionnaires/registry.js'
 import { requirePatientToken } from '../middleware/patientToken.js'
 import { completeSessionIfReady } from '../services/sessions.js'
 import { notifyTherapistOfFormSubmission } from '../services/formNotifications.js'
@@ -19,6 +22,12 @@ import {
 
 export async function patientRoutes(app: FastifyInstance) {
   const withToken = { preHandler: [requirePatientToken] }
+
+  function questionnaireMeta(formId: string) {
+    if (!isQuestionnaireId(formId)) return {}
+    const definition = getQuestionnaireDefinitionForClient(formId)
+    return definition ? { definition } : {}
+  }
 
   app.get('/api/patient/session/:token', withToken, async (request, reply) => {
     const ctx = request.patientSession!
@@ -112,6 +121,7 @@ export async function patientRoutes(app: FastifyInstance) {
           status: sessionForm.status,
           answers: sessionForm.submission?.answersJson ?? null,
           readOnly: true,
+          ...questionnaireMeta(formId),
         },
       }
     }
@@ -123,6 +133,7 @@ export async function patientRoutes(app: FastifyInstance) {
         status: sessionForm.status,
         answers: sessionForm.draft?.answersJson ?? null,
         readOnly: false,
+        ...questionnaireMeta(formId),
       },
     }
   })
@@ -217,12 +228,15 @@ export async function patientRoutes(app: FastifyInstance) {
       }
 
       const ip = request.ip
+      const rawAnswers = parsed.data as Record<string, unknown>
+      const definition = getQuestionnaireDefinition(formId)
+      const answers = definition ? attachScoresToAnswers(definition, rawAnswers) : rawAnswers
 
       await prisma.$transaction(async (tx) => {
         await tx.formSubmission.create({
           data: {
             sessionFormId: sessionForm.id,
-            answersJson: parsed.data as Prisma.InputJsonValue,
+            answersJson: answers as Prisma.InputJsonValue,
             ip,
           },
         })
@@ -235,13 +249,11 @@ export async function patientRoutes(app: FastifyInstance) {
 
       await completeSessionIfReady(ctx.sessionId)
 
-      notifyTherapistOfFormSubmission(
-        ctx.sessionId,
-        formId,
-        parsed.data as Record<string, unknown>,
-      ).catch((err) => {
-        request.log.error({ err }, 'Failed to send therapist notification email')
-      })
+      try {
+        await notifyTherapistOfFormSubmission(ctx.sessionId, formId, answers)
+      } catch (err) {
+        request.log.error({ err, sessionId: ctx.sessionId, formId }, 'Failed to send therapist notification email')
+      }
 
       const session = await prisma.intakeSession.findUnique({ where: { id: ctx.sessionId } })
 

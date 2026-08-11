@@ -3,7 +3,6 @@ import { ApiError, therapistApi } from '../../lib/api'
 import {
   ADDITIONAL_EVALUATION_METHODS,
   BANC_EVALUATION_OPTIONS,
-  QUESTIONNAIRE_EVALUATION_OPTIONS,
   WISC_EVALUATION_OPTIONS,
   type PatientEvaluationSelections,
 } from '../../lib/patientEvaluations'
@@ -25,7 +24,6 @@ const EMPTY_SELECTIONS: PatientEvaluationSelections = {
   wiscSelections: [],
   bancSelections: [],
   additionalMethodSelections: [],
-  questionnaireSelections: [],
 }
 
 export function PatientEvaluationsPanel({
@@ -52,7 +50,6 @@ export function PatientEvaluationsPanel({
     initialSelections.wiscSelections,
     initialSelections.bancSelections,
     initialSelections.additionalMethodSelections,
-    initialSelections.questionnaireSelections,
   ])
 
   const persist = useCallback(
@@ -197,51 +194,6 @@ export function PatientEvaluationsPanel({
           'Nenhum método registado.',
         ),
       )}
-
-      <section className={`${styles.methodSection} ${styles.questionnaireSection}`}>
-        <h3 className={styles.methodTitle}>Questionários para avaliação</h3>
-        <p className={styles.muted}>
-          Instrumentos complementares utilizados em conjunto com os métodos de avaliação.
-        </p>
-        {readOnly && selections.questionnaireSelections.length === 0 ? (
-          <p className={styles.muted}>Nenhum questionário registado.</p>
-        ) : (
-          <ul className={styles.optionList}>
-            {QUESTIONNAIRE_EVALUATION_OPTIONS.map((option, index) => {
-              const checked = selections.questionnaireSelections.includes(option.key)
-              if (readOnly && !checked) return null
-
-              return (
-                <li key={option.key} className={styles.optionItem}>
-                  {readOnly ? (
-                    <span className={styles.readOnlyOption}>
-                      <span className={styles.optionIndex}>{index + 1}.</span>
-                      {option.label}
-                    </span>
-                  ) : (
-                    <label className={styles.optionLabel}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={(event) =>
-                          toggleSelection(
-                            'questionnaireSelections',
-                            option.key,
-                            event.target.checked,
-                            QUESTIONNAIRE_EVALUATION_OPTIONS,
-                          )
-                        }
-                      />
-                      <span className={styles.optionIndex}>{index + 1}.</span>
-                      <span>{option.label}</span>
-                    </label>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
     </Card>
   )
 }

@@ -1,4 +1,4 @@
-import { FormStatus, SessionStatus, type Prisma } from '@prisma/client'
+import { FormCategory, FormStatus, SessionKind, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
@@ -102,6 +102,7 @@ export function formatTherapistPatient(patient: TherapistPatient) {
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,
       status: session.status,
+      sessionKind: session.sessionKind,
       createdAt: session.createdAt,
       completedAt: session.completedAt,
       expiresAt: session.expiresAt,
@@ -135,11 +136,18 @@ export async function createPatientSession(
   patientId: string,
   formIds: string[],
   expiresAt?: Date,
+  sessionKind: SessionKind = SessionKind.intake,
 ) {
   const definitions = await prisma.formDefinition.findMany({
     where: { id: { in: formIds }, active: true },
   })
   if (definitions.length !== formIds.length) {
+    throw new Error('INVALID_FORMS')
+  }
+
+  const expectedCategory =
+    sessionKind === SessionKind.questionnaire ? FormCategory.questionnaire : FormCategory.intake
+  if (definitions.some((definition) => definition.category !== expectedCategory)) {
     throw new Error('INVALID_FORMS')
   }
 
@@ -150,6 +158,7 @@ export async function createPatientSession(
     data: {
       patientId,
       therapistId,
+      sessionKind,
       tokenHash,
       patientToken: rawToken,
       expiresAt,

@@ -26,6 +26,16 @@ enum FormStatus {
   submitted
 }
 
+enum FormCategory {
+  intake
+  questionnaire
+}
+
+enum SessionKind {
+  intake
+  questionnaire
+}
+
 enum AttendanceStatus {
   present_unpaid
   present_paid
@@ -219,6 +229,7 @@ model IntakeSession {
   id           String        @id @default(uuid())
   patientId    String        @map("patient_id")
   therapistId  String        @map("therapist_id")
+  sessionKind  SessionKind   @default(intake) @map("session_kind")
   tokenHash    String        @unique @map("token_hash")
   patientToken String?       @map("patient_token")
   status       SessionStatus @default(active)
@@ -260,12 +271,13 @@ model PatientDocument {
 }
 
 model FormDefinition {
-  id          String  @id
+  id          String       @id
   title       String
-  version     Int     @default(1)
-  schemaJson  Json?   @map("schema_json")
-  active      Boolean @default(true)
-  description String? @db.Text
+  version     Int          @default(1)
+  category    FormCategory @default(intake)
+  schemaJson  Json?        @map("schema_json")
+  active      Boolean      @default(true)
+  description String?      @db.Text
 
   sessionForms SessionForm[]
 

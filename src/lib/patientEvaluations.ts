@@ -96,7 +96,7 @@ export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'adexi', label: 'ADEXI' },
   { key: 'diva', label: 'DIVA' },
   { key: 'estilos_parentais', label: 'Estilos Parentais' },
-  { key: 'pkbs', label: 'PKBS' },
+  { key: 'psvc', label: 'PSVC' },
   { key: 'fssr', label: 'FSSR' },
   { key: 'm_chat', label: 'M-chat' },
   { key: 'inventario_de_estereotipias', label: 'Inventário de Estereotipias' },
@@ -109,5 +109,4 @@ export type PatientEvaluationSelections = {
   wiscSelections: string[]
   bancSelections: string[]
   additionalMethodSelections: string[]
-  questionnaireSelections: string[]
 }

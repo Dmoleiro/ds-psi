@@ -1,3 +1,6 @@
+import { isQuestionnaireId } from './questionnaires/registry.js'
+import { formatQuestionnaireAnswers } from './questionnaires/presentation.js'
+
 type FormFieldLabels = Record<string, string>
 
 export function getFormFieldLabels(formId: string): FormFieldLabels {
@@ -181,6 +184,10 @@ export function formatFormAnswers(
   formId: string,
   answers: Record<string, unknown>,
 ): FormattedField[] {
+  if (isQuestionnaireId(formId)) {
+    return formatQuestionnaireAnswers(formId, answers)
+  }
+
   const labels = FORM_FIELD_LABELS[formId] ?? {}
   const order = FIELD_ORDER[formId] ?? Object.keys(answers)
   const seen = new Set<string>()

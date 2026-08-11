@@ -79,3 +79,63 @@
 .pricingNote a {
   color: var(--color-accent);
 }
+
+.formSection {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.instructions {
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+.questionnaireList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.questionnaireItem {
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.questionText {
+  margin: 0 0 var(--space-sm);
+  line-height: 1.5;
+}
+
+.questionNumber {
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+.likertRow,
+.optionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.likertOption,
+.radioLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.scoresSection {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-surface-muted, #f8f8f8);
+  border-radius: var(--radius-sm);
+}
+
+.scoresSection ul {
+  margin: var(--space-sm) 0 0;
+  padding-left: 1.25rem;
+}
