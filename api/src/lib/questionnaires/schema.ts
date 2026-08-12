@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { QuestionnaireDefinition, ResponseType } from './types.js'
+import { QUESTIONNAIRE_NOTES_FIELD } from './types.js'
 import { getQuestionnaireDefinition, isQuestionnaireId } from './registry.js'
 
 function numericAnswerSchema(responseType: ResponseType) {
@@ -48,7 +49,12 @@ export function buildQuestionnaireSchema(definition: QuestionnaireDefinition) {
       itemShape[item.id] = numericAnswerSchema(definition.responseType)
     }
   }
-  return z.object(itemShape).strict()
+  return z
+    .object({
+      ...itemShape,
+      [QUESTIONNAIRE_NOTES_FIELD]: z.string().optional(),
+    })
+    .strict()
 }
 
 export function getQuestionnaireFormSchema(formId: string) {

@@ -1,5 +1,5 @@
 import type { FormattedField } from '../formPresentation.js'
-import { RESPONSE_LABELS, isOneBasedResponseType } from './types.js'
+import { QUESTIONNAIRE_NOTES_FIELD, RESPONSE_LABELS, isOneBasedResponseType } from './types.js'
 import type { ResponseType } from './types.js'
 import { getQuestionnaireDefinition } from './registry.js'
 
@@ -61,6 +61,15 @@ export function formatQuestionnaireAnswers(
       key: item.id,
       label: item.text,
       value: formatAnswerValue(formId, item.id, value, item.options),
+    })
+  }
+
+  const notes = answers[QUESTIONNAIRE_NOTES_FIELD]
+  if (typeof notes === 'string' && notes.trim() !== '') {
+    fields.push({
+      key: QUESTIONNAIRE_NOTES_FIELD,
+      label: 'Notas',
+      value: notes.trim(),
     })
   }
 

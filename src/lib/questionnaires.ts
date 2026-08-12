@@ -1,3 +1,6 @@
+/** Optional free-text notes field on every questionnaire — keep in sync with api types. */
+export const QUESTIONNAIRE_NOTES_FIELD = '_notas'
+
 /** Questionnaire form IDs — keep in sync with api/src/lib/questionnaires/registry.ts */
 export const QUESTIONNAIRE_IDS = [
   'sdq_p_3_4',

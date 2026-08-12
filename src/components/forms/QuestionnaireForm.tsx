@@ -1,5 +1,5 @@
 import styles from './FormFields.module.css'
-import type { QuestionnaireDefinition } from '../../lib/questionnaires'
+import { QUESTIONNAIRE_NOTES_FIELD, type QuestionnaireDefinition } from '../../lib/questionnaires'
 import type { PatientFormRendererProps } from './formRegistry'
 
 const DEFAULT_LABELS: Record<string, string[]> = {
@@ -111,6 +111,23 @@ export function QuestionnaireForm({ values, onChange, readOnly, definition }: Pr
           )
         })}
       </ol>
+      <section className={styles.notesSection}>
+        <label className={styles.notesLabel} htmlFor={QUESTIONNAIRE_NOTES_FIELD}>
+          Notas
+        </label>
+        <p className={styles.notesHint}>
+          Observações sobre o preenchimento em conjunto com o paciente (opcional).
+        </p>
+        <textarea
+          id={QUESTIONNAIRE_NOTES_FIELD}
+          className={styles.textarea}
+          value={typeof values[QUESTIONNAIRE_NOTES_FIELD] === 'string' ? values[QUESTIONNAIRE_NOTES_FIELD] : ''}
+          disabled={readOnly}
+          rows={4}
+          placeholder="Escreva aqui as suas notas…"
+          onChange={(event) => setValue(QUESTIONNAIRE_NOTES_FIELD, event.target.value)}
+        />
+      </section>
       {readOnly &&
       typeof values._scores === 'object' &&
       values._scores !== null &&

@@ -128,6 +128,24 @@
   font-size: 0.9rem;
 }
 
+.notesSection {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-soft, #e8e8e8);
+}
+
+.notesLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.notesHint {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-ink-muted);
+  font-size: 0.9rem;
+}
+
 .scoresSection {
   margin-top: var(--space-lg);
   padding: var(--space-md);

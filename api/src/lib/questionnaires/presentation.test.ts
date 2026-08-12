@@ -38,4 +38,17 @@ describe('formatQuestionnaireAnswers', () => {
     expect(fields.find((field) => field.key === 'q1')?.value).toBe('Não')
     expect(fields.find((field) => field.key === 'q2')?.value).toBe('Sim')
   })
+
+  it('includes optional notes at the end', () => {
+    const fields = formatQuestionnaireAnswers('adexi_other', {
+      q1: 3,
+      _notas: '  Preenchido em consulta.  ',
+    })
+
+    expect(fields.at(-1)).toEqual({
+      key: '_notas',
+      label: 'Notas',
+      value: 'Preenchido em consulta.',
+    })
+  })
 })

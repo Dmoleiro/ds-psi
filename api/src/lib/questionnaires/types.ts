@@ -1,3 +1,6 @@
+/** Optional free-text notes appended to every questionnaire submission. */
+export const QUESTIONNAIRE_NOTES_FIELD = '_notas' as const
+
 export type ResponseType =
   | 'yes_no'
   | 'likert3_sdq'
