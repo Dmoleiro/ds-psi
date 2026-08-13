@@ -6,6 +6,8 @@ import { defaultPiccaInteractiveKitAutonomiaAnswers } from './piccaInteractiveKi
 import { PiccaInteractiveKitAutonomiaForm } from './PiccaInteractiveKitAutonomiaForm'
 import { defaultPiccaInteractiveKitBirrasAnswers } from './piccaInteractiveKitBirras'
 import { PiccaInteractiveKitBirrasForm } from './PiccaInteractiveKitBirrasForm'
+import { defaultPiccaInteractiveKitComportamentosAnswers } from './piccaInteractiveKitComportamentos'
+import { PiccaInteractiveKitComportamentosForm } from './PiccaInteractiveKitComportamentosForm'
 import { defaultPiccaInteractiveKitConquistasAnswers } from './piccaInteractiveKitConquistas'
 import { PiccaInteractiveKitConquistasForm } from './PiccaInteractiveKitConquistasForm'
 import { defaultPiccaInteractiveKitFlexibilidadeAnswers } from './piccaInteractiveKitFlexibilidade'
@@ -70,6 +72,11 @@ export const piccaInteractiveFormRegistry: Record<string, PiccaInteractiveFormDe
   'picca-interactive-kit-conquistas': {
     defaultAnswers: defaultPiccaInteractiveKitConquistasAnswers,
     Form: PiccaInteractiveKitConquistasForm,
+    kind: 'weekly_kit',
+  },
+  'picca-interactive-kit-comportamentos': {
+    defaultAnswers: defaultPiccaInteractiveKitComportamentosAnswers,
+    Form: PiccaInteractiveKitComportamentosForm,
     kind: 'weekly_kit',
   },
   'picca-interactive-portage': {
