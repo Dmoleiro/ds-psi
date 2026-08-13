@@ -227,8 +227,16 @@ export function PatientDetailPage() {
     return sessionIsOpen(session)
   }
 
-  function sessionCanDelete(session: SessionRow) {
-    return session.status !== 'completed' && !sessionHasSubmissions(session)
+  function sessionCanDelete(_session: SessionRow) {
+    return true
+  }
+
+  function sessionDeleteConfirmMessage(session: SessionRow, kind: 'formulários' | 'questionários') {
+    const base = `Eliminar este conjunto de ${kind}? Esta ação não pode ser desfeita.`
+    if (sessionHasSubmissions(session)) {
+      return `${base} Todas as respostas submetidas serão apagadas permanentemente.`
+    }
+    return base
   }
 
   async function refreshPatient() {
@@ -248,6 +256,9 @@ export function PatientDetailPage() {
       setSessionAction(null)
       if (generatedUrl) {
         setGeneratedUrl('')
+      }
+      if (generatedQuestionnaireUrl) {
+        setGeneratedQuestionnaireUrl('')
       }
       await refreshPatient()
     } catch (err) {
@@ -271,6 +282,9 @@ export function PatientDetailPage() {
       }
       if (generatedUrl) {
         setGeneratedUrl('')
+      }
+      if (generatedQuestionnaireUrl) {
+        setGeneratedQuestionnaireUrl('')
       }
       await refreshPatient()
     } catch (err) {
@@ -298,6 +312,97 @@ export function PatientDetailPage() {
 
   function sessionIsOpen(session: SessionRow) {
     return session.status === 'active' || session.status === 'in_progress'
+  }
+
+  function renderSessionActions(session: SessionRow, deleteConfirmMessage: string) {
+    return (
+      <div className={styles.sessionActions}>
+        {!readOnly && session.url && sessionIsOpen(session) && (
+          <>
+            <a href={session.url} target="_blank" rel="noreferrer" className={styles.linkButton}>
+              Abrir link
+            </a>
+            <button type="button" className={styles.linkButton} onClick={() => copySessionUrl(session.url!)}>
+              Copiar link
+            </button>
+          </>
+        )}
+        {sessionHasSubmissions(session) && (
+          <button type="button" className={styles.linkButton} onClick={() => handleViewSubmissions(session.id)}>
+            Ver respostas
+          </button>
+        )}
+        {!readOnly && sessionAction?.sessionId === session.id ? (
+          <div className={styles.sessionConfirm}>
+            <p className={styles.muted}>
+              {sessionAction.type === 'revoke'
+                ? 'O link deixará de funcionar. O registo mantém-se no histórico.'
+                : deleteConfirmMessage}
+            </p>
+            <div className={styles.rowActions}>
+              <button
+                type="button"
+                className={styles.dangerLinkButton}
+                disabled={sessionActionLoading === session.id}
+                onClick={() =>
+                  sessionAction.type === 'revoke'
+                    ? handleRevokeSession(session.id)
+                    : handleDeleteSession(session.id)
+                }
+              >
+                {sessionActionLoading === session.id
+                  ? 'A processar…'
+                  : sessionAction.type === 'revoke'
+                    ? 'Sim, revogar'
+                    : 'Sim, eliminar'}
+              </button>
+              <button
+                type="button"
+                className={styles.linkButton}
+                disabled={sessionActionLoading === session.id}
+                onClick={() => {
+                  setSessionAction(null)
+                  setSessionActionError('')
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          !readOnly && (
+            <>
+              {sessionCanRevoke(session) && (
+                <button
+                  type="button"
+                  className={styles.dangerLinkButton}
+                  disabled={sessionActionLoading === session.id}
+                  onClick={() => {
+                    setSessionActionError('')
+                    setSessionAction({ type: 'revoke', sessionId: session.id })
+                  }}
+                >
+                  Revogar link
+                </button>
+              )}
+              {sessionCanDelete(session) && (
+                <button
+                  type="button"
+                  className={styles.dangerLinkButton}
+                  disabled={sessionActionLoading === session.id}
+                  onClick={() => {
+                    setSessionActionError('')
+                    setSessionAction({ type: 'delete', sessionId: session.id })
+                  }}
+                >
+                  Eliminar
+                </button>
+              )}
+            </>
+          )
+        )}
+      </div>
+    )
   }
 
   function toDateInputValue(value: string | null): string {
@@ -817,7 +922,7 @@ export function PatientDetailPage() {
         <p className={styles.muted}>
           {readOnly
             ? 'Histórico de formulários de intake do paciente (apenas consulta).'
-            : 'Pode revogar links em curso ou eliminar conjuntos criados por engano, desde que ainda não existam respostas submetidas.'}
+            : 'Pode revogar links em curso ou eliminar conjuntos criados por engano, incluindo os que já têm respostas submetidas.'}
         </p>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
@@ -855,105 +960,7 @@ export function PatientDetailPage() {
                     </div>
                   </td>
                   <td>
-                    <div className={styles.sessionActions}>
-                      {!readOnly && session.url && sessionIsOpen(session) && (
-                        <>
-                          <a
-                            href={session.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={styles.linkButton}
-                          >
-                            Abrir link
-                          </a>
-                          <button
-                            type="button"
-                            className={styles.linkButton}
-                            onClick={() => copySessionUrl(session.url!)}
-                          >
-                            Copiar link
-                          </button>
-                        </>
-                      )}
-                      {sessionHasSubmissions(session) && (
-                        <button
-                          type="button"
-                          className={styles.linkButton}
-                          onClick={() => handleViewSubmissions(session.id)}
-                        >
-                          Ver respostas
-                        </button>
-                      )}
-                      {!readOnly && sessionAction?.sessionId === session.id ? (
-                        <div className={styles.sessionConfirm}>
-                          <p className={styles.muted}>
-                            {sessionAction.type === 'revoke'
-                              ? 'O link deixará de funcionar. O registo mantém-se no histórico.'
-                              : 'Eliminar este conjunto de formulários? Esta ação não pode ser desfeita.'}
-                          </p>
-                          <div className={styles.rowActions}>
-                            <button
-                              type="button"
-                              className={styles.dangerLinkButton}
-                              disabled={sessionActionLoading === session.id}
-                              onClick={() =>
-                                sessionAction.type === 'revoke'
-                                  ? handleRevokeSession(session.id)
-                                  : handleDeleteSession(session.id)
-                              }
-                            >
-                              {sessionActionLoading === session.id
-                                ? 'A processar…'
-                                : sessionAction.type === 'revoke'
-                                  ? 'Sim, revogar'
-                                  : 'Sim, eliminar'}
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.linkButton}
-                              disabled={sessionActionLoading === session.id}
-                              onClick={() => {
-                                setSessionAction(null)
-                                setSessionActionError('')
-                              }}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        !readOnly && (
-                        <>
-                          {sessionCanRevoke(session) && (
-                            <button
-                              type="button"
-                              className={styles.dangerLinkButton}
-                              disabled={sessionActionLoading === session.id}
-                              onClick={() => {
-                                setSessionActionError('')
-                                setSessionAction({ type: 'revoke', sessionId: session.id })
-                              }}
-                            >
-                              Revogar link
-                            </button>
-                          )}
-                          {sessionCanDelete(session) && (
-                            <button
-                              type="button"
-                              className={styles.dangerLinkButton}
-                              disabled={sessionActionLoading === session.id}
-                              onClick={() => {
-                                setSessionActionError('')
-                                setSessionAction({ type: 'delete', sessionId: session.id })
-                              }}
-                            >
-                              Eliminar
-                            </button>
-                          )}
-                        </>
-                        )
-                      )}
-                    </div>
+                    {renderSessionActions(session, sessionDeleteConfirmMessage(session, 'formulários'))}
                   </td>
                 </tr>
               ))}
@@ -1012,7 +1019,7 @@ export function PatientDetailPage() {
         <p className={styles.muted}>
           {readOnly
             ? 'Histórico de questionários do paciente (apenas consulta).'
-            : 'Gere links para os informadores preencherem questionários de avaliação.'}
+            : 'Pode revogar links em curso ou eliminar conjuntos criados por engano, incluindo os que já têm respostas submetidas.'}
         </p>
         {copyFeedback && <p className={styles.muted}>{copyFeedback}</p>}
         {sessionActionError && <p className={styles.error}>{sessionActionError}</p>}
@@ -1050,23 +1057,7 @@ export function PatientDetailPage() {
                     </div>
                   </td>
                   <td>
-                    <div className={styles.sessionActions}>
-                      {!readOnly && session.url && sessionIsOpen(session) && (
-                        <>
-                          <a href={session.url} target="_blank" rel="noreferrer" className={styles.linkButton}>
-                            Abrir link
-                          </a>
-                          <button type="button" className={styles.linkButton} onClick={() => copySessionUrl(session.url!)}>
-                            Copiar link
-                          </button>
-                        </>
-                      )}
-                      {sessionHasSubmissions(session) && (
-                        <button type="button" className={styles.linkButton} onClick={() => handleViewSubmissions(session.id)}>
-                          Ver respostas
-                        </button>
-                      )}
-                    </div>
+                    {renderSessionActions(session, sessionDeleteConfirmMessage(session, 'questionários'))}
                   </td>
                 </tr>
               ))}

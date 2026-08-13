@@ -625,14 +625,6 @@ export async function therapistRoutes(app: FastifyInstance) {
         if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
           return reply.status(404).send({ error: 'Sessão não encontrada' })
         }
-        if (error instanceof Error && error.message === 'SESSION_COMPLETED') {
-          return reply.status(400).send({ error: 'Não é possível eliminar uma sessão concluída' })
-        }
-        if (error instanceof Error && error.message === 'SESSION_HAS_SUBMISSIONS') {
-          return reply
-            .status(400)
-            .send({ error: 'Não é possível eliminar uma sessão com formulários submetidos' })
-        }
         throw error
       }
     },

@@ -1,4 +1,4 @@
-import { FormCategory, FormStatus, SessionKind, SessionStatus, type Prisma } from '@prisma/client'
+import { FormCategory, SessionKind, SessionStatus, type Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
@@ -231,19 +231,10 @@ export async function getTherapistPatient(therapistId: string, patientId: string
 export async function deleteTherapistSession(therapistId: string, sessionId: string) {
   const session = await prisma.intakeSession.findFirst({
     where: { id: sessionId, therapistId },
-    include: {
-      forms: { select: { status: true } },
-    },
+    select: { id: true },
   })
   if (!session) {
     throw new Error('SESSION_NOT_FOUND')
-  }
-  if (session.status === SessionStatus.completed) {
-    throw new Error('SESSION_COMPLETED')
-  }
-  const hasSubmissions = session.forms.some((form) => form.status === FormStatus.submitted)
-  if (hasSubmissions) {
-    throw new Error('SESSION_HAS_SUBMISSIONS')
   }
 
   await prisma.intakeSession.delete({ where: { id: sessionId } })
