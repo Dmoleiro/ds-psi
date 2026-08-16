@@ -1,0 +1,1263 @@
+{
+  "disorders": [
+    {
+      "number": 1,
+      "title": "PERTURBAÇÃO DO ESPETRO DO AUTISMO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Apresenta dificuldades persistentes na reciprocidade socioemocional",
+            "Mostra reduzida iniciativa para iniciar interação social",
+            "Responde de forma limitada às iniciativas sociais dos outros",
+            "O contacto ocular é reduzido, pouco integrado ou pouco funcional",
+            "Utiliza poucos gestos comunicativos",
+            "Integra pouco o olhar, os gestos, a expressão facial e a linguagem",
+            "Apresenta dificuldade na atenção conjunta",
+            "Mostra dificuldade em partilhar interesses ou prazer com outras pessoas",
+            "Apresenta dificuldade em compreender ou utilizar sinais sociais",
+            "A interação com pares encontra-se abaixo do esperado para a idade",
+            "A brincadeira social é limitada",
+            "A brincadeira simbólica é reduzida, repetitiva ou pouco espontânea",
+            "Apresenta comportamentos motores repetitivos",
+            "Utiliza objetos de forma repetitiva ou pouco funcional",
+            "Apresenta fala repetitiva, ecolalia ou linguagem estereotipada",
+            "Demonstra necessidade significativa de rotina ou previsibilidade",
+            "Reage intensamente a alterações inesperadas",
+            "Apresenta interesses muito restritos ou intensos",
+            "Demonstra hiper ou hiporreatividade sensorial",
+            "Procura estímulos sensoriais de forma invulgar ou repetitiva",
+            "As manifestações surgem no período inicial do desenvolvimento",
+            "Existe impacto significativo no funcionamento familiar, social ou escolar"
+          ]
+        }
+      ],
+      "footer": {
+        "Áreas que requerem exploração complementar": [
+          "Comunicação social:☐ adequada☐ dificuldade ligeira☐ dificuldade moderada☐ dificuldade marcada",
+          "Comportamentos restritos/repetitivos:☐ ausentes☐ ocasionais☐ frequentes☐ muito frequentes",
+          "Processamento sensorial:☐ aparentemente adequado☐ hiperreatividade☐ hiporreatividade☐ procura sensorial☐ perfil misto"
+        ],
+        "Diagnóstico diferencial a considerar": [
+          "Perturbação do Desenvolvimento da Linguagem",
+          "Atraso Global do Desenvolvimento",
+          "Deficiência intelectual",
+          "Ansiedade social",
+          "Mutismo seletivo",
+          "Perturbações da vinculação",
+          "Dificuldades sensoriais",
+          "Défice auditivo"
+        ],
+        "Instrumentos que podem complementar a avaliação": [
+          "ADOS-2",
+          "CARS-2",
+          "M-CHAT-R/F",
+          "Vineland",
+          "Griffiths III",
+          "avaliação da linguagem",
+          "avaliação do processamento sensorial"
+        ],
+        "Síntese clínica": [
+          "Número de indicadores assinalados: ______",
+          "Impacto funcional:☐ reduzido☐ moderado☐ significativo",
+          "Hipótese clínica: ______________________________________",
+          "Necessita avaliação específica de PEA: ☐ Sim ☐ Não"
+        ]
+      },
+      "threeColumn": true,
+      "chapter": "cap1",
+      "moduleNumber": 1,
+      "moduleId": "picca-vol7-mod1"
+    },
+    {
+      "number": 2,
+      "title": "PERTURBAÇÃO DO ESPETRO DO AUTISMO ATÍPICA PRECOCE",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Esta categoria do DC:0–5 permite considerar crianças muito pequenas que apresentam alterações relevantes relacionadas com o espetro do autismo, mas cujo perfil ainda não se apresenta suficientemente consolidado para uma classificação típica de PEA.",
+          "items": [
+            "Existem dificuldades significativas na reciprocidade social",
+            "O contacto ocular apresenta qualidade atípica",
+            "A atenção conjunta é inconsistente ou reduzida",
+            "A criança partilha pouco interesses ou experiências",
+            "A comunicação não verbal apresenta alterações",
+            "Existem comportamentos repetitivos",
+            "Existem interesses restritos",
+            "Apresenta alterações sensoriais relevantes",
+            "Existe rigidez comportamental",
+            "O jogo simbólico está abaixo do esperado",
+            "Os sinais são clinicamente relevantes, embora ainda incompletos ou pouco consistentes",
+            "Existe impacto funcional"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": true,
+      "chapter": "cap1",
+      "moduleNumber": 2,
+      "moduleId": "picca-vol7-mod2"
+    },
+    {
+      "number": 3,
+      "title": "PERTURBAÇÃO DE HIPERATIVIDADE E DÉFICE DE ATENÇÃO – PHDA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Domínio da desatenção",
+          "items": [
+            "Mantém a atenção durante períodos claramente inferiores ao esperado para a idade",
+            "Perde rapidamente o interesse nas tarefas",
+            "Abandona atividades antes de as concluir",
+            "Necessita de redirecionamento frequente pelo adulto",
+            "Parece não ouvir quando lhe falam diretamente",
+            "Distrai-se facilmente com estímulos externos",
+            "Muda frequentemente de atividade",
+            "Tem dificuldade em seguir instruções sequenciais",
+            "Esquece o que lhe foi pedido",
+            "Demonstra dificuldade em organizar atividades",
+            "Evita tarefas que exigem esforço mental sustentado"
+          ]
+        },
+        {
+          "title": "Domínio da hiperatividade",
+          "items": [
+            "Apresenta atividade motora excessiva para o contexto",
+            "Levanta-se repetidamente quando se espera que permaneça sentado",
+            "Corre ou trepa em situações inadequadas",
+            "Mexe continuamente mãos, pés ou objetos",
+            "Parece estar constantemente em movimento",
+            "Apresenta dificuldade em realizar atividades tranquilas",
+            "Fala excessivamente"
+          ]
+        },
+        {
+          "title": "Domínio da impulsividade",
+          "items": [
+            "Responde antes de a pergunta terminar",
+            "Apresenta dificuldade em esperar pela sua vez",
+            "Interrompe frequentemente adultos ou outras crianças",
+            "Age antes de avaliar consequências",
+            "Toca ou manipula objetos apesar das instruções para não o fazer",
+            "Apresenta dificuldade em inibir respostas imediatas",
+            "Os comportamentos são superiores ao esperado para a idade desenvolvimental",
+            "O padrão é persistente",
+            "O comportamento ocorre em mais do que um contexto",
+            "Existe impacto no funcionamento familiar",
+            "Existe impacto no contexto educativo",
+            "Existem dificuldades nas relações com pares",
+            "As manifestações não são melhor explicadas por outro quadro clínico"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "desenvolvimento normativo/temperamento ativo;",
+          "atraso global do desenvolvimento;",
+          "perturbação da linguagem;",
+          "PEA;",
+          "ansiedade;",
+          "alterações do sono;",
+          "trauma;",
+          "dificuldades de regulação emocional;",
+          "alterações sensoriais;",
+          "condições médicas."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 3,
+      "moduleId": "picca-vol7-mod3"
+    },
+    {
+      "number": 4,
+      "title": "PERTURBAÇÃO DE HIPERATIVIDADE DA PRIMEIRA INFÂNCIA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Overactivity Disorder of Toddlerhood",
+          "items": []
+        },
+        {
+          "title": "O DC:0–5 inclui uma categoria desenvolvimental destinada a crianças mais pequenas que apresentam níveis clinicamente significativos de hiperatividade e impulsividade antes de ser apropriado estabelecer uma PHDA típica.",
+          "items": [
+            "Atividade motora claramente excessiva para a idade",
+            "Dificuldade extrema em permanecer parado",
+            "Corre, sobe ou explora continuamente o ambiente",
+            "Necessita de supervisão muito superior ao esperado",
+            "Passa rapidamente de uma atividade para outra",
+            "Tem dificuldade em brincar tranquilamente",
+            "Apresenta impulsividade significativa",
+            "Mostra dificuldade marcada em esperar",
+            "Age frequentemente sem considerar risco",
+            "Os cuidadores referem dificuldade importante na gestão do comportamento",
+            "As manifestações excedem claramente a variabilidade normal da idade",
+            "Existe prejuízo funcional"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 4,
+      "moduleId": "picca-vol7-mod4"
+    },
+    {
+      "number": 5,
+      "title": "ATRASO GLOBAL DO DESENVOLVIMENTO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Desenvolvimento cognitivo",
+          "items": [
+            "Resolução de problemas abaixo do esperado",
+            "Aquisição lenta de novos conceitos",
+            "Dificuldade na aprendizagem por imitação",
+            "Brincadeira abaixo do nível esperado"
+          ]
+        },
+        {
+          "title": "Linguagem",
+          "items": [
+            "Linguagem expressiva atrasada",
+            "Linguagem compreensiva atrasada",
+            "Vocabulário inferior ao esperado",
+            "Comunicação funcional limitada"
+          ]
+        },
+        {
+          "title": "Motricidade",
+          "items": [
+            "Atraso da motricidade global",
+            "Atraso da motricidade fina",
+            "Dificuldades de equilíbrio/coordenação",
+            "Aquisição tardia de marcos motores"
+          ]
+        },
+        {
+          "title": "Desenvolvimento social e adaptativo",
+          "items": [
+            "Autonomia inferior ao esperado",
+            "Competências sociais imaturas",
+            "Necessita de ajuda significativa nas atividades quotidianas",
+            "Adaptação funcional abaixo da idade cronológica"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 5,
+      "moduleId": "picca-vol7-mod5"
+    },
+    {
+      "number": 6,
+      "title": "PERTURBAÇÃO DO DESENVOLVIMENTO DA LINGUAGEM",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Linguagem recetiva",
+          "items": [
+            "Apresenta dificuldade na compreensão de vocabulário",
+            "Apresenta dificuldade na compreensão de frases",
+            "Não compreende instruções esperadas para a idade",
+            "Necessita frequentemente de repetição",
+            "Tem dificuldade em compreender perguntas",
+            "Demonstra dificuldade em conceitos espaciais, temporais ou quantitativos"
+          ]
+        },
+        {
+          "title": "Linguagem expressiva",
+          "items": [
+            "Vocabulário reduzido",
+            "Frases mais simples do que o esperado",
+            "Erros morfossintáticos persistentes",
+            "Dificuldade em organizar discurso",
+            "Dificuldade em narrar acontecimentos",
+            "Dificuldade em encontrar palavras"
+          ]
+        },
+        {
+          "title": "Funcionamento",
+          "items": [
+            "As dificuldades interferem na comunicação quotidiana",
+            "Interferem na relação com pares",
+            "Interferem na aprendizagem",
+            "Não são explicadas apenas por reduzida exposição linguística",
+            "É necessário excluir alterações auditivas"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "défice auditivo;",
+          "PEA;",
+          "atraso global do desenvolvimento;",
+          "deficiência intelectual;",
+          "perturbação dos sons da fala;",
+          "dificuldades de comunicação social;",
+          "exposição insuficiente à língua."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 6,
+      "moduleId": "picca-vol7-mod6"
+    },
+    {
+      "number": 7,
+      "title": "PERTURBAÇÃO DE HIPER-REATIVIDADE SENSORIAL",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Reage excessivamente a sons",
+            "Evita determinados tecidos ou texturas",
+            "Reage intensamente ao toque",
+            "Demonstra desconforto com higiene ou cuidados pessoais",
+            "Reage intensamente a determinados cheiros",
+            "Apresenta seletividade alimentar associada a características sensoriais",
+            "Evita ambientes visualmente intensos",
+            "Reage excessivamente ao movimento",
+            "O comportamento interfere nas rotinas",
+            "Existe sofrimento ou prejuízo funcional"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 7,
+      "moduleId": "picca-vol7-mod7"
+    },
+    {
+      "number": 8,
+      "title": "PERTURBAÇÃO DE HIPO-REATIVIDADE SENSORIAL",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Responde pouco ao toque",
+            "Parece não reagir adequadamente a sons",
+            "Demonstra pouca consciência de estímulos ambientais",
+            "Reage de forma lenta a estímulos",
+            "Parece necessitar de estímulos mais intensos para responder",
+            "Demonstra pouca resposta a dor ou temperatura",
+            "O comportamento interfere na exploração ou aprendizagem"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 8,
+      "moduleId": "picca-vol7-mod8"
+    },
+    {
+      "number": 9,
+      "title": "OUTRA PERTURBAÇÃO DO PROCESSAMENTO SENSORIAL",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Assinalar os sistemas envolvidos:",
+          "items": []
+        },
+        {
+          "title": "Padrão predominante:",
+          "items": []
+        },
+        {
+          "title": "Indicadores funcionais",
+          "items": [
+            "Interfere na alimentação",
+            "Interfere no sono",
+            "Interfere na higiene",
+            "Interfere na participação escolar",
+            "Interfere na brincadeira",
+            "Interfere na interação social",
+            "Provoca desregulação emocional ou comportamental",
+            "Comunicação social",
+            "Linguagem",
+            "Cognição",
+            "Atenção",
+            "Hiperatividade",
+            "Impulsividade",
+            "Motricidade",
+            "Processamento sensorial",
+            "Autonomia",
+            "Regulação emocional"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap1",
+      "moduleNumber": 9,
+      "moduleId": "picca-vol7-mod9"
+    },
+    {
+      "number": 1,
+      "title": "PERTURBAÇÃO DE ANSIEDADE DE SEPARAÇÃO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Reação à separação",
+          "items": [
+            "Demonstra sofrimento intenso quando se separa da principal figura de referência",
+            "Antecipar a separação provoca ansiedade significativa",
+            "Chora de forma intensa perante separações habituais",
+            "Procura constantemente confirmar onde está o cuidador",
+            "Tem dificuldade em permanecer na escola sem o cuidador",
+            "Necessita frequentemente da presença física do cuidador para se acalmar"
+          ]
+        },
+        {
+          "title": "Preocupações",
+          "items": [
+            "Demonstra receio persistente de perder os pais ou cuidadores",
+            "Manifesta preocupação exagerada com acidentes ou doenças dos cuidadores",
+            "Evita situações que impliquem afastamento"
+          ]
+        },
+        {
+          "title": "Funcionamento",
+          "items": [
+            "O comportamento interfere na adaptação escolar",
+            "Interfere na participação em atividades sociais",
+            "Limita a autonomia esperada para a idade",
+            "O impacto mantém-se ao longo do tempo"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "adaptação escolar inicial;",
+          "ansiedade normativa do desenvolvimento;",
+          "perturbações da vinculação;",
+          "trauma;",
+          "PEA;",
+          "condições médicas."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 10,
+      "moduleId": "picca-vol7-mod10"
+    },
+    {
+      "number": 2,
+      "title": "PERTURBAÇÃO DE ANSIEDADE SOCIAL",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Interação com adultos",
+          "items": [
+            "Evita interagir com adultos desconhecidos",
+            "Necessita de muito tempo para estabelecer contacto",
+            "Mantém-se constantemente junto do cuidador"
+          ]
+        },
+        {
+          "title": "Interação com pares",
+          "items": [
+            "Evita brincar com outras crianças",
+            "Participa pouco em atividades de grupo",
+            "Observa os pares sem se envolver",
+            "Evita iniciar contacto social"
+          ]
+        },
+        {
+          "title": "Respostas emocionais",
+          "items": [
+            "Demonstra vergonha intensa em situações sociais",
+            "Chora ou bloqueia perante pessoas pouco familiares",
+            "Evita falar quando existem outras pessoas presentes",
+            "Mostra sinais físicos de ansiedade (tensão, rigidez, tremor)"
+          ]
+        },
+        {
+          "title": "Funcionamento",
+          "items": [
+            "As dificuldades limitam a participação social",
+            "Existe impacto no contexto pré-escolar",
+            "O comportamento é observado em diferentes contextos"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "timidez normativa;",
+          "mutismo seletivo;",
+          "PEA;",
+          "perturbação da linguagem;",
+          "perturbações da vinculação."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 11,
+      "moduleId": "picca-vol7-mod11"
+    },
+    {
+      "number": 3,
+      "title": "PERTURBAÇÃO DE ANSIEDADE GENERALIZADA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Preocupação excessiva",
+          "items": [
+            "Demonstra preocupação frequente relativamente a várias situações",
+            "Procura constantemente confirmação dos adultos",
+            "Faz perguntas repetidas sobre acontecimentos futuros",
+            "Tem dificuldade em tolerar a incerteza"
+          ]
+        },
+        {
+          "title": "Sintomas associados",
+          "items": [
+            "Irritabilidade frequente",
+            "Inquietação motora",
+            "Dificuldade em relaxar",
+            "Dificuldade em adormecer",
+            "Queixas físicas recorrentes sem causa médica identificada",
+            "Cansaço fácil"
+          ]
+        },
+        {
+          "title": "Funcionamento",
+          "items": [
+            "As preocupações interferem nas rotinas diárias",
+            "Existe impacto na aprendizagem",
+            "Existe impacto nas relações familiares"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "ansiedade normativa;",
+          "trauma;",
+          "perturbações do sono;",
+          "PHDA;",
+          "perturbações médicas."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 12,
+      "moduleId": "picca-vol7-mod12"
+    },
+    {
+      "number": 4,
+      "title": "MUTISMO SELETIVO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Comunicação",
+          "items": [
+            "Comunica normalmente em casa",
+            "Não comunica verbalmente na escola",
+            "Comunica apenas com pessoas específicas",
+            "Utiliza gestos em substituição da linguagem verbal",
+            "Evita responder quando lhe dirigem perguntas"
+          ]
+        },
+        {
+          "title": "Contexto",
+          "items": [
+            "O comportamento ocorre apenas em determinados contextos",
+            "Existe sofrimento associado",
+            "Existe impacto na aprendizagem",
+            "Existe impacto nas relações sociais"
+          ]
+        }
+      ],
+      "footer": {
+        "Aspetos a excluir": [
+          "☐ Alterações importantes da linguagem",
+          "☐ Défice auditivo",
+          "☐ PEA",
+          "☐ Desconhecimento da língua utilizada"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 13,
+      "moduleId": "picca-vol7-mod13"
+    },
+    {
+      "number": 5,
+      "title": "PERTURBAÇÃO DE INIBIÇÃO PERANTE A NOVIDADE",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Esta categoria é específica do DC:0–5 e destina-se a crianças muito pequenas que apresentam uma resposta persistentemente intensa de inibição perante pessoas, ambientes ou situações novas, para além do esperado para a idade.",
+          "items": [
+            "Evita explorar ambientes desconhecidos",
+            "Mantém-se muito próximo do cuidador",
+            "Demora excessivamente a adaptar-se a novos contextos",
+            "Evita aproximar-se de pessoas desconhecidas",
+            "Demonstra intensa hesitação perante novidades",
+            "Necessita constantemente de confirmação do adulto",
+            "Resiste à mudança de rotinas",
+            "A resposta interfere na participação em atividades adequadas à idade"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "temperamento inibido;",
+          "ansiedade social;",
+          "ansiedade de separação;",
+          "PEA;",
+          "perturbações da vinculação."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 14,
+      "moduleId": "picca-vol7-mod14"
+    },
+    {
+      "number": 6,
+      "title": "OUTRA PERTURBAÇÃO DE ANSIEDADE DA PRIMEIRA INFÂNCIA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Utilizar quando existe um quadro de ansiedade clinicamente significativo que não corresponde de forma adequada às categorias anteriores.",
+          "items": [
+            "Existe sofrimento emocional significativo",
+            "Existe evitamento persistente",
+            "Existe prejuízo funcional",
+            "Os sintomas mantêm-se ao longo do tempo",
+            "Não são melhor explicados por outra perturbação"
+          ]
+        }
+      ],
+      "footer": {
+        "Instrumentos que podem complementar a avaliação": [
+          "☐ Entrevista clínica aos cuidadores",
+          "☐ Observação direta",
+          "☐ Observação em contexto educativo",
+          "☐ CBCL / ASEBA",
+          "☐ SDQ",
+          "☐ SCARED (quando apropriado à idade)",
+          "☐ Escalas de vinculação",
+          "☐ Avaliação do desenvolvimento",
+          "☐ Avaliação da linguagem",
+          "☐ Outra: ____________________",
+          "SÍNTESE CLÍNICA",
+          "Área predominante",
+          "☐ Separação",
+          "☐ Ansiedade social",
+          "☐ Preocupação generalizada",
+          "☐ Comunicação seletiva",
+          "☐ Inibição perante novidade",
+          "☐ Outra",
+          "Hipótese clínica principal",
+          "Hipóteses diferenciais",
+          "Necessidade de referenciação",
+          "☐ Psicologia",
+          "☐ Pedopsiquiatria",
+          "☐ Pediatria do Desenvolvimento",
+          "☐ Terapia da Fala",
+          "☐ Outra: _______________________",
+          "Observações clínicas",
+          "Nota de interpretação",
+          "Na primeira infância, manifestações de ansiedade podem fazer parte do desenvolvimento típico. A interpretação clínica deve integrar sempre a idade desenvolvimental, a persistência, a intensidade, a generalização entre contextos, o impacto funcional e a informação recolhida junto dos cuidadores, educadores e através da observação direta."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap2",
+      "moduleNumber": 15,
+      "moduleId": "picca-vol7-mod15"
+    },
+    {
+      "number": 1,
+      "title": "Perturbação do Início do Sono",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Demora muito tempo a adormecer de forma consistente",
+            "Necessita sempre da presença do cuidador para iniciar o sono",
+            "Apenas adormece através de embalo, colo ou amamentação",
+            "Resiste intensamente à hora de deitar",
+            "Chora frequentemente quando é colocado na cama",
+            "Sai repetidamente da cama ou chama os pais",
+            "O comportamento ocorre de forma persistente",
+            "Existe impacto no descanso da criança ou da família"
+          ]
+        }
+      ],
+      "footer": {
+        "Aspetos a excluir": [
+          "☐ Dor",
+          "☐ Refluxo",
+          "☐ Apneia",
+          "☐ Alterações neurológicas",
+          "☐ Medicação",
+          "☐ Ambiente inadequado"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 16,
+      "moduleId": "picca-vol7-mod16"
+    },
+    {
+      "number": 2,
+      "title": "Perturbação dos Despertares Noturnos",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Acorda repetidamente durante a noite",
+            "Necessita da intervenção do adulto para voltar a dormir",
+            "Não consegue readormecer autonomamente",
+            "O sono é muito fragmentado",
+            "O padrão mantém-se ao longo do tempo",
+            "Existe fadiga diurna",
+            "Existe impacto familiar significativo"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 17,
+      "moduleId": "picca-vol7-mod17"
+    },
+    {
+      "number": 3,
+      "title": "Perturbação Parcial do Despertar",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Episódios de despertar parcial",
+            "Choro intenso durante o episódio",
+            "Confusão marcada",
+            "Difícil de consolar",
+            "Pouca consciência do ambiente",
+            "Não se recorda do episódio posteriormente (quando aplicável)"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 18,
+      "moduleId": "picca-vol7-mod18"
+    },
+    {
+      "number": 4,
+      "title": "Perturbação de Pesadelos da Primeira Infância",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Acorda assustado após sonhos perturbadores",
+            "Demonstra medo de voltar a dormir",
+            "Procura intensamente o cuidador",
+            "O episódio interfere no descanso",
+            "O padrão é recorrente"
+          ]
+        }
+      ],
+      "footer": {
+        "IMPACTO FUNCIONAL DO SONO": [
+          "☐ Irritabilidade",
+          "☐ Sonolência diurna",
+          "☐ Dificuldades de atenção",
+          "☐ Alterações do comportamento",
+          "☐ Conflitos familiares",
+          "☐ Prejuízo no desenvolvimento",
+          "II. PERTURBAÇÕES DA ALIMENTAÇÃO"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 19,
+      "moduleId": "picca-vol7-mod19"
+    },
+    {
+      "number": 1,
+      "title": "Perturbação de Subalimentação",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Ingestão insuficiente para a idade",
+            "Baixo interesse pela alimentação",
+            "Refeições muito prolongadas",
+            "Recusa persistente da alimentação",
+            "Crescimento ou ganho ponderal comprometido",
+            "Necessidade frequente de distrações para comer",
+            "Impacto no funcionamento familiar"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 20,
+      "moduleId": "picca-vol7-mod20"
+    },
+    {
+      "number": 2,
+      "title": "Perturbação de Sobrealimentação",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Procura constante de comida",
+            "Come rapidamente",
+            "Dificuldade em interromper a refeição",
+            "Come para além da saciedade",
+            "Procura alimentos repetidamente durante o dia",
+            "O comportamento interfere na rotina familiar"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 21,
+      "moduleId": "picca-vol7-mod21"
+    },
+    {
+      "number": 3,
+      "title": "Perturbação Alimentar Atípica",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Seletividade alimentar extrema",
+            "Recusa grupos completos de alimentos",
+            "Aceita apenas determinadas texturas",
+            "Rejeita alimentos pela cor, cheiro ou temperatura",
+            "Reações emocionais intensas perante novos alimentos",
+            "O comportamento compromete a variedade alimentar",
+            "Existe impacto nutricional ou familiar"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 22,
+      "moduleId": "picca-vol7-mod22"
+    },
+    {
+      "number": 4,
+      "title": "Pica",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Ingere substâncias não alimentares",
+            "O comportamento é repetitivo",
+            "Não corresponde ao esperado para a idade",
+            "Existe risco médico associado"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 23,
+      "moduleId": "picca-vol7-mod23"
+    },
+    {
+      "number": 5,
+      "title": "Ruminação",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Regurgitação repetida dos alimentos",
+            "Remastigação dos alimentos",
+            "O comportamento não é explicado por doença gastrointestinal",
+            "Existe impacto nutricional"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 24,
+      "moduleId": "picca-vol7-mod24"
+    },
+    {
+      "number": 10,
+      "title": "PERTURBAÇÃO DO CHORO EXCESSIVO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Frequência",
+          "items": [
+            "Chora durante grande parte do dia",
+            "O choro é difícil de interromper",
+            "Ocorre sem desencadeante evidente",
+            "Surge repetidamente ao longo do dia"
+          ]
+        },
+        {
+          "title": "Consolação",
+          "items": [
+            "Não acalma facilmente com estratégias habituais",
+            "Necessita de longos períodos para recuperar",
+            "O cuidador refere sentir-se incapaz de o consolar"
+          ]
+        },
+        {
+          "title": "Funcionamento",
+          "items": [
+            "Interfere significativamente nas rotinas familiares",
+            "Provoca elevada sobrecarga parental",
+            "Interfere no sono",
+            "Interfere na alimentação"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap3",
+      "moduleNumber": 25,
+      "moduleId": "picca-vol7-mod25"
+    },
+    {
+      "number": 1,
+      "title": "PERTURBAÇÃO DEPRESSIVA DA PRIMEIRA INFÂNCIA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "A. Humor e Afeto",
+          "items": [
+            "Apresenta humor persistentemente triste ou abatido",
+            "Demonstra pouca expressão de alegria",
+            "Sorri ou ri menos do que o esperado para a idade",
+            "Parece emocionalmente desligado do ambiente",
+            "Mostra reduzida reatividade emocional a acontecimentos positivos"
+          ]
+        },
+        {
+          "title": "B. Interesse e Brincadeira",
+          "items": [
+            "Perde interesse por brincadeiras anteriormente apreciadas",
+            "Participa pouco em atividades espontâneas",
+            "Necessita de grande incentivo para brincar",
+            "Demonstra pouca curiosidade pelo ambiente"
+          ]
+        },
+        {
+          "title": "C. Regulação Emocional",
+          "items": [
+            "Chora facilmente",
+            "Apresenta irritabilidade frequente",
+            "Recupera lentamente após frustração",
+            "Demonstra pouca capacidade de autoconsolo"
+          ]
+        },
+        {
+          "title": "D. Funcionamento Diário",
+          "items": [
+            "Alterações do sono",
+            "Alterações do apetite",
+            "Diminuição da energia",
+            "Menor participação social",
+            "Redução da autonomia habitual"
+          ]
+        },
+        {
+          "title": "E. Relações",
+          "items": [
+            "Procura menos a interação com cuidadores",
+            "Demonstra menor envolvimento com pares",
+            "Apresenta menor reciprocidade social"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "☐ Reação de adaptação",
+          "☐ Luto",
+          "☐ Trauma",
+          "☐ Perturbação da vinculação",
+          "☐ Atraso global do desenvolvimento",
+          "☐ Perturbação do espetro do autismo",
+          "☐ Condição médica",
+          "☐ Outro: __________________"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap4",
+      "moduleNumber": 26,
+      "moduleId": "picca-vol7-mod26"
+    },
+    {
+      "number": 2,
+      "title": "PERTURBAÇÃO MISTA DA EXPRESSÃO EMOCIONAL",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Alterna rapidamente entre tristeza, irritabilidade e ansiedade",
+            "As emoções parecem desproporcionadas ao contexto",
+            "Demonstra dificuldade em identificar ou expressar emoções",
+            "Apresenta reações emocionais imprevisíveis",
+            "O humor varia significativamente ao longo do dia",
+            "Existe dificuldade persistente de autorregulação",
+            "O funcionamento familiar é afetado",
+            "Existe impacto na adaptação escolar"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "☐ Ansiedade",
+          "☐ Trauma",
+          "☐ Perturbações da vinculação",
+          "☐ Alterações sensoriais",
+          "☐ PHDA",
+          "☐ PEA",
+          "☐ Outro: ___________________"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap4",
+      "moduleNumber": 27,
+      "moduleId": "picca-vol7-mod27"
+    },
+    {
+      "number": 3,
+      "title": "OUTRA PERTURBAÇÃO DO HUMOR DA PRIMEIRA INFÂNCIA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Existe alteração persistente do humor",
+            "O padrão difere claramente do funcionamento habitual da criança",
+            "As alterações provocam sofrimento",
+            "Existe prejuízo funcional",
+            "Não é melhor explicado por outra condição clínica"
+          ]
+        }
+      ],
+      "footer": {},
+      "threeColumn": false,
+      "chapter": "cap4",
+      "moduleNumber": 28,
+      "moduleId": "picca-vol7-mod28"
+    },
+    {
+      "number": 4,
+      "title": "IRRITABILIDADE PERSISTENTE",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Embora a irritabilidade possa ocorrer em diversas perturbações, a sua avaliação sistemática é fundamental na primeira infância.",
+          "items": [
+            "Irritabilidade presente na maior parte dos dias",
+            "Birras muito intensas para a idade",
+            "Reações explosivas perante pequenas frustrações",
+            "Recuperação lenta após episódios emocionais",
+            "Humor irritável entre episódios",
+            "Dificuldade persistente em aceitar limites",
+            "As manifestações ocorrem em diferentes contextos",
+            "Existe impacto familiar significativo"
+          ]
+        }
+      ],
+      "footer": {
+        "Instrumentos que podem complementar a avaliação": [
+          "☐ ASEBA (CBCL/C-TRF)",
+          "☐ SDQ",
+          "☐ Escalas de desenvolvimento",
+          "☐ Avaliação da vinculação",
+          "☐ Avaliação do funcionamento familiar",
+          "☐ Avaliação do desenvolvimento cognitivo",
+          "☐ Avaliação da linguagem",
+          "SÍNTESE CLÍNICA",
+          "Área predominante",
+          "☐ Humor deprimido",
+          "☐ Irritabilidade",
+          "☐ Oscilação emocional",
+          "☐ Redução do interesse",
+          "☐ Outra",
+          "Hipótese clínica principal",
+          "Hipóteses diferenciais",
+          "Necessidade de referenciação",
+          "☐ Psicologia",
+          "☐ Pedopsiquiatria",
+          "☐ Pediatria do Desenvolvimento",
+          "☐ Outra: _______________________",
+          "Observações clínicas",
+          "Nota de interpretação clínica",
+          "Na primeira infância, alterações do humor devem ser interpretadas considerando a etapa do desenvolvimento, a duração e a intensidade das manifestações, a sua presença em diferentes contextos e o impacto no funcionamento global da criança. É igualmente importante excluir condições médicas, alterações do neurodesenvolvimento, experiências traumáticas e dificuldades relacionais que possam explicar ou contribuir para o quadro observado."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap4",
+      "moduleNumber": 29,
+      "moduleId": "picca-vol7-mod29"
+    },
+    {
+      "number": 1,
+      "title": "PERTURBAÇÃO OBSESSIVO-COMPULSIVA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "A. Pensamentos e preocupações persistentes",
+          "items": [
+            "Demonstra preocupação intensa e repetitiva com um mesmo tema",
+            "Procura constantemente confirmação dos adultos",
+            "Mostra dificuldade em interromper determinadas ideias ou perguntas",
+            "Fica muito perturbado quando não obtém resposta ou segurança",
+            "As preocupações interferem na brincadeira ou nas rotinas"
+          ]
+        },
+        {
+          "title": "B. Comportamentos repetitivos",
+          "items": [
+            "Repete ações de forma rígida ou ritualizada",
+            "Insiste em realizar determinadas sequências sempre da mesma forma",
+            "Repete verificações ou confirmações",
+            "Demonstra necessidade de alinhar, organizar ou ordenar objetos repetidamente",
+            "Fica muito angustiado quando os rituais são interrompidos",
+            "Os comportamentos ocupam uma parte importante das rotinas diárias"
+          ]
+        },
+        {
+          "title": "C. Impacto funcional",
+          "items": [
+            "Interfere na participação em atividades diárias",
+            "Interfere na adaptação ao contexto educativo",
+            "Provoca sofrimento significativo à criança",
+            "Aumenta o stress familiar",
+            "Limita a interação com pares"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "☐ Comportamentos repetitivos normativos do desenvolvimento",
+          "☐ Perturbação do Espetro do Autismo",
+          "☐ Perturbações de ansiedade",
+          "☐ Perturbações da vinculação",
+          "☐ Alterações sensoriais",
+          "☐ PHDA",
+          "☐ Outra condição médica ou neurológica"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap5",
+      "moduleNumber": 30,
+      "moduleId": "picca-vol7-mod30"
+    },
+    {
+      "number": 2,
+      "title": "COMPORTAMENTOS REPETITIVOS CENTRADOS NO CORPO",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "A. Manipulação corporal repetitiva",
+          "items": [
+            "Arranca cabelos de forma repetitiva",
+            "Morde unhas de forma intensa e persistente",
+            "Manipula ou fere repetidamente a pele",
+            "Morde lábios ou bochechas de forma repetitiva",
+            "Repete estes comportamentos em momentos de tensão ou aborrecimento"
+          ]
+        },
+        {
+          "title": "B. Consequências",
+          "items": [
+            "Existem lesões físicas associadas",
+            "Existe sofrimento da criança",
+            "Os cuidadores necessitam de intervir frequentemente",
+            "O comportamento interfere nas atividades diárias"
+          ]
+        }
+      ],
+      "footer": {
+        "Diagnóstico diferencial": [
+          "☐ Comportamentos exploratórios próprios da idade",
+          "☐ Tiques",
+          "☐ Estereotipias motoras",
+          "☐ Alterações sensoriais",
+          "☐ PEA",
+          "☐ Condição dermatológica"
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap5",
+      "moduleNumber": 31,
+      "moduleId": "picca-vol7-mod31"
+    },
+    {
+      "number": 3,
+      "title": "OUTRA PERTURBAÇÃO OBSESSIVO-COMPULSIVA E RELACIONADA",
+      "guidance": "",
+      "groups": [
+        {
+          "title": "Indicadores clínicos",
+          "items": [
+            "Existem comportamentos repetitivos clinicamente relevantes",
+            "Existe sofrimento ou desconforto significativo",
+            "O comportamento interfere no funcionamento diário",
+            "O padrão mantém-se ao longo do tempo",
+            "Não é melhor explicado por outra perturbação"
+          ]
+        }
+      ],
+      "footer": {
+        "Instrumentos que podem complementar a avaliação": [
+          "☐ Entrevista clínica estruturada",
+          "☐ ASEBA (CBCL/C-TRF)",
+          "☐ SDQ",
+          "☐ Escalas de ansiedade",
+          "☐ Avaliação do desenvolvimento",
+          "☐ Avaliação neuropsicológica",
+          "☐ Outra: ______________________",
+          "SÍNTESE CLÍNICA",
+          "Área predominante",
+          "☐ Preocupações persistentes",
+          "☐ Rituais repetitivos",
+          "☐ Comportamentos centrados no corpo",
+          "☐ Rigidez comportamental",
+          "☐ Outra",
+          "Hipótese clínica principal",
+          "Hipóteses diferenciais",
+          "Necessidade de referenciação",
+          "☐ Psicologia",
+          "☐ Pedopsiquiatria",
+          "☐ Pediatria do Desenvolvimento",
+          "☐ Neuropediatria",
+          "☐ Outra: _______________________",
+          "Observações clínicas",
+          "Nota de interpretação clínica",
+          "Na idade pré-escolar é importante distinguir comportamentos repetitivos esperados do desenvolvimento (por exemplo, preferência por rotinas ou repetição durante a brincadeira) de padrões persistentes que provocam sofrimento, rigidez marcada ou interferência no funcionamento diário. A formulação clínica deve integrar a intensidade, a frequência, a duração, o contexto e o impacto funcional, bem como excluir outras perturbações do neurodesenvolvimento, da ansiedade ou condições médicas que possam explicar melhor o quadro observado."
+        ]
+      },
+      "threeColumn": false,
+      "chapter": "cap5",
+      "moduleNumber": 32,
+      "moduleId": "picca-vol7-mod32"
+    }
+  ]
+}

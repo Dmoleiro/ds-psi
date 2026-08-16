@@ -1,0 +1,678 @@
+PICCA
+Manual Clínico de Diagnóstico em Idade Pré-
+Escolar (0–5 anos)
+VOLUME I
+Fundamentos do Desenvolvimento Infantil e Formulação Clínica
+Autoria: Daniela Santos (Coordenação Clínica)
+Versão 1.0
+Prefácio
+A infância representa um período de extraordinária plasticidade cerebral, durante o qual o
+desenvolvimento resulta da interação contínua entre fatores biológicos, psicológicos, familiares e
+ambientais. A identificação precoce de alterações do desenvolvimento constitui um dos pilares da
+intervenção clínica, permitindo reduzir o impacto funcional das dificuldades e potenciar trajetórias
+desenvolvimentais mais adaptativas.
+O sistema DC:0–5™ introduziu uma abordagem especificamente direcionada às crianças dos 0 aos 5
+anos, valorizando uma perspetiva desenvolvimental, relacional, cultural e contextual através de um
+modelo multiaxial. Este manual não reproduz os critérios oficiais do DC:0–5™, mas inspira-se na sua
+filosofia clínica para apresentar um guia prático destinado à avaliação psicológica e à formulação clínica
+em idade pré-escolar.
+Índice
+Introdução ao desenvolvimento infantil
+Desenvolvimento típico dos 0 aos 5 anos
+Bases neurobiológicas do desenvolvimento
+Desenvolvimento emocional
+Desenvolvimento cognitivo
+Desenvolvimento da linguagem
+Desenvolvimento motor
+Desenvolvimento social
+Funções executivas
+Autorregulação
+Processamento sensorial
+Vinculação
+Fatores de risco e fatores de proteção
+1.
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+11.
+12.
+13.
+1
+
+-- 1 of 13 --
+
+Sinais de alerta (Red Flags)
+Formulação clínica
+Avaliação multidisciplinar
+Instrumentos de avaliação
+Checklists clínicas
+CAPÍTULO 1
+Introdução ao Desenvolvimento Infantil
+O desenvolvimento infantil
+O desenvolvimento infantil corresponde a um processo contínuo de aquisição de competências que
+resulta da interação dinâmica entre fatores genéticos, neurobiológicos, ambientais e relacionais.
+Nenhuma competência surge de forma isolada. Cada aquisição influencia as restantes áreas do
+desenvolvimento.
+As principais áreas incluem:
+Desenvolvimento motor
+Desenvolvimento cognitivo
+Linguagem
+Comunicação
+Desenvolvimento emocional
+Competências sociais
+Autonomia
+Processamento sensorial
+Funções executivas
+Princípios fundamentais
+O desenvolvimento caracteriza-se por:
+continuidade;
+progressão sequencial;
+variabilidade individual;
+influência do ambiente;
+elevada plasticidade cerebral nos primeiros anos;
+dependência da qualidade das relações precoces.
+14.
+15.
+16.
+17.
+18.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+2
+
+-- 2 of 13 --
+
+Porque é importante avaliar cedo?
+Uma avaliação precoce permite:
+identificar dificuldades antes da entrada no ensino obrigatório;
+compreender fatores de risco e de proteção;
+orientar a intervenção terapêutica;
+apoiar a família;
+apoiar a escola;
+diminuir o impacto funcional das dificuldades.
+CAPÍTULO 2
+Desenvolvimento Típico
+Desenvolvimento entre o nascimento e os 6 meses
+Comunicação
+reage à voz humana;
+sorri socialmente;
+vocaliza;
+inicia contacto ocular.
+Motricidade
+controlo progressivo da cabeça;
+leva as mãos à linha média;
+inicia preensão voluntária.
+Cognição
+acompanha objetos;
+reconhece cuidadores;
+demonstra curiosidade visual.
+Desenvolvimento emocional
+diferencia estados emocionais;
+acalma com figuras de vinculação;
+inicia reciprocidade social.
+6–12 meses
+Espera-se:
+gatinhar;
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+3
+
+-- 3 of 13 --
+
+responder ao nome;
+brincar de causa-efeito;
+procurar objetos escondidos;
+balbucio variado;
+ansiedade perante estranhos.
+12–24 meses
+Espera-se:
+marcha autónoma;
+primeiras palavras;
+início da brincadeira funcional;
+imitação;
+aumento da autonomia;
+compreensão de ordens simples.
+24–36 meses
+Espera-se:
+frases simples;
+jogo simbólico;
+maior autonomia;
+início do controlo dos esfíncteres;
+identificação de emoções básicas;
+brincadeira paralela.
+3 anos
+Competências esperadas:
+Linguagem
+frases completas;
+compreensão adequada;
+narrativa simples.
+Cognição
+classificação simples;
+resolução de pequenos problemas;
+memória funcional.
+Socialização
+brincadeira cooperativa inicial;
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+4
+
+-- 4 of 13 --
+
+partilha;
+espera pela vez.
+Motricidade
+sobe escadas alternando pés;
+salta;
+desenha círculo.
+4 anos
+Espera-se:
+linguagem inteligível;
+jogo imaginativo elaborado;
+início da teoria da mente;
+maior flexibilidade cognitiva;
+melhor controlo inibitório.
+5 anos
+Espera-se:
+preparação para aprendizagem formal;
+atenção sustentada superior;
+maior autorregulação;
+autonomia nas atividades diárias;
+competências pré-académicas consolidadas.
+CAPÍTULO 3
+Bases Neurobiológicas
+O desenvolvimento cerebral precoce caracteriza-se por:
+intensa sinaptogénese;
+mielinização progressiva;
+poda sináptica;
+elevada plasticidade;
+influência determinante da experiência.
+Áreas particularmente relevantes:
+córtex pré-frontal;
+sistema límbico;
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+5
+
+-- 5 of 13 --
+
+cerebelo;
+corpo caloso;
+redes de atenção;
+redes executivas.
+CAPÍTULO 4
+Desenvolvimento Emocional
+Principais competências:
+identificação emocional;
+expressão emocional;
+regulação emocional;
+empatia;
+tolerância à frustração;
+autoconsolo.
+Indicadores positivos:
+procura conforto;
+aceita ajuda;
+recupera após frustração;
+demonstra curiosidade.
+CAPÍTULO 5
+Desenvolvimento Cognitivo
+Inclui:
+atenção;
+memória;
+resolução de problemas;
+raciocínio;
+permanência do objeto;
+funções simbólicas;
+flexibilidade cognitiva.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+6
+
+-- 6 of 13 --
+
+CAPÍTULO 6
+Desenvolvimento da Linguagem
+Áreas a observar:
+Linguagem recetiva
+compreensão;
+ordens;
+conceitos;
+vocabulário.
+Linguagem expressiva
+vocabulário;
+estrutura frásica;
+narrativa;
+pragmática.
+Comunicação
+contacto ocular;
+gestos;
+reciprocidade;
+atenção conjunta.
+CAPÍTULO 7
+Desenvolvimento Motor
+Motricidade global
+equilíbrio;
+coordenação;
+marcha;
+corrida;
+salto.
+Motricidade fina
+preensão;
+grafomotricidade;
+coordenação óculo-manual;
+manipulação.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+7
+
+-- 7 of 13 --
+
+CAPÍTULO 8
+Desenvolvimento Social
+Avaliar:
+interação com pares;
+interação com adultos;
+jogo simbólico;
+reciprocidade;
+competências pró-sociais;
+adaptação escolar.
+CAPÍTULO 9
+Funções Executivas
+Principais componentes:
+memória de trabalho;
+controlo inibitório;
+flexibilidade cognitiva;
+planeamento;
+monitorização;
+organização.
+CAPÍTULO 10
+Autorregulação
+Inclui:
+regulação emocional;
+regulação fisiológica;
+regulação comportamental;
+regulação atencional.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+8
+
+-- 8 of 13 --
+
+CAPÍTULO 11
+Processamento Sensorial
+Áreas avaliadas:
+tátil;
+vestibular;
+propriocetivo;
+auditivo;
+visual;
+gustativo;
+olfativo.
+Observar:
+hipersensibilidade;
+hipossensibilidade;
+procura sensorial;
+evitamento.
+CAPÍTULO 12
+Vinculação
+A qualidade das relações precoces influencia profundamente o desenvolvimento emocional e social da
+criança.
+Na avaliação clínica devem ser observados:
+procura de proximidade;
+utilização do adulto como base segura;
+capacidade de consolação;
+reciprocidade;
+resposta à separação;
+resposta ao reencontro.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+9
+
+-- 9 of 13 --
+
+CAPÍTULO 13
+Fatores de Risco
+Pré-natais
+prematuridade;
+infeções;
+consumo de substâncias;
+complicações obstétricas.
+Perinatais
+hipóxia;
+baixo peso;
+internamento neonatal.
+Pós-natais
+negligência;
+trauma;
+institucionalização;
+doença crónica;
+pobreza extrema.
+CAPÍTULO 14
+Red Flags
+Linguagem
+ausência de balbucio;
+ausência de palavras;
+perda de linguagem;
+ausência de intenção comunicativa.
+Socialização
+ausência de contacto ocular;
+ausência de atenção conjunta;
+reduzida reciprocidade social.
+Motricidade
+atraso significativo;
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+10
+
+-- 10 of 13 --
+
+assimetrias persistentes;
+regressão.
+Comportamento
+birras muito intensas e persistentes;
+agressividade grave;
+autoagressão;
+rigidez marcada.
+Sensorial
+reações extremas a sons, texturas ou luz;
+procura sensorial intensa.
+CAPÍTULO 15
+Formulação Clínica
+O modelo PICCA organiza a informação clínica em cinco dimensões:
+Motivo da avaliação.
+História desenvolvimental e contexto familiar.
+Integração dos resultados da avaliação.
+Hipóteses clínicas e fatores predisponentes, precipitantes, perpetuantes e protetores.
+Objetivos terapêuticos e recomendações.
+Esta abordagem privilegia uma compreensão integrada da criança, considerando o seu funcionamento,
+o contexto relacional e os fatores ambientais, em consonância com a perspetiva desenvolvimental e
+multiaxial promovida pelo DC:0–5.
+CAPÍTULO 16
+Avaliação Multidisciplinar
+Profissionais frequentemente envolvidos:
+Psicólogo
+Pediatra do Desenvolvimento
+Neuropediatra
+Pedopsiquiatra
+Terapeuta da Fala
+Terapeuta Ocupacional
+Fisioterapeuta
+Nutricionista
+•
+•
+•
+•
+•
+•
+•
+•
+1.
+2.
+3.
+4.
+5.
+•
+•
+•
+•
+•
+•
+•
+•
+11
+
+-- 11 of 13 --
+
+Educador de Infância
+CAPÍTULO 17
+Instrumentos Recomendados
+Desenvolvimento
+Griffiths III
+Bayley
+WPPSI
+WISC
+Cognição
+Raven
+BANC
+Atenção e funções executivas
+Conners
+BRIEF-P
+CHEXI
+Emoções
+ASEBA
+SDQ
+RCMAS
+SCARED
+Autismo
+ADOS-2
+CARS-2
+M-CHAT-R/F
+Comportamento adaptativo
+Vineland
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+12
+
+-- 12 of 13 --
+
+CAPÍTULO 18
+Checklists Clínicas
+Cada avaliação deverá incluir uma observação sistemática de:
+contacto ocular;
+comunicação verbal;
+comunicação não verbal;
+atenção conjunta;
+jogo simbólico;
+reciprocidade social;
+expressão emocional;
+autorregulação;
+comportamento adaptativo;
+funções executivas;
+processamento sensorial;
+motricidade;
+autonomia;
+interação com os cuidadores.
+Conclusão
+A avaliação em idade pré-escolar deve privilegiar uma abordagem integrada, desenvolvimental e
+centrada na criança e na família. A utilização de uma formulação clínica estruturada permite
+compreender não apenas a presença de sintomas, mas também os fatores biológicos, relacionais e
+contextuais que influenciam o desenvolvimento, orientando decisões diagnósticas e intervenções
+individualizadas. Esta perspetiva é consistente com o enquadramento multiaxial e relacional promovido
+pelo DC:0–5 e pelas orientações contemporâneas em saúde mental na primeira infância.
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+•
+13
+
+-- 13 of 13 --
+

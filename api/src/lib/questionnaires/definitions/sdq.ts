@@ -1,4 +1,4 @@
-import { defineQuestionnaire, itemsFromTexts, sdqScoring, SDQ_4_17_ITEMS } from '../helpers.js'
+import { defineQuestionnaire, sdqScoring, SDQ_4_17_ITEMS } from '../helpers.js'
 
 const SDQ_INSTRUCTIONS =
   'Para cada frase, marque uma das opções conforme o comportamento nos últimos seis meses.'
@@ -59,10 +59,41 @@ const SDQ_PROF_ITEMS = [
   'Termina o que começa, tem boa atenção',
 ]
 
+const SDQ_AUTOAVALIACAO_4_17_ITEMS = [
+  'Tento ser simpático/a com as outras pessoas. Preocupo-me com o que sentem',
+  'Sou irrequieto/a, não consigo ficar quieto/a muito tempo',
+  'Tenho muitas dores de cabeça, de barriga ou vómitos',
+  'Gosto de partilhar com os outros (comida, jogos, esferográficas, etc.)',
+  'Irrito-me e perco a cabeça muitas vezes',
+  'Estou quase sempre sozinho/a, jogo sozinho/a. Sou reservado/a',
+  'Normalmente faço o que me mandam',
+  'Preocupo-me muito',
+  'Gosto de ajudar se alguém está magoado, aborrecido ou doente',
+  'Não sossego, estou sempre a mexer as pernas ou as mãos',
+  'Tenho pelo menos um bom amigo/uma boa amiga',
+  'Ando sempre á pancada. Consigo obrigar os outros a fazer o que eu quero',
+  'Ando muitas vezes triste, desanimado/a ou a chorar',
+  'Os meus colegas geralmente gostam de mim',
+  'Estou sempre distraído/a. Tenho dificuldades em me concentrar',
+  'Fico nervoso/a em situações novas. Facilmente fico inseguro/a',
+  'Sou simpático/a para os mais pequenos',
+  'Sou muitas vezes acusado/a de mentir ou enganar',
+  'As outras crianças ou jovens metem-se comigo, ameaçam-me ou intimidam-me',
+  'Gosto de ajudar os outros (pais, professores ou outros jovens)',
+  'Penso nas coisas antes de as fazer',
+  'Tiro coisas que não são minhas, em casa, na escola ou noutros sítios',
+  'Dou-me melhor com adultos do que com os da minha idade',
+  'Tenho muitos medos, assusto-me facilmente',
+  'Geralmente acabo o que começo. Tenho uma boa atenção',
+]
+
+const SDQ_AUTOAVALIACAO_INSTRUCTIONS =
+  'Encontras a seguir 25 frases. Para cada uma delas marca uma das opções: Não é verdade; É um pouco verdade; É muito verdade. Responde baseando-te na forma como as coisas te têm corrido nos últimos seis meses.'
+
 export const sdqQuestionnaires = [
   defineQuestionnaire({
     id: 'sdq_p_3_4',
-    title: 'SDQ-P (3–4 anos)',
+    title: 'SDQ-P (3–4 anos) - PAIS',
     description: 'Questionário de Capacidades e Dificuldades para pais/educadores de crianças dos 3 aos 4 anos.',
     instructions: SDQ_INSTRUCTIONS,
     respondent: 'Pais ou educadores',
@@ -72,7 +103,7 @@ export const sdqQuestionnaires = [
   }),
   defineQuestionnaire({
     id: 'sdq_4_17',
-    title: 'SDQ (4–17 anos)',
+    title: 'SDQ (4–17 anos) - PAIS',
     description: 'Questionário de Capacidades e Dificuldades para pais de crianças e jovens dos 4 aos 17 anos.',
     instructions: SDQ_INSTRUCTIONS,
     respondent: 'Pais',
@@ -88,6 +119,17 @@ export const sdqQuestionnaires = [
     respondent: 'Professores',
     responseType: 'likert3_sdq',
     items: SDQ_PROF_ITEMS,
+    scoring: sdqScoring(),
+  }),
+  defineQuestionnaire({
+    id: 'sdq_autoavaliacao_4_17',
+    title: 'SDQ-AUTOAVALIAÇÃO (4-17 ANOS)',
+    description:
+      'Questionário de Capacidades e Dificuldades — versão de autoavaliação para crianças e jovens dos 4 aos 17 anos.',
+    instructions: SDQ_AUTOAVALIACAO_INSTRUCTIONS,
+    respondent: 'Criança ou jovem',
+    responseType: 'likert3_sdq',
+    items: SDQ_AUTOAVALIACAO_4_17_ITEMS,
     scoring: sdqScoring(),
   }),
 ]

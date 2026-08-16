@@ -46,6 +46,13 @@ import {
   type Vol6IndicatorGroup,
 } from '../components/picca/modules/vol6/piccaVol6Content'
 import { PICCA_VOL6_SINTESE_GROUPS } from '../components/picca/modules/vol6/piccaVol6SinteseContent'
+import { mergePiccaVol7DisorderAnswers } from '../components/picca/modules/vol7/piccaVol7Answers'
+import {
+  PICCA_VOL7_BY_NUMBER,
+  PICCA_VOL7_DISORDERS,
+  type Vol7IndicatorAnswer,
+  type Vol7IndicatorGroup,
+} from '../components/picca/modules/vol7/piccaVol7Content'
 
 export type PiccaPresentationField = {
   label: string
@@ -1214,6 +1221,54 @@ function formatVol6Sintese(answers: Record<string, unknown>): PiccaPresentationS
   ].filter((s): s is PiccaPresentationSection => s !== null)
 }
 
+const VOL7_RESPOSTA_LABELS: Record<Vol7IndicatorAnswer['resposta'], string> = {
+  '': '',
+  sim: 'Sim',
+  nao: 'Não',
+  nao_observado: 'Não observado',
+}
+
+function formatVol7IndicatorTable(
+  indicadores: Record<string, Vol7IndicatorAnswer>,
+  groups: ReadonlyArray<Vol7IndicatorGroup>,
+): string {
+  const lines: string[] = []
+  for (const group of groups) {
+    for (const item of group.items) {
+      const row = indicadores[item.id]
+      if (!row?.resposta) continue
+      const parts = [VOL7_RESPOSTA_LABELS[row.resposta] ?? row.resposta]
+      if (row.observacoes?.trim()) parts.push(`Obs.: ${row.observacoes.trim()}`)
+      lines.push(`${item.label}: ${parts.join(' · ')}`)
+    }
+  }
+  return lines.length ? lines.join('\n') : EM_DASH
+}
+
+function formatVol7Disorder(number: number, answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const definition = PICCA_VOL7_BY_NUMBER[number]
+  const a = mergePiccaVol7DisorderAnswers(number, answers)
+  if (!definition) return []
+
+  return [
+    ...(definition.guidance
+      ? [section('Orientação clínica', [field('Orientação', text(definition.guidance))])]
+      : []),
+    ...definition.groups.map((group, index) =>
+      section(`${index + 1}. ${group.title}`, [
+        field('Indicadores', formatVol7IndicatorTable(a.indicadores, [group])),
+      ]),
+    ),
+    ...definition.footerSections
+      .filter((footerSection) => a.footerSections[footerSection.id]?.trim())
+      .map((footerSection) =>
+        section(footerSection.title, [
+          field(footerSection.title, text(a.footerSections[footerSection.id] ?? '')),
+        ]),
+      ),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
 const MODULE_FORMATTERS: Record<
   string,
   (answers: Record<string, unknown>) => PiccaPresentationSection[]
@@ -1234,6 +1289,12 @@ const MODULE_FORMATTERS: Record<
       disorder.number === 14
         ? formatVol6Sintese
         : (answers: Record<string, unknown>) => formatVol6Disorder(disorder.number, answers),
+    ]),
+  ),
+  ...Object.fromEntries(
+    PICCA_VOL7_DISORDERS.map((disorder) => [
+      disorder.moduleId,
+      (answers: Record<string, unknown>) => formatVol7Disorder(disorder.number, answers),
     ]),
   ),
 }

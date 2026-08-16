@@ -5,6 +5,7 @@ export const QUESTIONNAIRE_NOTES_FIELD = '_notas'
 export const QUESTIONNAIRE_IDS = [
   'sdq_p_3_4',
   'sdq_4_17',
+  'sdq_autoavaliacao_4_17',
   'sdq_prof',
   'cbcl_18m_5',
   'cbcl',
