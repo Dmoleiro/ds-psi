@@ -6,8 +6,26 @@
 
 @media (min-width: 900px) {
   .layout {
+    --picca-library-sticky-top: calc(var(--backoffice-header-height, 4.5rem) + var(--space-md));
+    --picca-library-panel-height: calc(
+      100vh - var(--backoffice-header-height, 4.5rem) - var(--space-lg) * 2
+    );
     grid-template-columns: minmax(16rem, 1fr) 2fr;
     align-items: start;
+  }
+
+  .list {
+    max-height: var(--picca-library-panel-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .preview {
+    position: sticky;
+    top: var(--picca-library-sticky-top);
+    max-height: var(--picca-library-panel-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 
@@ -46,6 +64,10 @@
 
 .preview {
   min-height: 12rem;
+}
+
+.previewCard {
+  min-height: 100%;
 }
 
 .interactiveSection {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { getPiccaModuleDefaults, hasPiccaModuleRenderer, piccaModuleRegistry } from '../../components/picca/moduleRegistry'
@@ -44,6 +44,8 @@ export function PiccaLibraryPage() {
   const [previewInteractiveId, setPreviewInteractiveId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const modulePreviewRef = useRef<HTMLDivElement>(null)
+  const interactivePreviewRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!token || !user?.piccaEnabled) return
@@ -60,6 +62,20 @@ export function PiccaLibraryPage() {
       })
       .finally(() => setLoading(false))
   }, [token, user?.piccaEnabled])
+
+  useEffect(() => {
+    modulePreviewRef.current?.scrollTo({ top: 0 })
+    if (previewModuleId && window.matchMedia('(max-width: 899px)').matches) {
+      modulePreviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [previewModuleId])
+
+  useEffect(() => {
+    interactivePreviewRef.current?.scrollTo({ top: 0 })
+    if (previewInteractiveId && window.matchMedia('(max-width: 899px)').matches) {
+      interactivePreviewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [previewInteractiveId])
 
   if (!user?.piccaEnabled) {
     return (
@@ -107,23 +123,25 @@ export function PiccaLibraryPage() {
             />
           </Card>
 
-          <Card as="section" className={panelStyles.preview}>
-            {previewModule && PreviewModuleForm && hasPiccaModuleRenderer(previewModule.id) ? (
-              <>
-                <h2>
-                  {piccaFullModuleLabel(
-                    previewModule.id,
-                    previewModule.title,
-                    previewModule.volume,
-                  )}
-                </h2>
-                <p className={styles.muted}>Pré-visualização (sem respostas)</p>
-                <PreviewModuleForm value={previewModuleDefaults} onChange={() => {}} readOnly />
-              </>
-            ) : (
-              <p className={styles.muted}>Selecione um módulo para pré-visualizar a estrutura.</p>
-            )}
-          </Card>
+          <div ref={modulePreviewRef} className={panelStyles.preview}>
+            <Card as="section" className={panelStyles.previewCard}>
+              {previewModule && PreviewModuleForm && hasPiccaModuleRenderer(previewModule.id) ? (
+                <>
+                  <h2>
+                    {piccaFullModuleLabel(
+                      previewModule.id,
+                      previewModule.title,
+                      previewModule.volume,
+                    )}
+                  </h2>
+                  <p className={styles.muted}>Pré-visualização (sem respostas)</p>
+                  <PreviewModuleForm value={previewModuleDefaults} onChange={() => {}} readOnly />
+                </>
+              ) : (
+                <p className={styles.muted}>Selecione um módulo para pré-visualizar a estrutura.</p>
+              )}
+            </Card>
+          </div>
         </div>
       )}
 
@@ -158,27 +176,29 @@ export function PiccaLibraryPage() {
               </ul>
             </Card>
 
-            <Card as="section" className={panelStyles.preview}>
-              {previewInteractive &&
-              PreviewInteractiveForm &&
-              hasPiccaInteractiveFormRenderer(previewInteractive.id) ? (
-                <>
-                  <h2>{piccaInteractiveFormLabel(previewInteractive.id, previewInteractive.title)}</h2>
+            <div ref={interactivePreviewRef} className={panelStyles.preview}>
+              <Card as="section" className={panelStyles.previewCard}>
+                {previewInteractive &&
+                PreviewInteractiveForm &&
+                hasPiccaInteractiveFormRenderer(previewInteractive.id) ? (
+                  <>
+                    <h2>{piccaInteractiveFormLabel(previewInteractive.id, previewInteractive.title)}</h2>
+                    <p className={styles.muted}>
+                      Pré-visualização (sem respostas) — {interactiveFormKindLabel(previewInteractive.kind)}
+                    </p>
+                    <PreviewInteractiveForm
+                      value={previewInteractiveDefaults}
+                      onChange={() => {}}
+                      readOnly
+                    />
+                  </>
+                ) : (
                   <p className={styles.muted}>
-                    Pré-visualização (sem respostas) — {interactiveFormKindLabel(previewInteractive.kind)}
+                    Selecione um formulário interativo para pré-visualizar a estrutura.
                   </p>
-                  <PreviewInteractiveForm
-                    value={previewInteractiveDefaults}
-                    onChange={() => {}}
-                    readOnly
-                  />
-                </>
-              ) : (
-                <p className={styles.muted}>
-                  Selecione um formulário interativo para pré-visualizar a estrutura.
-                </p>
-              )}
-            </Card>
+                )}
+              </Card>
+            </div>
           </div>
         </section>
       )}
