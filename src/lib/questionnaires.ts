@@ -14,7 +14,6 @@ export const QUESTIONNAIRE_IDS = [
   'ysr',
   'conners_pais',
   'conners_professores',
-  'conners_pre_escolar',
   'conners_idade_escolar_pais',
   'scared_crianca',
   'scared_pais',
@@ -28,6 +27,7 @@ export const QUESTIONNAIRE_IDS = [
   'iep',
   'psvc',
   'fssr',
+  'inventario_asperger',
   'm_chat',
   'inventario_estereotipias',
   'cars',
@@ -52,6 +52,7 @@ export type QuestionnaireDefinition = {
   responseType: string
   responseLabels?: string[]
   items: QuestionnaireItem[]
+  meta?: Record<string, unknown>
 }
 
 export function isQuestionnaireId(formId: string): boolean {

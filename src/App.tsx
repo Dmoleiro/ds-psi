@@ -14,6 +14,7 @@ import { AppointmentsPage } from './pages/backoffice/AppointmentsPage'
 import { AttendancePage } from './pages/backoffice/AttendancePage'
 import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardPage'
 import { FinancialOverviewPage } from './pages/backoffice/FinancialOverviewPage'
+import { FormPreviewPage } from './pages/backoffice/FormPreviewPage'
 import { PiccaLibraryPage } from './pages/backoffice/PiccaLibraryPage'
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
@@ -99,6 +100,7 @@ export function App() {
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/financial" element={<RequireTherapist><FinancialOverviewPage /></RequireTherapist>} />
         <Route path="/backoffice/picca" element={<RequireTherapist><PiccaLibraryPage /></RequireTherapist>} />
+        <Route path="/backoffice/forms/preview/:formId" element={<RequireTherapist><FormPreviewPage /></RequireTherapist>} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/workshops" element={<WorkshopsPage />} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />

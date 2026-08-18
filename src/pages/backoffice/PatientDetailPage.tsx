@@ -9,6 +9,7 @@ import {
 import { PatientDocumentsPanel } from '../../components/backoffice/PatientDocumentsPanel'
 import { BackofficeLayout } from '../../components/backoffice/BackofficeLayout'
 import { ApiError, coordinatorApi, therapistApi, type LocationSummary } from '../../lib/api'
+import { formPreviewHref } from '../../lib/formPreview'
 import { appointmentsCreateHref } from '../../lib/dashboard'
 import type { SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
 import { useAuth } from '../../hooks/useAuth'
@@ -886,14 +887,24 @@ export function PatientDetailPage() {
         ) : (
           <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
             {availableForms.map((form) => (
-              <label key={form.id}>
-                <input
-                  type="checkbox"
-                  checked={selectedForms.includes(form.id)}
-                  onChange={() => toggleForm(form.id)}
-                />
-                {form.title}
-              </label>
+              <div key={form.id} className={styles.formSelectRow}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedForms.includes(form.id)}
+                    onChange={() => toggleForm(form.id)}
+                  />
+                  {form.title}
+                </label>
+                <a
+                  className={styles.previewLink}
+                  href={formPreviewHref(form.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Pré-visualizar
+                </a>
+              </div>
             ))}
           </div>
         )}
@@ -986,14 +997,24 @@ export function PatientDetailPage() {
         ) : (
           <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
             {availableQuestionnaires.map((form) => (
-              <label key={form.id}>
-                <input
-                  type="checkbox"
-                  checked={selectedQuestionnaires.includes(form.id)}
-                  onChange={() => toggleQuestionnaire(form.id)}
-                />
-                {form.title}
-              </label>
+              <div key={form.id} className={styles.formSelectRow}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedQuestionnaires.includes(form.id)}
+                    onChange={() => toggleQuestionnaire(form.id)}
+                  />
+                  {form.title}
+                </label>
+                <a
+                  className={styles.previewLink}
+                  href={formPreviewHref(form.id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Pré-visualizar
+                </a>
+              </div>
             ))}
           </div>
         )}

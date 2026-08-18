@@ -93,18 +93,6 @@ export const connersQuestionnaires = [
     scoring: connersScoring(CONNERS_PROF_ITEMS.length),
   }),
   defineQuestionnaire({
-    id: 'conners_pre_escolar',
-    title: 'Conners — Idade Pré-escolar',
-    description: 'Conners para idade pré-escolar (pais/educadores).',
-    instructions:
-      'Avalie o comportamento durante o último mês. 0 = Nunca, 3 = Muito frequente.',
-    respondent: 'Pais ou educadores',
-    responseType: 'frequency0_3',
-    responseLabels: CONNERS_0_3,
-    items: CONNERS_PAIS_ITEMS.slice(0, 22),
-    scoring: connersScoring(22),
-  }),
-  defineQuestionnaire({
     id: 'conners_idade_escolar_pais',
     title: 'Conners — Idade Escolar (Pais)',
     description: 'Conners para idade escolar — versão pais.',

@@ -712,6 +712,20 @@ export const piccaCatalog = [
         description: 'Observação sistemática de domínios clínicos (Manual Clínico PICCA).',
         status: 'available',
       },
+      {
+        number: 34,
+        title: 'Síntese Integrada DC:0–5',
+        description:
+          'Integração transversal dos checklists clínicos, mapa de hipóteses e formulação conclusiva.',
+        status: 'available',
+      },
+      {
+        number: 35,
+        title: 'Manual Clínico de Diagnóstico em Idade Pré-Escolar',
+        description:
+          'Referência clínica completa (18 capítulos): desenvolvimento, red flags, formulação e instrumentos.',
+        status: 'available',
+      },
     ],
   },
 ] satisfies PiccaCatalogVolume[]

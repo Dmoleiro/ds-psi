@@ -1,0 +1,113 @@
+.section {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.sectionTitle {
+  margin: var(--space-lg) 0 var(--space-sm);
+  font-size: 1.0625rem;
+}
+
+.sectionTitle:first-child {
+  margin-top: 0;
+}
+
+.identGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 600px) {
+  .identGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  background: #fff;
+}
+
+.optionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.radioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.likertItem {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-soft, #eee);
+}
+
+.likertItem:last-child {
+  border-bottom: none;
+}
+
+.questionText {
+  margin: 0 0 var(--space-sm);
+}
+
+.likertRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+}
+
+@media (min-width: 720px) {
+  .likertRow {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.likertOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.instructions {
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink-muted);
+  white-space: pre-wrap;
+}
+
+.notesSection {
+  margin-top: var(--space-xl);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  resize: vertical;
+}
+
+.scoresSection {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.muted {
+  color: var(--color-ink-muted);
+}

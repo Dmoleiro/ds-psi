@@ -56,6 +56,8 @@ export const PICCA_MODULE_IDS = [
   'picca-vol7-mod31',
   'picca-vol7-mod32',
   'picca-vol7-mod33',
+  'picca-vol7-mod34',
+  'picca-vol7-mod35',
 ] as const
 
 export const THERAPIST_ONLY_PICCA_MODULE_IDS = new Set<string>([
@@ -110,6 +112,8 @@ export const THERAPIST_ONLY_PICCA_MODULE_IDS = new Set<string>([
   'picca-vol7-mod31',
   'picca-vol7-mod32',
   'picca-vol7-mod33',
+  'picca-vol7-mod34',
+  'picca-vol7-mod35',
 ])
 
 /** Titles/ordering for backoffice — public catalogue: src/content/site.pt.ts `piccaCatalog`. */

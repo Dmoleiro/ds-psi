@@ -560,6 +560,16 @@ export const therapistApi = {
     apiRequest<{
       forms: Array<{ id: string; title: string; description: string | null }>
     }>(`/api/therapist/forms${category ? `?category=${category}` : ''}`, { token }),
+  getFormPreview: (token: string, formId: string) =>
+    apiRequest<{
+      form: {
+        id: string
+        title: string
+        description: string | null
+        category: 'intake' | 'questionnaire'
+        definition?: import('./questionnaires').QuestionnaireDefinition
+      }
+    }>(`/api/therapist/forms/${encodeURIComponent(formId)}/preview`, { token }),
   createSession: (
     token: string,
     patientId: string,

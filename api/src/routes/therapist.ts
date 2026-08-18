@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs'
 import { FormCategory, SessionKind, UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
+import { getQuestionnaireDefinitionForClient } from '../lib/questionnaires/schema.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import {
   createPatientSession,
@@ -255,6 +256,29 @@ export async function therapistRoutes(app: FastifyInstance) {
       orderBy: { title: 'asc' },
     })
     return { forms }
+  })
+
+  app.get('/api/therapist/forms/:formId/preview', { preHandler: therapistOnly }, async (request, reply) => {
+    const { formId } = request.params as { formId: string }
+    const form = await prisma.formDefinition.findFirst({
+      where: { id: formId, active: true },
+      select: { id: true, title: true, description: true, category: true },
+    })
+    if (!form) {
+      return reply.status(404).send({ error: 'Formulário não encontrado' })
+    }
+
+    const definition =
+      form.category === FormCategory.questionnaire
+        ? getQuestionnaireDefinitionForClient(formId)
+        : undefined
+
+    return {
+      form: {
+        ...form,
+        ...(definition ? { definition } : {}),
+      },
+    }
   })
 
   app.get('/api/therapist/attendance', { preHandler: therapistOnly }, async (request, reply) => {

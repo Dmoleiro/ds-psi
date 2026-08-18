@@ -6,13 +6,12 @@ export const WISC_EVALUATION_OPTIONS = [
   { key: 'disposicao_de_gravuras', label: 'Disposição de Gravuras' },
   { key: 'aritmetica', label: 'Aritmética' },
   { key: 'cubos', label: 'Cubos' },
-  { key: 'vocabularios', label: 'Vocabulários' },
+  { key: 'vocabularios', label: 'Vocabulário' },
   { key: 'composicao_de_objectos', label: 'Composição de Objectos' },
   { key: 'compreensao', label: 'Compreensão' },
   { key: 'pesquisa_de_simbolos', label: 'Pesquisa de Símbolos' },
   { key: 'memoria_de_digitos', label: 'Memória de Dígitos' },
   { key: 'labirintos', label: 'Labirintos' },
-  { key: 'soma_dos_resultados_padronizados', label: 'Soma dos Resultados Padronizados' },
 ] as const
 
 export const BANC_EVALUATION_OPTIONS = [

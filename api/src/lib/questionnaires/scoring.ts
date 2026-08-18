@@ -26,6 +26,24 @@ function sumItems(answers: Record<string, unknown>, itemIds: string[], reverseId
 
 const MCHAT_FAIL_WHEN_NO = new Set([1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15, 16, 17, 19, 21, 22, 23])
 const MCHAT_FAIL_WHEN_YES = new Set([11, 18, 20])
+
+/** Inventário de Síndrome de Asperger — subscale item ranges (inclusive). */
+const INVENTARIO_ASPERGER_SUBSCALES: Record<string, [number, number]> = {
+  interacao_social: [1, 21],
+  comunicacao: [22, 43],
+  padroes_comportamento: [44, 54],
+  motora: [55, 60],
+  sensibilidade_sensorial: [61, 75],
+}
+
+function sumInventarioAspergerRange(answers: Record<string, unknown>, start: number, end: number): number {
+  let total = 0
+  for (let n = start; n <= end; n++) {
+    const value = asNumber(answers[`item_${String(n).padStart(2, '0')}`])
+    if (value !== null) total += value
+  }
+  return total
+}
 const RCMAS_LIE_ITEMS = new Set([4, 8, 12, 16, 20, 24, 28, 32, 36])
 
 const OBQ_RT = [1, 5, 6, 8, 15, 16, 17, 19, 22, 23, 29, 33, 34, 36, 39, 41]
@@ -79,6 +97,17 @@ function computeRuleScores(rule: ScoringRule, answers: Record<string, unknown>):
         }
       }
       return { failed_items: failed, at_risk: failed >= 3 ? 1 : 0 }
+    }
+    case 'inventario_asperger': {
+      const scores: QuestionnaireScores = {}
+      let total = 0
+      for (const [key, [start, end]] of Object.entries(INVENTARIO_ASPERGER_SUBSCALES)) {
+        const subtotal = sumInventarioAspergerRange(answers, start, end)
+        scores[key] = subtotal
+        total += subtotal
+      }
+      scores.total = total
+      return scores
     }
     case 'rcmas': {
       let anxiety = 0

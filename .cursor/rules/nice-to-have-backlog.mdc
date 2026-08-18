@@ -1,0 +1,32 @@
+---
+description: Product backlog — PICCA/clinic nice-to-haves discussed but not yet done
+alwaysApply: true
+---
+
+# Nice-to-have backlog (ds-psi)
+
+Reference when prioritising work. Items are **not committed** unless the user asks.
+
+## PICCA — DS_26 / Volume I
+- Sync **Módulos 2–10** field-by-field with `PICCA_documento base_DS_26.pdf` (Módulo 1 done)
+- **História médica** as dedicated module (in DS_26 plan as #5; confirm final PDF body)
+- **Volume II** — *Manual Clínico dos Marcos do Desenvolvimento (0–6 anos)*: currently `coming_soon` in catalogue; decide reference-only vs fillable modules
+
+## PICCA — Volume VII (recent)
+- ~~**Síntese integrada DC:0–5** module~~ — **done** (mod 34)
+- ~~**Manual Clínico PDF** reference beyond mod 33~~ — **done** (mod 35 read-only + notas; mod 33 checklist unchanged)
+- ~~Run **production migration** for vol7~~ — **done** (deployed to production by user, Aug 2026)
+
+## PICCA — UX
+- Library page: **search/filter** across 33+ vol7 modules (sticky preview done)
+- Questionnaire **scoring summaries** in therapist view where instruments support it
+
+## Clinic site & ops
+- Public **pre-appointment forms** (initially stubs)
+- Dedicated **full CV** section on clinic site
+- **Cookie consent** banner + policy page (Maps/Fonts third parties)
+- **Google Calendar** therapist sync (env vars exist, commented out)
+- **GitHub Actions** deploy when billing unlocked; until then `npm run deploy` → gh-pages
+
+## Intake / infra
+- Separate local vs production `DATABASE_URL` in `.env` (avoid accidental prod config locally)

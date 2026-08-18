@@ -1,0 +1,32 @@
+.page {
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
+}
+
+.banner {
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted, #f6f6f6);
+  border: 1px solid var(--color-border);
+  font-size: 0.9375rem;
+}
+
+.title {
+  margin: 0 0 var(--space-sm);
+}
+
+.description {
+  margin: 0 0 var(--space-lg);
+  color: var(--color-ink-muted);
+}
+
+.muted {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.error {
+  color: #9b2c2c;
+}

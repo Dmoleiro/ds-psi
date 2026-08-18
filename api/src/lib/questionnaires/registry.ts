@@ -1,6 +1,7 @@
 import type { QuestionnaireDefinition } from './types.js'
 import { sdqQuestionnaires } from './definitions/sdq.js'
 import { rcmasQuestionnaire } from './definitions/rcmas.js'
+import { inventarioAspergerQuestionnaire } from './definitions/inventario_asperger.js'
 import { mChatQuestionnaire } from './definitions/mchat.js'
 import { adexiChexiQuestionnaires } from './definitions/adexi-chexi.js'
 import { obq44Questionnaire } from './definitions/obq44.js'
@@ -20,6 +21,7 @@ import { divaQuestionnaire } from './definitions/diva.js'
 const ALL_QUESTIONNAIRES: QuestionnaireDefinition[] = [
   ...sdqQuestionnaires,
   rcmasQuestionnaire,
+  inventarioAspergerQuestionnaire,
   mChatQuestionnaire,
   ...adexiChexiQuestionnaires,
   obq44Questionnaire,

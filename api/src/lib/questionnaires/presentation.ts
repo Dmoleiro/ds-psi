@@ -22,6 +22,24 @@ function formatAnswerValue(
   const definition = getQuestionnaireDefinition(formId)
   if (!definition) return String(value ?? '')
 
+  if (formId === 'inventario_asperger') {
+    if (itemId.startsWith('item_')) {
+      const labels = definition.responseLabels ?? RESPONSE_LABELS.likert4
+      const numeric = typeof value === 'number' ? value : Number(value)
+      if (Number.isFinite(numeric) && numeric >= 0 && numeric < labels.length) {
+        return labels[numeric] ?? String(value)
+      }
+    }
+    if (itemId.startsWith('comp_') && !itemId.includes('idade')) {
+      if (value === 1 || value === true) return 'Sim'
+      if (value === 0 || value === false) return 'Não'
+    }
+    if (itemId === 'id_sexo' && itemOptions?.length) {
+      const index = typeof value === 'number' ? value : Number(value)
+      return itemOptions[index] ?? String(value ?? '')
+    }
+  }
+
   if (definition.responseType === 'forced_choice' && itemOptions?.length) {
     const index = typeof value === 'number' ? value : Number(value)
     return itemOptions[index] ?? String(value ?? '')

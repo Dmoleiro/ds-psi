@@ -29,6 +29,7 @@ export type ScoringSubscale = {
 export type ScoringRule =
   | { type: 'sum_subscales'; subscales: ScoringSubscale[]; totalLabel?: string; totalExcludeSubscaleIds?: string[] }
   | { type: 'mchat' }
+  | { type: 'inventario_asperger' }
   | { type: 'rcmas' }
   | { type: 'cdi' }
   | { type: 'iep' }

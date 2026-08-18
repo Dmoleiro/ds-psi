@@ -47,6 +47,15 @@ import {
 } from '../components/picca/modules/vol6/piccaVol6Content'
 import { PICCA_VOL6_SINTESE_GROUPS } from '../components/picca/modules/vol6/piccaVol6SinteseContent'
 import { mergePiccaVol7DisorderAnswers } from '../components/picca/modules/vol7/piccaVol7Answers'
+import { mergePiccaVol7ManualReferenceAnswers } from '../components/picca/modules/vol7/piccaVol7ManualAnswers'
+import {
+  mergePiccaVol7SinteseAnswers,
+  type PiccaVol7HipoteseRow,
+} from '../components/picca/modules/vol7/piccaVol7SinteseAnswers'
+import {
+  PICCA_VOL7_SINTESE_GROUPS,
+  PICCA_VOL7_SINTESE_TEXT_FIELDS,
+} from '../components/picca/modules/vol7/piccaVol7SinteseContent'
 import {
   PICCA_VOL7_BY_NUMBER,
   PICCA_VOL7_DISORDERS,
@@ -1269,6 +1278,45 @@ function formatVol7Disorder(number: number, answers: Record<string, unknown>): P
   ].filter((s): s is PiccaPresentationSection => s !== null)
 }
 
+const VOL7_HIPOTESE_COLUMNS = [
+  { key: 'hipotese', label: 'Hipótese' },
+  { key: 'evidenciaAFavor', label: 'Evidência a favor' },
+  { key: 'evidenciaContra', label: 'Evidência contra' },
+  { key: 'dadosEmFalta', label: 'Dados em falta' },
+  { key: 'estado', label: 'Estado' },
+] as const
+
+function formatVol7Sintese(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaVol7SinteseAnswers(answers)
+
+  return [
+    ...PICCA_VOL7_SINTESE_GROUPS.map((group, index) =>
+      section(`${index + 1}. ${group.title}`, [
+        field('Indicadores', formatVol7IndicatorTable(a.indicadores, [group])),
+      ]),
+    ),
+    section('Checklists específicos utilizados', [
+      field('Checklists aplicados', text(a.checklistsUtilizados)),
+    ]),
+    section('Mapa de hipóteses', [
+      field(
+        'Hipóteses',
+        formatDynamicTable(a.mapaHipoteses as PiccaVol7HipoteseRow[], VOL7_HIPOTESE_COLUMNS),
+      ),
+    ]),
+    section('Formulação integrada', [
+      ...PICCA_VOL7_SINTESE_TEXT_FIELDS.map((label) => field(label, text(a.textos[label]))),
+    ]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
+function formatVol7ManualReference(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaVol7ManualReferenceAnswers(answers)
+  return [
+    section('Notas clínicas da consulta', [field('Notas', text(a.notasClinicas))]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
 const MODULE_FORMATTERS: Record<
   string,
   (answers: Record<string, unknown>) => PiccaPresentationSection[]
@@ -1292,11 +1340,13 @@ const MODULE_FORMATTERS: Record<
     ]),
   ),
   ...Object.fromEntries(
-    PICCA_VOL7_DISORDERS.map((disorder) => [
+    PICCA_VOL7_DISORDERS.filter((disorder) => disorder.number <= 33).map((disorder) => [
       disorder.moduleId,
       (answers: Record<string, unknown>) => formatVol7Disorder(disorder.number, answers),
     ]),
   ),
+  'picca-vol7-mod34': formatVol7Sintese,
+  'picca-vol7-mod35': formatVol7ManualReference,
 }
 
 export function formatPiccaModuleAnswers(
