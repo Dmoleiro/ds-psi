@@ -8,12 +8,65 @@ export type PatientListExportContext = {
   locationName?: string | null
 }
 
+export type PatientListExportColumnId =
+  | 'fullName'
+  | 'location'
+  | 'sessionFee'
+  | 'contact'
+  | 'latestForms'
+  | 'email'
+  | 'email2'
+  | 'phone'
+  | 'phone2'
+  | 'birthDate'
+  | 'status'
+  | 'createdAt'
+  | 'therapist'
+
+export type PatientListExportColumnDefinition = {
+  id: PatientListExportColumnId
+  label: string
+  defaultSelected: boolean
+  align?: 'right'
+}
+
+export const PATIENT_LIST_EXPORT_COLUMNS: PatientListExportColumnDefinition[] = [
+  { id: 'fullName', label: 'Nome', defaultSelected: true },
+  { id: 'location', label: 'Local', defaultSelected: true },
+  { id: 'sessionFee', label: 'Consulta', defaultSelected: true, align: 'right' },
+  { id: 'contact', label: 'Contacto', defaultSelected: true },
+  { id: 'latestForms', label: 'Últimos formulários', defaultSelected: true },
+  { id: 'email', label: 'Email', defaultSelected: false },
+  { id: 'email2', label: 'Email (2.º)', defaultSelected: false },
+  { id: 'phone', label: 'Telefone', defaultSelected: false },
+  { id: 'phone2', label: 'Telefone (2.º)', defaultSelected: false },
+  { id: 'birthDate', label: 'Data de nascimento', defaultSelected: false },
+  { id: 'status', label: 'Estado', defaultSelected: false },
+  { id: 'createdAt', label: 'Data de registo', defaultSelected: false },
+  { id: 'therapist', label: 'Terapeuta', defaultSelected: false },
+]
+
+export function defaultPatientListExportColumnIds(): PatientListExportColumnId[] {
+  return PATIENT_LIST_EXPORT_COLUMNS.filter((column) => column.defaultSelected).map((column) => column.id)
+}
+
+export function resolvePatientListExportColumns(
+  selectedColumnIds: PatientListExportColumnId[],
+): PatientListExportColumnDefinition[] {
+  const selected = new Set(selectedColumnIds)
+  return PATIENT_LIST_EXPORT_COLUMNS.filter((column) => selected.has(column.id))
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+function formatOptionalText(value: string | null | undefined): string {
+  return value?.trim() ? value.trim() : '—'
 }
 
 function formatPatientContact(patient: PatientSummary): string {
@@ -26,6 +79,52 @@ function formatLatestForms(patient: PatientSummary): string {
   if (!latest) return '—'
   const date = new Date(latest.createdAt).toLocaleDateString('pt-PT')
   return `${formatSessionStatus(latest.status)} · ${date}`
+}
+
+function formatBirthDate(value: string | null): string {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('pt-PT')
+}
+
+function formatCreatedAt(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('pt-PT')
+}
+
+function getPatientExportCellValue(columnId: PatientListExportColumnId, patient: PatientSummary): string {
+  switch (columnId) {
+    case 'fullName':
+      return patient.fullName
+    case 'location':
+      return patient.location?.name ?? '—'
+    case 'sessionFee':
+      return formatPatientSessionFee(patient.sessionFee)
+    case 'contact':
+      return formatPatientContact(patient)
+    case 'latestForms':
+      return formatLatestForms(patient)
+    case 'email':
+      return formatOptionalText(patient.email)
+    case 'email2':
+      return formatOptionalText(patient.email2)
+    case 'phone':
+      return formatOptionalText(patient.phone)
+    case 'phone2':
+      return formatOptionalText(patient.phone2)
+    case 'birthDate':
+      return formatBirthDate(patient.birthDate)
+    case 'status':
+      return patient.active === false ? 'Inactivo' : 'Activo'
+    case 'createdAt':
+      return formatCreatedAt(patient.createdAt)
+    case 'therapist':
+      return patient.therapist?.name ?? '—'
+    default:
+      return '—'
+  }
 }
 
 function buildFilterSummary(context: PatientListExportContext): string {
@@ -47,25 +146,39 @@ function buildFilterSummary(context: PatientListExportContext): string {
   return lines.join('<br />')
 }
 
-function buildPrintHtml(patients: PatientSummary[], context: PatientListExportContext): string {
+export function buildPatientsListPrintHtml(
+  patients: PatientSummary[],
+  context: PatientListExportContext,
+  columns: PatientListExportColumnDefinition[],
+): string {
+  if (columns.length === 0) {
+    throw new Error('Seleccione pelo menos uma coluna para exportar.')
+  }
+
   const generatedAt = new Date().toLocaleString('pt-PT')
   const filterSummary = buildFilterSummary(context)
+  const columnCount = columns.length
+
+  const headerCells = columns
+    .map((column) => {
+      const className = column.align === 'right' ? ' class="money"' : ''
+      return `<th${className}>${escapeHtml(column.label)}</th>`
+    })
+    .join('')
 
   const tableRows =
     patients.length === 0
-      ? '<tr><td colspan="5">Nenhum paciente corresponde aos filtros.</td></tr>'
+      ? `<tr><td colspan="${columnCount}">Nenhum paciente corresponde aos filtros.</td></tr>`
       : patients
-          .map(
-            (patient) => `
-              <tr>
-                <td>${escapeHtml(patient.fullName)}</td>
-                <td>${escapeHtml(patient.location?.name ?? '—')}</td>
-                <td class="money">${escapeHtml(formatPatientSessionFee(patient.sessionFee))}</td>
-                <td>${escapeHtml(formatPatientContact(patient))}</td>
-                <td>${escapeHtml(formatLatestForms(patient))}</td>
-              </tr>
-            `,
-          )
+          .map((patient) => {
+            const cells = columns
+              .map((column) => {
+                const className = column.align === 'right' ? ' class="money"' : ''
+                return `<td${className}>${escapeHtml(getPatientExportCellValue(column.id, patient))}</td>`
+              })
+              .join('')
+            return `<tr>${cells}</tr>`
+          })
           .join('')
 
   return `<!DOCTYPE html>
@@ -131,20 +244,14 @@ function buildPrintHtml(patients: PatientSummary[], context: PatientListExportCo
     </p>
     <table>
       <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Local</th>
-          <th class="money">Consulta</th>
-          <th>Contacto</th>
-          <th>Últimos formulários</th>
-        </tr>
+        <tr>${headerCells}</tr>
       </thead>
       <tbody>${tableRows}</tbody>
       ${
         patients.length > 0
           ? `<tfoot>
         <tr>
-          <td colspan="5">Total: ${patients.length} paciente${patients.length === 1 ? '' : 's'}</td>
+          <td colspan="${columnCount}">Total: ${patients.length} paciente${patients.length === 1 ? '' : 's'}</td>
         </tr>
       </tfoot>`
           : ''
@@ -155,10 +262,17 @@ function buildPrintHtml(patients: PatientSummary[], context: PatientListExportCo
 </html>`
 }
 
-export function exportPatientsListPdf(patients: PatientSummary[], context: PatientListExportContext = {}): void {
+export function exportPatientsListPdf(
+  patients: PatientSummary[],
+  context: PatientListExportContext = {},
+  selectedColumnIds: PatientListExportColumnId[] = defaultPatientListExportColumnIds(),
+): void {
   if (patients.length === 0) {
     throw new Error('Não existem pacientes para exportar.')
   }
+
+  const columns = resolvePatientListExportColumns(selectedColumnIds)
+  const html = buildPatientsListPrintHtml(patients, context, columns)
 
   const iframe = document.createElement('iframe')
   iframe.setAttribute('title', 'Pré-visualização de impressão')
@@ -185,7 +299,7 @@ export function exportPatientsListPdf(patients: PatientSummary[], context: Patie
   }
 
   printDocument.open()
-  printDocument.write(buildPrintHtml(patients, context))
+  printDocument.write(html)
   printDocument.close()
 
   const cleanup = () => {

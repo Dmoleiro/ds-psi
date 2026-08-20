@@ -47,6 +47,7 @@ import {
 } from '../components/picca/modules/vol6/piccaVol6Content'
 import { PICCA_VOL6_SINTESE_GROUPS } from '../components/picca/modules/vol6/piccaVol6SinteseContent'
 import { mergePiccaVol7DisorderAnswers } from '../components/picca/modules/vol7/piccaVol7Answers'
+import { mergePiccaVol2ManualReferenceAnswers } from '../components/picca/modules/vol2/piccaVol2ManualAnswers'
 import { mergePiccaVol7ManualReferenceAnswers } from '../components/picca/modules/vol7/piccaVol7ManualAnswers'
 import {
   mergePiccaVol7SinteseAnswers,
@@ -510,7 +511,7 @@ function formatModulo4(answers: Record<string, unknown>): PiccaPresentationSecti
       field('Observações', text(a.motorGrossoObs)),
     ]),
     section('2. Desenvolvimento Motor Fino', [
-      field('Preensão adequada', simNao(a.preensaoAdequada)),
+      field('Preensão adequada (pinça como caranguejo)', simNao(a.preensaoAdequada)),
       field('Manipulação de objetos', text(a.manipulacaoObjetos)),
       field('Grafomotricidade', text(a.grafomotricidade)),
     ]),
@@ -1317,6 +1318,13 @@ function formatVol7ManualReference(answers: Record<string, unknown>): PiccaPrese
   ].filter((s): s is PiccaPresentationSection => s !== null)
 }
 
+function formatVol2ManualReference(answers: Record<string, unknown>): PiccaPresentationSection[] {
+  const a = mergePiccaVol2ManualReferenceAnswers(answers)
+  return [
+    section('Notas clínicas da consulta', [field('Notas', text(a.notasClinicas))]),
+  ].filter((s): s is PiccaPresentationSection => s !== null)
+}
+
 const MODULE_FORMATTERS: Record<
   string,
   (answers: Record<string, unknown>) => PiccaPresentationSection[]
@@ -1331,6 +1339,7 @@ const MODULE_FORMATTERS: Record<
   'picca-vol1-mod8': formatModulo8,
   'picca-vol1-mod9': formatModulo9,
   'picca-vol1-mod10': formatModulo10,
+  'picca-vol2-mod1': formatVol2ManualReference,
   ...Object.fromEntries(
     PICCA_VOL6_DISORDERS.map((disorder) => [
       disorder.moduleId,

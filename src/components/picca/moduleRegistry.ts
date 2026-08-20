@@ -19,6 +19,7 @@ import { defaultPiccaModulo9Answers } from './modules/piccaModulo9'
 import { PiccaModulo9Form } from './modules/PiccaModulo9Form'
 import { defaultPiccaModulo10Answers } from './modules/piccaModulo10'
 import { PiccaModulo10Form } from './modules/PiccaModulo10Form'
+import { piccaVol2ModuleRegistry } from './modules/vol2/vol2Registry'
 import { piccaVol6ModuleRegistry } from './modules/vol6/vol6Registry'
 import { piccaVol7ModuleRegistry } from './modules/vol7/vol7Registry'
 
@@ -74,6 +75,7 @@ export const piccaModuleRegistry: Record<string, PiccaModuleDefinition> = {
     defaultAnswers: defaultPiccaModulo10Answers,
     Form: PiccaModulo10Form,
   },
+  ...piccaVol2ModuleRegistry,
   ...piccaVol6ModuleRegistry,
   ...piccaVol7ModuleRegistry,
 }

@@ -415,7 +415,7 @@ export const piccaCatalog = [
         title: 'Fundamentos do Desenvolvimento Infantil',
         description:
           'Manual clínico de referência sobre marcos do desenvolvimento (0–6 anos): conceitos, domínios, idade corrigida e critérios de aquisição.',
-        status: 'coming_soon',
+        status: 'available',
       },
     ],
   },

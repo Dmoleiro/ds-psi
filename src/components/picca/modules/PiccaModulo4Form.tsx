@@ -79,7 +79,7 @@ export function PiccaModulo4Form({ value, onChange, readOnly }: Props) {
 
       <PiccaSection title="2. Desenvolvimento Motor Fino">
         <PiccaRadioGroup
-          label="Preensão adequada (uso da pinça indicador e polegar)"
+          label="Preensão adequada (uso da pinça como caranguejo — indicador e polegar)"
           options={[
             { id: 'sim', label: 'Sim' },
             { id: 'nao', label: 'Não' },

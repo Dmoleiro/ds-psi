@@ -8,7 +8,8 @@ import { ApiError, coordinatorApi, therapistApi, type LocationSummary, type Pati
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 import { formatPatientSessionFee } from '../../lib/dashboard'
 import { matchesPatientSearch } from '../../lib/patientSearch'
-import { exportPatientsListPdf } from '../../lib/exportPatientsListPdf'
+import { exportPatientsListPdf, type PatientListExportColumnId } from '../../lib/exportPatientsListPdf'
+import { PatientsListExportDialog } from '../../components/backoffice/PatientsListExportDialog'
 import { useAuth } from '../../hooks/useAuth'
 import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
@@ -36,6 +37,7 @@ export function PatientsListPage() {
   const [search, setSearch] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   const filteredPatients = useMemo(() => {
     const normalizedSearch = search.trim()
@@ -62,13 +64,17 @@ export function PatientsListPage() {
   const hasOnlyInactivePatients =
     patients.length > 0 && patients.every((patient) => !isPatientActive(patient))
 
-  function handleExportPdf() {
+  function handleExportPdf(columnIds: PatientListExportColumnId[]) {
     try {
-      exportPatientsListPdf(filteredPatients, {
-        therapistName,
-        search,
-        locationName: selectedLocationName,
-      })
+      exportPatientsListPdf(
+        filteredPatients,
+        {
+          therapistName,
+          search,
+          locationName: selectedLocationName,
+        },
+        columnIds,
+      )
     } catch (err) {
       window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
     }
@@ -174,7 +180,7 @@ export function PatientsListPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={handleExportPdf}
+                  onClick={() => setExportDialogOpen(true)}
                   disabled={filteredPatients.length === 0}
                 >
                   Exportar PDF
@@ -294,6 +300,11 @@ export function PatientsListPage() {
           )}
         </>
       )}
+      <PatientsListExportDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        onExport={handleExportPdf}
+      />
     </BackofficeLayout>
   )
 }
