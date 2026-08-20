@@ -5,7 +5,8 @@ import { adminApi, ApiError } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
-import styles from '../../components/backoffice/BackofficeLayout.module.css'
+import layoutStyles from '../../components/backoffice/BackofficeLayout.module.css'
+import styles from './AdminTherapistsPage.module.css'
 
 type TherapistRow = {
   id: string
@@ -26,6 +27,21 @@ type TherapistLocationRow = {
   active: boolean
   assigned: boolean
 }
+
+type PermissionKey =
+  | 'financialOverviewEnabled'
+  | 'piccaEnabled'
+  | 'questionnairesEnabled'
+  | 'assessmentResultsEnabled'
+  | 'appointmentInvitesAllowed'
+
+const PERMISSION_OPTIONS: Array<{ key: PermissionKey; label: string }> = [
+  { key: 'financialOverviewEnabled', label: 'Finanças' },
+  { key: 'piccaEnabled', label: 'PICCA' },
+  { key: 'questionnairesEnabled', label: 'Questionários' },
+  { key: 'assessmentResultsEnabled', label: 'Resultados' },
+  { key: 'appointmentInvitesAllowed', label: 'Convites' },
+]
 
 function TherapistLocationsPanel({
   therapist,
@@ -78,18 +94,18 @@ function TherapistLocationsPanel({
   }
 
   return (
-    <Card as="section" className={styles.sectionSpaced}>
+    <Card as="section" className={layoutStyles.sectionSpaced}>
       <h2>Locais — {therapist.name}</h2>
-      <p className={styles.muted}>
+      <p className={layoutStyles.muted}>
         Selecione os locais onde este terapeuta pode trabalhar, criar pacientes e marcar consultas.
       </p>
-      {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={layoutStyles.error}>{error}</p>}
       {loading ? (
-        <p className={styles.muted}>A carregar…</p>
+        <p className={layoutStyles.muted}>A carregar…</p>
       ) : locations.length === 0 ? (
-        <p className={styles.muted}>Crie locais antes de atribuir acessos.</p>
+        <p className={layoutStyles.muted}>Crie locais antes de atribuir acessos.</p>
       ) : (
-        <div className={styles.form}>
+        <div className={layoutStyles.form}>
           {locations.map((location) => (
             <label key={location.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <input
@@ -104,15 +120,39 @@ function TherapistLocationsPanel({
           ))}
         </div>
       )}
-      <div className={styles.rowActions} style={{ marginTop: 'var(--space-md)' }}>
+      <div className={layoutStyles.rowActions} style={{ marginTop: 'var(--space-md)' }}>
         <Button type="button" onClick={handleSave} disabled={saving || loading}>
           {saving ? 'A guardar…' : 'Guardar locais'}
         </Button>
-        <button type="button" className={styles.linkButton} onClick={onClose}>
+        <button type="button" className={layoutStyles.linkButton} onClick={onClose}>
           Fechar
         </button>
       </div>
     </Card>
+  )
+}
+
+function PermissionToggle({
+  label,
+  enabled,
+  disabled,
+  onToggle,
+}: {
+  label: string
+  enabled: boolean
+  disabled?: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={`${styles.permissionToggle} ${enabled ? styles.permissionToggleOn : ''}`}
+      aria-pressed={enabled}
+      disabled={disabled}
+      onClick={onToggle}
+    >
+      {label}
+    </button>
   )
 }
 
@@ -124,6 +164,7 @@ export function AdminTherapistsPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [managingLocationsFor, setManagingLocationsFor] = useState<TherapistRow | null>(null)
+  const [updatingKey, setUpdatingKey] = useState<string | null>(null)
 
   async function load() {
     if (!token) return
@@ -159,69 +200,42 @@ export function AdminTherapistsPage() {
     }
   }
 
-  async function toggleFinancialAccess(therapist: TherapistRow) {
+  async function updateTherapistField(
+    therapist: TherapistRow,
+    field: PermissionKey | 'active',
+    value: boolean,
+  ) {
     if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, {
-      financialOverviewEnabled: !therapist.financialOverviewEnabled,
-    })
-    await load()
+    setUpdatingKey(`${therapist.id}:${field}`)
+    try {
+      await adminApi.updateTherapist(token, therapist.id, { [field]: value })
+      await load()
+    } finally {
+      setUpdatingKey(null)
+    }
   }
 
-  async function togglePiccaAccess(therapist: TherapistRow) {
-    if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, {
-      piccaEnabled: !therapist.piccaEnabled,
-    })
-    await load()
-  }
-
-  async function toggleQuestionnairesAccess(therapist: TherapistRow) {
-    if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, {
-      questionnairesEnabled: !therapist.questionnairesEnabled,
-    })
-    await load()
-  }
-
-  async function toggleAssessmentResultsAccess(therapist: TherapistRow) {
-    if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, {
-      assessmentResultsEnabled: !therapist.assessmentResultsEnabled,
-    })
-    await load()
-  }
-
-  async function toggleAppointmentInvites(therapist: TherapistRow) {
-    if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, {
-      appointmentInvitesAllowed: !therapist.appointmentInvitesAllowed,
-    })
-    await load()
-  }
-
-  async function toggleActive(therapist: TherapistRow) {
-    if (!token) return
-    await adminApi.updateTherapist(token, therapist.id, { active: !therapist.active })
-    await load()
+  function isUpdating(therapistId: string, field: string) {
+    return updatingKey === `${therapistId}:${field}`
   }
 
   return (
     <RequireAdmin>
       <BackofficeLayout>
-        <h1 className={styles.pageTitle}>Terapeutas</h1>
+        <h1 className={layoutStyles.pageTitle}>Terapeutas</h1>
 
-        <Card as="section" className={styles.sectionSpaced}>
+        <Card as="section" className={layoutStyles.sectionSpaced}>
           <h2>Novo terapeuta</h2>
-          <form className={styles.form} onSubmit={handleCreate}>
-            <div className={styles.field}>
+          <form className={layoutStyles.form} onSubmit={handleCreate}>
+            <div className={layoutStyles.field}>
               <label htmlFor="name">Nome</label>
               <input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
             </div>
-            <div className={styles.field}>
+            <div className={layoutStyles.field}>
               <label htmlFor="email">Email</label>
               <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <div className={styles.field}>
+            <div className={layoutStyles.field}>
               <label htmlFor="password">Palavra-passe temporária</label>
               <input
                 id="password"
@@ -232,7 +246,7 @@ export function AdminTherapistsPage() {
                 required
               />
             </div>
-            {error && <p className={styles.error}>{error}</p>}
+            {error && <p className={layoutStyles.error}>{error}</p>}
             <Button type="submit">Criar terapeuta</Button>
           </form>
         </Card>
@@ -245,96 +259,73 @@ export function AdminTherapistsPage() {
           />
         )}
 
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Estado</th>
-              <th>Finanças</th>
-              <th>PICCA</th>
-              <th>Questionários</th>
-              <th>Resultados</th>
-              <th>Convites</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {therapists.map((therapist) => (
-              <tr key={therapist.id}>
-                <td>{therapist.name}</td>
-                <td>{therapist.email}</td>
-                <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
-                <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
-                <td>{therapist.piccaEnabled ? 'Ativo' : '—'}</td>
-                <td>{therapist.questionnairesEnabled ? 'Ativo' : '—'}</td>
-                <td>{therapist.assessmentResultsEnabled ? 'Ativo' : '—'}</td>
-                <td>{therapist.appointmentInvitesAllowed ? 'Ativo' : '—'}</td>
-                <td>
-                  <div className={styles.rowActions}>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => setManagingLocationsFor(therapist)}
-                    >
-                      Gerir locais
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => toggleFinancialAccess(therapist)}
-                    >
-                      {therapist.financialOverviewEnabled ? 'Revogar finanças' : 'Dar acesso finanças'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => togglePiccaAccess(therapist)}
-                    >
-                      {therapist.piccaEnabled ? 'Revogar PICCA' : 'Dar acesso PICCA'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => toggleQuestionnairesAccess(therapist)}
-                    >
-                      {therapist.questionnairesEnabled ? 'Revogar questionários' : 'Dar acesso questionários'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => toggleAssessmentResultsAccess(therapist)}
-                    >
-                      {therapist.assessmentResultsEnabled
-                        ? 'Revogar resultados'
-                        : 'Dar acesso resultados'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => toggleAppointmentInvites(therapist)}
-                    >
-                      {therapist.appointmentInvitesAllowed ? 'Revogar convites' : 'Permitir convites'}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.linkButton}
-                      onClick={() => toggleActive(therapist)}
-                    >
-                      {therapist.active ? 'Desativar' : 'Ativar'}
-                    </button>
-                    <AdminPasswordReset
-                      onSubmit={async (password) => {
-                        if (!token) return
-                        await adminApi.updateTherapist(token, therapist.id, { password })
-                      }}
-                    />
-                  </div>
-                </td>
+        <div className={styles.tableWrap}>
+          <table className={styles.therapistsTable}>
+            <thead>
+              <tr>
+                <th>Terapeuta</th>
+                <th>Estado</th>
+                <th>Permissões</th>
+                <th>Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {therapists.map((therapist) => (
+                <tr key={therapist.id}>
+                  <td className={styles.therapistIdentity}>
+                    <span className={styles.therapistName}>{therapist.name}</span>
+                    <span className={styles.therapistEmail}>{therapist.email}</span>
+                  </td>
+                  <td>
+                    <span className={therapist.active ? styles.statusActive : styles.statusInactive}>
+                      {therapist.active ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className={styles.permissionGroup}>
+                      {PERMISSION_OPTIONS.map((permission) => (
+                        <PermissionToggle
+                          key={permission.key}
+                          label={permission.label}
+                          enabled={therapist[permission.key]}
+                          disabled={isUpdating(therapist.id, permission.key)}
+                          onToggle={() =>
+                            updateTherapistField(therapist, permission.key, !therapist[permission.key])
+                          }
+                        />
+                      ))}
+                    </div>
+                  </td>
+                  <td className={styles.actionsCell}>
+                    <div className={styles.rowActions}>
+                      <button
+                        type="button"
+                        className={layoutStyles.linkButton}
+                        onClick={() => setManagingLocationsFor(therapist)}
+                      >
+                        Gerir locais
+                      </button>
+                      <AdminPasswordReset
+                        onSubmit={async (nextPassword) => {
+                          if (!token) return
+                          await adminApi.updateTherapist(token, therapist.id, { password: nextPassword })
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className={therapist.active ? layoutStyles.dangerLinkButton : layoutStyles.linkButton}
+                        disabled={isUpdating(therapist.id, 'active')}
+                        onClick={() => updateTherapistField(therapist, 'active', !therapist.active)}
+                      >
+                        {therapist.active ? 'Desativar conta' : 'Ativar conta'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </BackofficeLayout>
     </RequireAdmin>
   )

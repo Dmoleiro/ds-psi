@@ -31,13 +31,23 @@ import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEval
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
 import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
 
-type PatientTab = 'avaliacao' | 'historico' | 'dados' | 'notas' | 'intake' | 'questionarios' | 'picca' | 'documentos'
+type PatientTab =
+  | 'avaliacao'
+  | 'historico'
+  | 'dados'
+  | 'metodos'
+  | 'notas'
+  | 'intake'
+  | 'questionarios'
+  | 'picca'
+  | 'documentos'
 
 function parsePatientTab(value: string | null): PatientTab | null {
   if (
     value === 'avaliacao' ||
     value === 'historico' ||
     value === 'dados' ||
+    value === 'metodos' ||
     value === 'notas' ||
     value === 'intake' ||
     value === 'questionarios' ||
@@ -150,14 +160,21 @@ export function PatientDetailPage() {
     if (!tab) return
     if (tab === 'picca' && (readOnly || !user?.piccaEnabled)) return
     if (tab === 'questionarios' && !readOnly && !user?.questionnairesEnabled) return
+    if (tab === 'metodos' && !readOnly && !user?.assessmentResultsEnabled) return
     setActiveTab(tab)
-  }, [searchParams, readOnly, user?.piccaEnabled, user?.questionnairesEnabled])
+  }, [searchParams, readOnly, user?.piccaEnabled, user?.questionnairesEnabled, user?.assessmentResultsEnabled])
 
   useEffect(() => {
     if (!readOnly && !user?.questionnairesEnabled && activeTab === 'questionarios') {
       setActiveTab('avaliacao')
     }
   }, [readOnly, user?.questionnairesEnabled, activeTab])
+
+  useEffect(() => {
+    if (!readOnly && !user?.assessmentResultsEnabled && activeTab === 'metodos') {
+      setActiveTab('avaliacao')
+    }
+  }, [readOnly, user?.assessmentResultsEnabled, activeTab])
 
   useEffect(() => {
     if (!token || readOnly) return
@@ -763,6 +780,9 @@ export function PatientDetailPage() {
           [
             ['avaliacao', 'Estado da avaliação'],
             ['dados', 'Dados'],
+            ...(readOnly || user?.assessmentResultsEnabled
+              ? [['metodos', 'Métodos de avaliação'] as const]
+              : []),
             ['notas', 'Notas'],
             ['intake', 'Formulários'],
             ...(readOnly || user?.questionnairesEnabled ? [['questionarios', 'Questionários'] as const] : []),
@@ -878,20 +898,6 @@ export function PatientDetailPage() {
             )}
           </Card>
 
-          {token && id && (readOnly || user?.assessmentResultsEnabled) && (
-            <PatientEvaluationsPanel
-              token={token}
-              patientId={id}
-              readOnly={readOnly}
-              initialSelections={{
-                wiscSelections: patient.wiscSelections ?? [],
-                wiscResults: patient.wiscResults ?? emptyWiscResults(),
-                bancSelections: patient.bancSelections ?? [],
-                additionalMethodSelections: patient.additionalMethodSelections ?? [],
-              }}
-            />
-          )}
-
           {patient.internalNotes && (
             <Card as="section">
               <h2>Notas internas</h2>
@@ -944,6 +950,20 @@ export function PatientDetailPage() {
           </section>
           )}
         </>
+      )}
+
+      {activeTab === 'metodos' && token && id && (readOnly || user?.assessmentResultsEnabled) && (
+        <PatientEvaluationsPanel
+          token={token}
+          patientId={id}
+          readOnly={readOnly}
+          initialSelections={{
+            wiscSelections: patient.wiscSelections ?? [],
+            wiscResults: patient.wiscResults ?? emptyWiscResults(),
+            bancSelections: patient.bancSelections ?? [],
+            additionalMethodSelections: patient.additionalMethodSelections ?? [],
+          }}
+        />
       )}
 
       {activeTab === 'intake' && (
