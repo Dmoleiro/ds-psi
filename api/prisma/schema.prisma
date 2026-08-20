@@ -86,6 +86,8 @@ model User {
   active       Boolean   @default(true)
   financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   piccaEnabled             Boolean @default(false) @map("picca_enabled")
+  questionnairesEnabled    Boolean @default(false) @map("questionnaires_enabled")
+  assessmentResultsEnabled Boolean @default(false) @map("assessment_results_enabled")
   appointmentInvitesAllowed Boolean @default(false) @map("appointment_invites_allowed")
   appointmentInvitesEnabled Boolean @default(false) @map("appointment_invites_enabled")
   appointmentInviteRecipients String @default("email") @map("appointment_invite_recipients")
@@ -124,12 +126,14 @@ model Patient {
   internalNotes String?   @map("internal_notes") @db.Text
   appointmentNotes String? @map("appointment_notes") @db.Text
   wiscSelections Json     @default("[]") @map("wisc_selections")
+  wiscResults Json         @default("{}") @map("wisc_results")
   bancSelections Json     @default("[]") @map("banc_selections")
   additionalMethodSelections Json @default("[]") @map("additional_method_selections")
   questionnaireSelections Json @default("[]") @map("questionnaire_selections")
   assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")
   assessmentPipelineNotes String? @map("assessment_pipeline_notes") @db.Text
   assessmentReportDeliveredAt DateTime? @map("assessment_report_delivered_at")
+  active        Boolean   @default(true)
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

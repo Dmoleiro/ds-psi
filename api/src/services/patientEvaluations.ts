@@ -9,15 +9,18 @@ import {
   ADDITIONAL_METHOD_EVALUATION_KEYS,
   QUESTIONNAIRE_EVALUATION_KEYS,
 } from '../lib/patientEvaluations.js'
+import { sanitizeWiscResults } from '../lib/wiscResults.js'
 
 export function formatPatientEvaluationSelections(patient: {
   wiscSelections: unknown
+  wiscResults?: unknown
   bancSelections: unknown
   additionalMethodSelections?: unknown
   questionnaireSelections?: unknown
 }) {
   return {
     wiscSelections: sanitizeWiscSelections(patient.wiscSelections),
+    wiscResults: sanitizeWiscResults(patient.wiscResults),
     bancSelections: sanitizeBancSelections(patient.bancSelections),
     additionalMethodSelections: sanitizeAdditionalMethodSelections(patient.additionalMethodSelections),
     questionnaireSelections: sanitizeQuestionnaireSelections(patient.questionnaireSelections),
@@ -29,6 +32,7 @@ export async function updateTherapistPatientEvaluations(
   patientId: string,
   data: {
     wiscSelections: unknown
+    wiscResults: unknown
     bancSelections: unknown
     additionalMethodSelections: unknown
     questionnaireSelections: unknown
@@ -43,6 +47,7 @@ export async function updateTherapistPatientEvaluations(
   }
 
   const wiscSelections = sanitizeWiscSelections(data.wiscSelections)
+  const wiscResults = sanitizeWiscResults(data.wiscResults)
   const bancSelections = sanitizeBancSelections(data.bancSelections)
   const additionalMethodSelections = sanitizeAdditionalMethodSelections(data.additionalMethodSelections)
   const questionnaireSelections = sanitizeQuestionnaireSelections(data.questionnaireSelections)
@@ -51,12 +56,14 @@ export async function updateTherapistPatientEvaluations(
     where: { id: patientId },
     data: {
       wiscSelections,
+      wiscResults,
       bancSelections,
       additionalMethodSelections,
       questionnaireSelections,
     },
     select: {
       wiscSelections: true,
+      wiscResults: true,
       bancSelections: true,
       additionalMethodSelections: true,
       questionnaireSelections: true,

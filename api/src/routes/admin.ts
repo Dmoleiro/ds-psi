@@ -30,6 +30,8 @@ export async function adminRoutes(app: FastifyInstance) {
         active: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
         appointmentInvitesAllowed: true,
         createdAt: true,
       },
@@ -57,7 +59,18 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.therapist,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+        createdAt: true,
+      },
     })
 
     return reply.status(201).send({ therapist })
@@ -82,6 +95,8 @@ export async function adminRoutes(app: FastifyInstance) {
       active?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
+      questionnairesEnabled?: boolean
+      assessmentResultsEnabled?: boolean
       appointmentInvitesAllowed?: boolean
       appointmentInvitesEnabled?: boolean
       passwordHash?: string
@@ -94,6 +109,12 @@ export async function adminRoutes(app: FastifyInstance) {
     if (parsed.data.piccaEnabled !== undefined) {
       data.piccaEnabled = parsed.data.piccaEnabled
     }
+    if (parsed.data.questionnairesEnabled !== undefined) {
+      data.questionnairesEnabled = parsed.data.questionnairesEnabled
+    }
+    if (parsed.data.assessmentResultsEnabled !== undefined) {
+      data.assessmentResultsEnabled = parsed.data.assessmentResultsEnabled
+    }
     if (parsed.data.appointmentInvitesAllowed !== undefined) {
       data.appointmentInvitesAllowed = parsed.data.appointmentInvitesAllowed
       if (!parsed.data.appointmentInvitesAllowed) {
@@ -105,7 +126,18 @@ export async function adminRoutes(app: FastifyInstance) {
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+        createdAt: true,
+      },
     })
 
     return { therapist: updated }
@@ -216,7 +248,18 @@ export async function adminRoutes(app: FastifyInstance) {
         role: UserRole.coordinator,
         passwordHash,
       },
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+        createdAt: true,
+      },
     })
 
     return reply.status(201).send({ coordinator })
@@ -244,7 +287,18 @@ export async function adminRoutes(app: FastifyInstance) {
     const updated = await prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, active: true, financialOverviewEnabled: true, piccaEnabled: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        active: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+        createdAt: true,
+      },
     })
 
     return { coordinator: updated }

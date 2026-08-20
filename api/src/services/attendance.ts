@@ -72,13 +72,20 @@ export function formatDateOnly(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export async function getTherapistPatientOrThrow(therapistId: string, patientId: string) {
+export async function getTherapistPatientOrThrow(
+  therapistId: string,
+  patientId: string,
+  options?: { requireActive?: boolean },
+) {
   const patient = await prisma.patient.findFirst({
     where: { id: patientId, therapistId },
-    select: { id: true, therapistId: true },
+    select: { id: true, therapistId: true, active: true },
   })
   if (!patient) {
     throw new Error('PATIENT_NOT_FOUND')
+  }
+  if (options?.requireActive && !patient.active) {
+    throw new Error('PATIENT_INACTIVE')
   }
   return patient
 }

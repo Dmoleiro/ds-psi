@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
 import { getQuestionnaireDefinitionForClient } from '../lib/questionnaires/schema.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
+import { requireAssessmentResultsEnabled, requireQuestionnairesEnabled, getTherapistFeatureFlags } from '../middleware/therapistPermissions.js'
 import {
   createPatientSession,
   deleteTherapistPatient,
@@ -14,7 +15,9 @@ import {
   getTherapistPatient,
   parseCreatePatientInput,
   parseCreateSessionInput,
+  parseSetPatientActiveInput,
   parseUpdatePatientInput,
+  setTherapistPatientActive,
   updateTherapistPatient,
 } from '../services/sessions.js'
 import {
@@ -56,6 +59,7 @@ import { getTherapistNotepad, updateTherapistNotepad } from '../services/therapi
 import { getPatientTimeline } from '../services/patientTimeline.js'
 import { updateTherapistPatientEvaluations } from '../services/patientEvaluations.js'
 import { updateTherapistPatientAppointmentNotes } from '../services/patientAppointmentNotes.js'
+import { applyTherapistPatientFeatureAccess } from '../services/therapistPatientAccess.js'
 import {
   getCoordinatorAssessmentPipeline,
   getTherapistAssessmentPipeline,
@@ -147,7 +151,18 @@ export async function therapistRoutes(app: FastifyInstance) {
   app.get('/api/therapist/profile', { preHandler: therapistOnly }, async (request) => {
     const profile = await prisma.user.findUniqueOrThrow({
       where: { id: request.user.sub },
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true, appointmentInvitesAllowed: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        role: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+      },
     })
     return { profile }
   })
@@ -182,7 +197,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     const profile = await prisma.user.update({
       where: { id: existing.id },
       data,
-      select: { id: true, email: true, name: true, phone: true, role: true, financialOverviewEnabled: true, piccaEnabled: true, appointmentInvitesAllowed: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        phone: true,
+        role: true,
+        financialOverviewEnabled: true,
+        piccaEnabled: true,
+        questionnairesEnabled: true,
+        assessmentResultsEnabled: true,
+        appointmentInvitesAllowed: true,
+      },
     })
 
     const token = await reply.jwtSign({
@@ -241,8 +267,12 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { locations }
   })
 
-  app.get('/api/therapist/forms', { preHandler: therapistOnly }, async (request) => {
+  app.get('/api/therapist/forms', { preHandler: therapistOnly }, async (request, reply) => {
     const category = (request.query as { category?: string }).category
+    if (category === 'questionnaire') {
+      const denied = await requireQuestionnairesEnabled(request, reply)
+      if (denied) return denied
+    }
     const where =
       category === 'questionnaire'
         ? { active: true, category: FormCategory.questionnaire }
@@ -266,6 +296,11 @@ export async function therapistRoutes(app: FastifyInstance) {
     })
     if (!form) {
       return reply.status(404).send({ error: 'Formulário não encontrado' })
+    }
+
+    if (form.category === FormCategory.questionnaire) {
+      const denied = await requireQuestionnairesEnabled(request, reply)
+      if (denied) return denied
     }
 
     const definition =
@@ -355,7 +390,9 @@ export async function therapistRoutes(app: FastifyInstance) {
     if (!patient) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
-    return { patient: formatTherapistPatient(patient) }
+    const flags = await getTherapistFeatureFlags(request.user.sub)
+    const formatted = formatTherapistPatient(patient)
+    return { patient: applyTherapistPatientFeatureAccess(formatted, flags) }
   })
 
   app.get('/api/therapist/patients/:id/timeline', { preHandler: therapistOnly }, async (request, reply) => {
@@ -370,7 +407,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.put('/api/therapist/patients/:id/evaluations', { preHandler: therapistOnly }, async (request, reply) => {
+  app.put('/api/therapist/patients/:id/evaluations', { preHandler: [...therapistOnly, requireAssessmentResultsEnabled] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = patientEvaluationsSchema.safeParse(request.body)
     if (!parsed.success) {
@@ -476,6 +513,24 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
+  app.patch('/api/therapist/patients/:id/active', { preHandler: therapistOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = parseSetPatientActiveInput(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const patient = await setTherapistPatientActive(request.user.sub, id, parsed.data.active)
+      return { patient }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Paciente não encontrado' })
+      }
+      throw error
+    }
+  })
+
   app.delete('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
     try {
@@ -555,6 +610,11 @@ export async function therapistRoutes(app: FastifyInstance) {
       const parsed = parseCreateSessionInput(request.body)
       if (!parsed.success) {
         return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      if (parsed.data.sessionKind === 'questionnaire') {
+        const denied = await requireQuestionnairesEnabled(request, reply)
+        if (denied) return denied
       }
 
       const patient = await prisma.patient.findFirst({
@@ -804,6 +864,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })
       }
+      if (error instanceof Error && error.message === 'PATIENT_INACTIVE') {
+        return reply.status(400).send({ error: 'Paciente inactivo — reactive o paciente para marcar consultas' })
+      }
       if (error instanceof Error && error.message === 'INVALID_SCHEDULE') {
         return reply.status(400).send({ error: 'Data ou hora inválida' })
       }
@@ -870,6 +933,9 @@ export async function therapistRoutes(app: FastifyInstance) {
         }
         if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
           return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'PATIENT_INACTIVE') {
+          return reply.status(400).send({ error: 'Paciente inactivo — reactive o paciente para marcar consultas' })
         }
         if (error instanceof Error && error.message === 'INVALID_SCHEDULE') {
           return reply.status(400).send({ error: 'Data ou hora inválida' })

@@ -2,7 +2,7 @@ import { FormCategory, SessionKind, SessionStatus, type Prisma } from '@prisma/c
 import { prisma } from '../lib/prisma.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
 import { buildPatientUrl, generatePatientToken, hashPatientToken } from '../lib/tokens.js'
-import { config, createPatientSchema, createSessionSchema, updatePatientSchema } from '../lib/schemas.js'
+import { config, createPatientSchema, createSessionSchema, setPatientActiveSchema, updatePatientSchema } from '../lib/schemas.js'
 import { shouldCompleteSession } from '../lib/formIds.js'
 import { formatTherapistPatientWithPicca } from './piccaSessions.js'
 import { formatTherapistPatientWithPiccaInteractive } from './piccaInteractiveSessions.js'
@@ -69,6 +69,7 @@ export function formatPatientSummary(patient: {
   phone2: string | null
   birthDate: Date | null
   createdAt: Date
+  active?: boolean
   sessionFee?: { toString(): string } | null
   location?: { id: string; name: string } | null
   intakeSessions?: Array<{
@@ -87,6 +88,7 @@ export function formatPatientSummary(patient: {
     phone2: patient.phone2,
     birthDate: patient.birthDate,
     createdAt: patient.createdAt,
+    active: patient.active ?? true,
     sessionFee: patient.sessionFee != null ? decimalToNumber(patient.sessionFee) : null,
     location: patient.location ?? undefined,
     intakeSessions: patient.intakeSessions,
@@ -323,4 +325,37 @@ export async function updateTherapistPatient(
     ...formatPatientSummary(updated),
     internalNotes: updated.internalNotes,
   }
+}
+
+export function parseSetPatientActiveInput(body: unknown) {
+  return setPatientActiveSchema.safeParse(body)
+}
+
+export async function setTherapistPatientActive(
+  therapistId: string,
+  patientId: string,
+  active: boolean,
+) {
+  const patient = await prisma.patient.findFirst({
+    where: { id: patientId, therapistId },
+    select: { id: true },
+  })
+  if (!patient) {
+    throw new Error('PATIENT_NOT_FOUND')
+  }
+
+  const updated = await prisma.patient.update({
+    where: { id: patientId },
+    data: { active },
+    include: {
+      location: { select: { id: true, name: true } },
+      intakeSessions: {
+        take: 1,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, status: true, createdAt: true, completedAt: true },
+      },
+    },
+  })
+
+  return formatPatientSummary(updated)
 }

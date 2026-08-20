@@ -20,6 +20,10 @@ function formatPatientContact(patient: PatientSummary): string {
   return contact.length > 0 ? contact.join(' · ') : '—'
 }
 
+function isPatientActive(patient: PatientSummary): boolean {
+  return patient.active !== false
+}
+
 export function PatientsListPage() {
   const { token, user } = useAuth()
   const readOnly = user?.role === 'coordinator'
@@ -31,16 +35,22 @@ export function PatientsListPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
+  const [showInactive, setShowInactive] = useState(false)
 
   const filteredPatients = useMemo(() => {
     const normalizedSearch = search.trim()
     const matches = patients.filter((patient) => {
       if (!matchesPatientSearch(patient, normalizedSearch)) return false
       if (locationFilter && patient.location?.id !== locationFilter) return false
+      if (showInactive) {
+        if (isPatientActive(patient)) return false
+      } else if (!isPatientActive(patient)) {
+        return false
+      }
       return true
     })
     return matches.sort((a, b) => a.fullName.localeCompare(b.fullName, 'pt-PT'))
-  }, [patients, search, locationFilter])
+  }, [patients, search, locationFilter, showInactive])
 
   const selectedLocationName = useMemo(
     () => locations.find((location) => location.id === locationFilter)?.name ?? null,
@@ -48,6 +58,9 @@ export function PatientsListPage() {
   )
 
   const therapistName = readOnly ? selectedTherapist?.name : user?.name
+
+  const hasOnlyInactivePatients =
+    patients.length > 0 && patients.every((patient) => !isPatientActive(patient))
 
   function handleExportPdf() {
     try {
@@ -89,6 +102,7 @@ export function PatientsListPage() {
     setError('')
     setSearch('')
     setLocationFilter('')
+    setShowInactive(false)
     Promise.all([
       coordinatorApi.listPatients(token, selectedTherapist.id),
       coordinatorApi.listLocations(token, selectedTherapist.id),
@@ -200,6 +214,16 @@ export function PatientsListPage() {
                   ))}
                 </select>
               </div>
+              <div className={styles.filterField}>
+                <label>Estado</label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowInactive((current) => !current)}
+                >
+                  {showInactive ? 'Ver activos' : 'Ver inactivos'}
+                </Button>
+              </div>
             </div>
           )}
 
@@ -208,11 +232,13 @@ export function PatientsListPage() {
           ) : filteredPatients.length === 0 ? (
             <Card>
               <p>
-                {search.trim() || locationFilter
+                {search.trim() || locationFilter || showInactive
                   ? 'Nenhum paciente corresponde aos filtros.'
-                  : readOnly
-                    ? 'Este terapeuta ainda não tem pacientes registados.'
-                    : 'Ainda não existem pacientes. Crie o primeiro perfil para gerar um link de formulários.'}
+                  : hasOnlyInactivePatients
+                    ? 'Todos os pacientes estão inactivos. Use «Ver inactivos» para os consultar.'
+                    : readOnly
+                      ? 'Este terapeuta ainda não tem pacientes registados.'
+                      : 'Ainda não existem pacientes. Crie o primeiro perfil para gerar um link de formulários.'}
               </p>
             </Card>
           ) : (
@@ -232,7 +258,15 @@ export function PatientsListPage() {
                   const latest = patient.intakeSessions?.[0]
                   return (
                     <tr key={patient.id}>
-                      <td>{patient.fullName}</td>
+                      <td>
+                        {patient.fullName}
+                        {!isPatientActive(patient) ? (
+                          <>
+                            {' '}
+                            <Badge variant="muted">Inactivo</Badge>
+                          </>
+                        ) : null}
+                      </td>
                       <td>{patient.location?.name ?? '—'}</td>
                       <td>{formatPatientSessionFee(patient.sessionFee)}</td>
                       <td>{formatPatientContact(patient)}</td>

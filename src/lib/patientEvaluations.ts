@@ -104,8 +104,11 @@ export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'cdi', label: 'CDI' },
 ] as const
 
+import type { WiscResults } from './wiscResults'
+
 export type PatientEvaluationSelections = {
   wiscSelections: string[]
   bancSelections: string[]
   additionalMethodSelections: string[]
+  wiscResults: WiscResults
 }

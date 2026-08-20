@@ -442,7 +442,7 @@ export async function listTherapistAppointments(
 }
 
 export async function createTherapistAppointment(therapistId: string, input: AppointmentInput) {
-  await getTherapistPatientOrThrow(therapistId, input.patientId)
+  await getTherapistPatientOrThrow(therapistId, input.patientId, { requireActive: true })
   await getActiveLocationOrThrow(input.locationId)
   await assertTherapistHasLocation(therapistId, input.locationId)
   const gabinete = await getActiveGabineteOrThrow(input.gabineteId, input.locationId)
@@ -557,7 +557,11 @@ export async function updateTherapistAppointment(
     throw new Error('APPOINTMENT_NOT_FOUND')
   }
 
-  await getTherapistPatientOrThrow(therapistId, input.patientId)
+  if (input.patientId !== existing.patientId) {
+    await getTherapistPatientOrThrow(therapistId, input.patientId, { requireActive: true })
+  } else {
+    await getTherapistPatientOrThrow(therapistId, input.patientId)
+  }
   await getActiveLocationOrThrow(input.locationId)
   await assertTherapistHasLocation(therapistId, input.locationId)
   const gabinete = await getActiveGabineteOrThrow(input.gabineteId, input.locationId)

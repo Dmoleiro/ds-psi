@@ -113,7 +113,9 @@ function resolveSessionFeeForPatient(
 
 function patientsForLocation(patients: PatientSummary[], locationId: string, selectedPatientId = '') {
   if (!locationId) return []
-  const filtered = patients.filter((patient) => patient.location?.id === locationId)
+  const filtered = patients.filter(
+    (patient) => patient.location?.id === locationId && (patient.active || patient.id === selectedPatientId),
+  )
   if (selectedPatientId && !filtered.some((patient) => patient.id === selectedPatientId)) {
     const selected = patients.find((patient) => patient.id === selectedPatientId)
     if (selected) return [selected, ...filtered]

@@ -185,6 +185,8 @@ export type StaffUser = {
   role: 'admin' | 'therapist' | 'coordinator'
   financialOverviewEnabled?: boolean
   piccaEnabled?: boolean
+  questionnairesEnabled?: boolean
+  assessmentResultsEnabled?: boolean
   appointmentInvitesAllowed?: boolean
   active?: boolean
 }
@@ -215,6 +217,7 @@ export type PatientSummary = {
   phone2: string | null
   birthDate: string | null
   sessionFee: number | null
+  active: boolean
   createdAt: string
   location?: LocationSummary
   therapist?: { id: string; name: string }
@@ -553,6 +556,12 @@ export const therapistApi = {
       method: 'PATCH',
       token,
       body,
+    }),
+  setPatientActive: (token: string, id: string, active: boolean) =>
+    apiRequest<{ patient: PatientSummary }>(`/api/therapist/patients/${id}/active`, {
+      method: 'PATCH',
+      token,
+      body: { active },
     }),
   deletePatient: (token: string, id: string) =>
     apiRequest<void>(`/api/therapist/patients/${id}`, { method: 'DELETE', token }),
@@ -1032,6 +1041,8 @@ export const adminApi = {
       active?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
+      questionnairesEnabled?: boolean
+      assessmentResultsEnabled?: boolean
       appointmentInvitesAllowed?: boolean
       password?: string
     },

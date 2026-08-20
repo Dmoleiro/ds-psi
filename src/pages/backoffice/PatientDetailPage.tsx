@@ -24,6 +24,8 @@ import {
   sessionStatusBadgeVariant,
 } from '../../lib/intakeStatus'
 import tabStyles from './PatientDetailPage.module.css'
+import type { WiscResults } from '../../lib/wiscResults'
+import { emptyWiscResults } from '../../lib/wiscResults'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
@@ -72,11 +74,13 @@ type PatientDetail = {
   phone2: string | null
   birthDate: string | null
   sessionFee: number | null
+  active?: boolean
   internalNotes: string | null
   appointmentNotes: string | null
   location?: { id: string; name: string }
   therapist?: { id: string; name: string }
   wiscSelections: string[]
+  wiscResults?: WiscResults
   bancSelections: string[]
   additionalMethodSelections?: string[]
   questionnaireSelections?: string[]
@@ -126,6 +130,10 @@ export function PatientDetailPage() {
   const [internalNotesDraft, setInternalNotesDraft] = useState('')
   const [patientEditError, setPatientEditError] = useState('')
   const [savingPatient, setSavingPatient] = useState(false)
+  const [togglingActive, setTogglingActive] = useState(false)
+  const [activeToggleError, setActiveToggleError] = useState('')
+
+  const patientIsActive = patient?.active !== false
 
   useEffect(() => {
     if (!token || !id) return
@@ -141,15 +149,26 @@ export function PatientDetailPage() {
     const tab = parsePatientTab(searchParams.get('tab'))
     if (!tab) return
     if (tab === 'picca' && (readOnly || !user?.piccaEnabled)) return
+    if (tab === 'questionarios' && !readOnly && !user?.questionnairesEnabled) return
     setActiveTab(tab)
-  }, [searchParams, readOnly, user?.piccaEnabled])
+  }, [searchParams, readOnly, user?.piccaEnabled, user?.questionnairesEnabled])
+
+  useEffect(() => {
+    if (!readOnly && !user?.questionnairesEnabled && activeTab === 'questionarios') {
+      setActiveTab('avaliacao')
+    }
+  }, [readOnly, user?.questionnairesEnabled, activeTab])
 
   useEffect(() => {
     if (!token || readOnly) return
     therapistApi.listForms(token, 'intake').then((data) => setAvailableForms(data.forms))
-    therapistApi.listForms(token, 'questionnaire').then((data) => setAvailableQuestionnaires(data.forms))
     therapistApi.listLocations(token).then((data) => setLocations(data.locations))
   }, [token, readOnly])
+
+  useEffect(() => {
+    if (!token || readOnly || !user?.questionnairesEnabled) return
+    therapistApi.listForms(token, 'questionnaire').then((data) => setAvailableQuestionnaires(data.forms))
+  }, [token, readOnly, user?.questionnairesEnabled])
 
   function toggleForm(formId: string) {
     setSelectedForms((current) =>
@@ -490,6 +509,30 @@ export function PatientDetailPage() {
     }
   }
 
+  async function togglePatientActive() {
+    if (!token || !id || !patient || readOnly) return
+    setTogglingActive(true)
+    setActiveToggleError('')
+    try {
+      const nextActive = !patientIsActive
+      const result = await therapistApi.setPatientActive(token, id, nextActive)
+      setPatient((current) =>
+        current
+          ? {
+              ...current,
+              active: result.patient.active,
+            }
+          : current,
+      )
+    } catch (err) {
+      setActiveToggleError(
+        err instanceof ApiError ? err.message : 'Não foi possível alterar o estado do paciente',
+      )
+    } finally {
+      setTogglingActive(false)
+    }
+  }
+
   function formatDetailValue(value: string | null | undefined): string {
     return value?.trim() ? value : '—'
   }
@@ -638,7 +681,15 @@ export function PatientDetailPage() {
         </form>
       ) : (
         <div className={styles.titleRow}>
-          <h1 className={styles.pageTitle}>{patient.fullName}</h1>
+          <h1 className={styles.pageTitle}>
+            {patient.fullName}
+            {!patientIsActive ? (
+              <>
+                {' '}
+                <Badge variant="muted">Inactivo</Badge>
+              </>
+            ) : null}
+          </h1>
           {!readOnly && (
             <button type="button" className={styles.linkButton} onClick={startEditingPatient}>
               Editar dados
@@ -690,7 +741,7 @@ export function PatientDetailPage() {
         )}
         <p className={styles.muted}>
           <Link to="/backoffice/attendance">Ver presenças</Link>
-          {!readOnly && (
+          {!readOnly && patientIsActive && (
             <>
               {' · '}
               <Link to={appointmentsCreateHref({ patientId: patient.id, locationId: patient.location?.id })}>
@@ -714,7 +765,7 @@ export function PatientDetailPage() {
             ['dados', 'Dados'],
             ['notas', 'Notas'],
             ['intake', 'Formulários'],
-            ['questionarios', 'Questionários'],
+            ...(readOnly || user?.questionnairesEnabled ? [['questionarios', 'Questionários'] as const] : []),
             ...(!readOnly && user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
             ['documentos', 'Documentos'],
             ['historico', 'Histórico recente'],
@@ -788,6 +839,10 @@ export function PatientDetailPage() {
                 <dd>{formatBirthDate(patient.birthDate) ?? '—'}</dd>
               </div>
               <div className={tabStyles.detailItem}>
+                <dt>Estado</dt>
+                <dd>{patientIsActive ? 'Activo' : 'Inactivo'}</dd>
+              </div>
+              <div className={tabStyles.detailItem}>
                 <dt>Valor da consulta</dt>
                 <dd>{formatSessionFee(patient.sessionFee)}</dd>
               </div>
@@ -804,18 +859,33 @@ export function PatientDetailPage() {
                   Editar dados
                 </button>
                 {' · '}
+                <button
+                  type="button"
+                  className={patientIsActive ? styles.dangerLinkButton : styles.linkButton}
+                  onClick={togglePatientActive}
+                  disabled={togglingActive}
+                >
+                  {togglingActive
+                    ? 'A processar…'
+                    : patientIsActive
+                      ? 'Desactivar paciente'
+                      : 'Activar paciente'}
+                </button>
+                {' · '}
                 <Link to="/backoffice/attendance">Ver presenças</Link>
+                {activeToggleError ? <p className={styles.error}>{activeToggleError}</p> : null}
               </div>
             )}
           </Card>
 
-          {token && id && (
+          {token && id && (readOnly || user?.assessmentResultsEnabled) && (
             <PatientEvaluationsPanel
               token={token}
               patientId={id}
               readOnly={readOnly}
               initialSelections={{
                 wiscSelections: patient.wiscSelections ?? [],
+                wiscResults: patient.wiscResults ?? emptyWiscResults(),
                 bancSelections: patient.bancSelections ?? [],
                 additionalMethodSelections: patient.additionalMethodSelections ?? [],
               }}

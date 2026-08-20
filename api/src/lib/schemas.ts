@@ -34,6 +34,8 @@ export const updateTherapistSchema = z.object({
   active: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
   piccaEnabled: z.boolean().optional(),
+  questionnairesEnabled: z.boolean().optional(),
+  assessmentResultsEnabled: z.boolean().optional(),
   appointmentInvitesAllowed: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
@@ -69,6 +71,10 @@ export const createPatientSchema = z.object({
     }),
 })
 
+export const setPatientActiveSchema = z.object({
+  active: z.boolean(),
+})
+
 export const updatePatientSchema = z.object({
   fullName: z.string().min(2),
   locationId: z.string().uuid(),
@@ -88,11 +94,67 @@ export const updatePatientSchema = z.object({
     }),
 })
 
+const wiscResultCellSchema = z.string().max(32)
+
+const wiscPadronizadoColumnsSchema = z
+  .object({
+    verbal: wiscResultCellSchema.optional(),
+    performance: wiscResultCellSchema.optional(),
+    cv: wiscResultCellSchema.optional(),
+    op: wiscResultCellSchema.optional(),
+    vp: wiscResultCellSchema.optional(),
+  })
+  .partial()
+  .default({})
+
+const wiscSubtestResultSchema = z
+  .object({
+    brutos: wiscResultCellSchema.optional(),
+    padronizado: wiscPadronizadoColumnsSchema.optional(),
+  })
+  .partial()
+  .default({})
+
+const wiscScaleSummaryRowSchema = z
+  .object({
+    resultado: wiscResultCellSchema.optional(),
+    qi: wiscResultCellSchema.optional(),
+    percentil: wiscResultCellSchema.optional(),
+    intervaloConfianca90: wiscResultCellSchema.optional(),
+    intervaloConfianca95: wiscResultCellSchema.optional(),
+    intervaloConfianca: wiscResultCellSchema.optional(),
+  })
+  .partial()
+  .default({})
+
+const wiscGaiSummarySchema = z
+  .object({
+    resultado: wiscResultCellSchema.optional(),
+    gai: wiscResultCellSchema.optional(),
+    percentil: wiscResultCellSchema.optional(),
+    intervaloConfianca90: wiscResultCellSchema.optional(),
+    intervaloConfianca95: wiscResultCellSchema.optional(),
+  })
+  .partial()
+  .default({})
+
+export const wiscResultsSchema = z
+  .object({
+    ageYears: z.string().max(8).optional(),
+    ageMonths: z.string().max(8).optional(),
+    subtests: z.record(z.string(), wiscSubtestResultSchema).default({}),
+    somaPadronizados: wiscPadronizadoColumnsSchema.default({}),
+    scaleSummary: z.record(z.string(), wiscScaleSummaryRowSchema).default({}),
+    gaiSummary: wiscGaiSummarySchema.default({}),
+  })
+  .default({})
+
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
   additionalMethodSelections: z.array(z.string()).default([]),
   questionnaireSelections: z.array(z.string()).default([]),
+  wiscResults: wiscResultsSchema,
 })
 
 export const patientAppointmentNotesSchema = z.object({

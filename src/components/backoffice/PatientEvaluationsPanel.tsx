@@ -6,6 +6,8 @@ import {
   WISC_EVALUATION_OPTIONS,
   type PatientEvaluationSelections,
 } from '../../lib/patientEvaluations'
+import { emptyWiscResults } from '../../lib/wiscResults'
+import { WiscResultsTables } from './WiscResultsTables'
 import { Card } from '../ui/Card'
 import styles from './PatientEvaluationsPanel.module.css'
 
@@ -18,12 +20,13 @@ type Props = {
   readOnly?: boolean
 }
 
-type SelectionField = keyof PatientEvaluationSelections
+type SelectionField = 'wiscSelections' | 'bancSelections' | 'additionalMethodSelections'
 
 const EMPTY_SELECTIONS: PatientEvaluationSelections = {
   wiscSelections: [],
   bancSelections: [],
   additionalMethodSelections: [],
+  wiscResults: emptyWiscResults(),
 }
 
 export function PatientEvaluationsPanel({
@@ -44,12 +47,14 @@ export function PatientEvaluationsPanel({
     setSelections({
       ...EMPTY_SELECTIONS,
       ...initialSelections,
+      wiscResults: initialSelections.wiscResults ?? emptyWiscResults(),
     })
   }, [
     patientId,
     initialSelections.wiscSelections,
     initialSelections.bancSelections,
     initialSelections.additionalMethodSelections,
+    initialSelections.wiscResults,
   ])
 
   const persist = useCallback(
@@ -111,6 +116,68 @@ export function PatientEvaluationsPanel({
     const next = { ...selections, [field]: nextKeys }
     setSelections(next)
     scheduleSave(next)
+  }
+
+  function updateWiscResults(nextWiscResults: PatientEvaluationSelections['wiscResults']) {
+    if (readOnly) return
+    const next = { ...selections, wiscResults: nextWiscResults }
+    setSelections(next)
+    scheduleSave(next)
+  }
+
+  function renderWiscSection() {
+    const selectedSet = new Set(selections.wiscSelections)
+
+    return (
+      <section className={styles.methodSection}>
+        <h3 className={styles.methodTitle}>WISC III</h3>
+        {readOnly && selections.wiscSelections.length === 0 ? (
+          <p className={styles.muted}>Nenhuma subescala registada.</p>
+        ) : (
+          <ul className={styles.optionList}>
+            {WISC_EVALUATION_OPTIONS.map((option, index) => {
+              const checked = selectedSet.has(option.key)
+              if (readOnly && !checked) return null
+
+              return (
+                <li key={option.key} className={styles.optionItem}>
+                  {readOnly ? (
+                    <span className={styles.readOnlyOption}>
+                      <span className={styles.optionIndex}>{index + 1}.</span>
+                      {option.label}
+                    </span>
+                  ) : (
+                    <label className={styles.optionLabel}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) =>
+                          toggleSelection(
+                            'wiscSelections',
+                            option.key,
+                            event.target.checked,
+                            WISC_EVALUATION_OPTIONS,
+                          )
+                        }
+                      />
+                      <span className={styles.optionIndex}>{index + 1}.</span>
+                      <span>{option.label}</span>
+                    </label>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        <WiscResultsTables
+          key={patientId}
+          value={selections.wiscResults}
+          readOnly={readOnly}
+          onChange={updateWiscResults}
+        />
+      </section>
+    )
   }
 
   function renderMethod(
@@ -183,7 +250,7 @@ export function PatientEvaluationsPanel({
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {renderMethod('WISC III', WISC_EVALUATION_OPTIONS, selections.wiscSelections, 'wiscSelections')}
+      {renderWiscSection()}
       {renderMethod('BANC', BANC_EVALUATION_OPTIONS, selections.bancSelections, 'bancSelections')}
       {ADDITIONAL_EVALUATION_METHODS.map((method) =>
         renderMethod(

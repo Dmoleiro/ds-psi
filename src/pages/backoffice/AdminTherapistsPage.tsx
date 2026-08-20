@@ -14,6 +14,8 @@ type TherapistRow = {
   active: boolean
   financialOverviewEnabled: boolean
   piccaEnabled: boolean
+  questionnairesEnabled: boolean
+  assessmentResultsEnabled: boolean
   appointmentInvitesAllowed: boolean
   createdAt: string
 }
@@ -131,6 +133,8 @@ export function AdminTherapistsPage() {
         ...therapist,
         financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
         piccaEnabled: therapist.piccaEnabled ?? false,
+        questionnairesEnabled: therapist.questionnairesEnabled ?? false,
+        assessmentResultsEnabled: therapist.assessmentResultsEnabled ?? false,
         appointmentInvitesAllowed: therapist.appointmentInvitesAllowed ?? false,
       })),
     )
@@ -167,6 +171,22 @@ export function AdminTherapistsPage() {
     if (!token) return
     await adminApi.updateTherapist(token, therapist.id, {
       piccaEnabled: !therapist.piccaEnabled,
+    })
+    await load()
+  }
+
+  async function toggleQuestionnairesAccess(therapist: TherapistRow) {
+    if (!token) return
+    await adminApi.updateTherapist(token, therapist.id, {
+      questionnairesEnabled: !therapist.questionnairesEnabled,
+    })
+    await load()
+  }
+
+  async function toggleAssessmentResultsAccess(therapist: TherapistRow) {
+    if (!token) return
+    await adminApi.updateTherapist(token, therapist.id, {
+      assessmentResultsEnabled: !therapist.assessmentResultsEnabled,
     })
     await load()
   }
@@ -233,6 +253,8 @@ export function AdminTherapistsPage() {
               <th>Estado</th>
               <th>Finanças</th>
               <th>PICCA</th>
+              <th>Questionários</th>
+              <th>Resultados</th>
               <th>Convites</th>
               <th />
             </tr>
@@ -245,6 +267,8 @@ export function AdminTherapistsPage() {
                 <td>{therapist.active ? 'Ativo' : 'Inativo'}</td>
                 <td>{therapist.financialOverviewEnabled ? 'Ativo' : '—'}</td>
                 <td>{therapist.piccaEnabled ? 'Ativo' : '—'}</td>
+                <td>{therapist.questionnairesEnabled ? 'Ativo' : '—'}</td>
+                <td>{therapist.assessmentResultsEnabled ? 'Ativo' : '—'}</td>
                 <td>{therapist.appointmentInvitesAllowed ? 'Ativo' : '—'}</td>
                 <td>
                   <div className={styles.rowActions}>
@@ -268,6 +292,22 @@ export function AdminTherapistsPage() {
                       onClick={() => togglePiccaAccess(therapist)}
                     >
                       {therapist.piccaEnabled ? 'Revogar PICCA' : 'Dar acesso PICCA'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => toggleQuestionnairesAccess(therapist)}
+                    >
+                      {therapist.questionnairesEnabled ? 'Revogar questionários' : 'Dar acesso questionários'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.linkButton}
+                      onClick={() => toggleAssessmentResultsAccess(therapist)}
+                    >
+                      {therapist.assessmentResultsEnabled
+                        ? 'Revogar resultados'
+                        : 'Dar acesso resultados'}
                     </button>
                     <button
                       type="button"

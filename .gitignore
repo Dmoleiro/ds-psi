@@ -28,3 +28,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Copyrighted WISC-III manual scans / OCR working files
+scripts/wisc-ocr-pages/
+scripts/gai-ocr/
+scripts/tabelas_resultados_subtestes.pdf
