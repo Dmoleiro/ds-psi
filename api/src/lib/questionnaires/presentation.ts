@@ -2,6 +2,15 @@ import type { FormattedField } from '../formPresentation.js'
 import { QUESTIONNAIRE_NOTES_FIELD, RESPONSE_LABELS, isOneBasedResponseType } from './types.js'
 import type { ResponseType } from './types.js'
 import { getQuestionnaireDefinition } from './registry.js'
+import {
+  ADIR_CONCERNS_CODES,
+  ADIR_IDENTIFICATION,
+  ADIR_LOSS_CODES,
+  ADIR_RETRO_CODES,
+  ADIR_SECTIONS,
+  ADIR_TIMEPOINT_LABELS,
+  adirFieldId,
+} from './definitions/adir.js'
 
 function labelForStoredValue(
   responseType: ResponseType,
@@ -40,6 +49,15 @@ function formatAnswerValue(
     }
   }
 
+  if (formId === 'adir' && itemId === 'id_informador_relacao' && itemOptions?.length) {
+    const index = typeof value === 'number' ? value : Number(value)
+    return itemOptions[index] ?? String(value ?? '')
+  }
+
+  if (formId === 'adir') {
+    return formatAdirCodeValue(itemId, value)
+  }
+
   if (definition.responseType === 'forced_choice' && itemOptions?.length) {
     const index = typeof value === 'number' ? value : Number(value)
     return itemOptions[index] ?? String(value ?? '')
@@ -56,12 +74,139 @@ function formatAnswerValue(
   return String(value ?? '')
 }
 
+function lookupCodeLabel(
+  codes: ReadonlyArray<{ code: number; text: string }>,
+  value: number,
+): string | null {
+  const match = codes.find((entry) => entry.code === value)
+  return match ? `${match.code} — ${match.text}` : null
+}
+
+function formatAdirCodeValue(itemId: string, value: unknown): string {
+  const numeric = typeof value === 'number' ? value : Number(value)
+  if (Number.isFinite(numeric)) {
+    for (const section of ADIR_SECTIONS) {
+      for (const item of section.items) {
+        if (item.type === 'concerns') {
+          for (const box of ['a', 'b', 'c', 'd'] as const) {
+            if (itemId === adirFieldId(item.id, box)) {
+              return lookupCodeLabel(ADIR_CONCERNS_CODES, numeric) ?? String(value)
+            }
+          }
+        }
+        if (item.type === 'retrospective' && itemId === item.id) {
+          return lookupCodeLabel(ADIR_RETRO_CODES, numeric) ?? String(value)
+        }
+        if (item.type === 'loss' && itemId === adirFieldId(item.id, 'ever')) {
+          return lookupCodeLabel(ADIR_LOSS_CODES, numeric) ?? String(value)
+        }
+        if (item.type === 'coded') {
+          for (const tp of item.timepoints ?? ['actual']) {
+            if (itemId === adirFieldId(item.id, tp)) {
+              return lookupCodeLabel(item.codes ?? [], numeric) ?? String(value)
+            }
+          }
+        }
+      }
+    }
+  }
+  return String(value ?? '')
+}
+
+function formatAdirAnswers(answers: Record<string, unknown>): FormattedField[] {
+  const fields: FormattedField[] = []
+
+  for (const field of ADIR_IDENTIFICATION) {
+    const value = answers[field.id]
+    if (value === undefined || value === null || value === '') continue
+    if (field.inputType === 'choice' && field.options) {
+      const index = typeof value === 'number' ? value : Number(value)
+      fields.push({ key: field.id, label: field.text, value: field.options[index] ?? String(value) })
+    } else {
+      fields.push({ key: field.id, label: field.text, value: String(value) })
+    }
+  }
+
+  for (const section of ADIR_SECTIONS) {
+    for (const item of section.items) {
+      const baseLabel = `${item.num}. ${item.text}`
+
+      if (item.type === 'concerns') {
+        for (const [box, boxLabel] of [
+          ['a', 'A'],
+          ['b', 'B'],
+          ['c', 'C'],
+          ['d', 'D'],
+        ] as const) {
+          const key = adirFieldId(item.id, box)
+          const value = answers[key]
+          if (value === undefined || value === null || value === '') continue
+          fields.push({
+            key,
+            label: `${baseLabel} — preocupação ${boxLabel}`,
+            value: formatAdirCodeValue(key, value),
+          })
+        }
+      } else if (item.type === 'age') {
+        const value = answers[item.id]
+        if (value !== undefined && value !== null && value !== '') {
+          fields.push({ key: item.id, label: `${baseLabel} — idade (meses)`, value: String(value) })
+        }
+      } else if (item.type === 'retrospective') {
+        const value = answers[item.id]
+        if (value !== undefined && value !== null && value !== '') {
+          fields.push({ key: item.id, label: baseLabel, value: formatAdirCodeValue(item.id, value) })
+        }
+      } else if (item.type === 'loss') {
+        const key = adirFieldId(item.id, 'ever')
+        const value = answers[key]
+        if (value !== undefined && value !== null && value !== '') {
+          fields.push({
+            key,
+            label: `${baseLabel} — ${ADIR_TIMEPOINT_LABELS.ever}`,
+            value: formatAdirCodeValue(key, value),
+          })
+        }
+      } else {
+        for (const tp of item.timepoints ?? ['actual']) {
+          const key = adirFieldId(item.id, tp)
+          const value = answers[key]
+          if (value === undefined || value === null || value === '') continue
+          const tpLabel = ADIR_TIMEPOINT_LABELS[tp as keyof typeof ADIR_TIMEPOINT_LABELS] ?? tp
+          fields.push({
+            key,
+            label: `${baseLabel} — ${tpLabel}`,
+            value: formatAdirCodeValue(key, value),
+          })
+        }
+      }
+
+      const detailKey = adirFieldId(item.id, 'detalhe')
+      const detail = answers[detailKey]
+      if (typeof detail === 'string' && detail.trim() !== '') {
+        fields.push({ key: detailKey, label: `${baseLabel} — detalhes`, value: detail.trim() })
+      }
+    }
+  }
+
+  return fields
+}
+
 export function formatQuestionnaireAnswers(
   formId: string,
   answers: Record<string, unknown>,
 ): FormattedField[] {
   const definition = getQuestionnaireDefinition(formId)
   if (!definition) return []
+
+  if (formId === 'adir') {
+    const fields = formatAdirAnswers(answers)
+    const notes = answers[QUESTIONNAIRE_NOTES_FIELD]
+    if (typeof notes === 'string' && notes.trim() !== '') {
+      fields.push({ key: QUESTIONNAIRE_NOTES_FIELD, label: 'Notas', value: notes.trim() })
+    }
+    return fields
+  }
 
   const fields: FormattedField[] = []
   for (const item of definition.items) {

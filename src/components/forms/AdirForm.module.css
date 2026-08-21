@@ -1,0 +1,189 @@
+.section {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.sectionTitle {
+  margin: var(--space-lg) 0 var(--space-sm);
+  font-size: 1.0625rem;
+}
+
+.sectionTitle:first-child {
+  margin-top: 0;
+}
+
+.scriptBox {
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-soft, #eee);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted, #fafafa);
+}
+
+.scriptBox p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.identGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.backgroundGrid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 600px) {
+  .identGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.fieldLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  background: #fff;
+}
+
+.optionGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.radioLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.itemBlock {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--color-border-soft, #eee);
+}
+
+.itemBlock:last-child {
+  border-bottom: none;
+}
+
+.questionText {
+  margin: 0 0 var(--space-sm);
+  font-weight: 600;
+}
+
+.notesBox {
+  margin: 0 0 var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--color-border);
+  background: var(--color-surface-muted, #fafafa);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.notesBox p {
+  margin: 0 0 var(--space-xs);
+}
+
+.notesBox p:last-child {
+  margin-bottom: 0;
+}
+
+.probeDetails {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.9rem;
+}
+
+.probeDetails summary {
+  cursor: pointer;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xs);
+}
+
+.probeList,
+.codeRefList {
+  margin: var(--space-xs) 0 0;
+  padding-left: 1.25rem;
+}
+
+.probeList li,
+.codeRefList li {
+  margin-bottom: var(--space-xs);
+}
+
+.itemHint,
+.ageHint {
+  margin: 0 0 var(--space-xs);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.timepointBlock {
+  margin-top: var(--space-sm);
+}
+
+.timepointTitle {
+  margin: 0 0 var(--space-xs);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.codeGrid {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.codeOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+}
+
+.codeOption strong {
+  min-width: 1rem;
+}
+
+.detailsBlock {
+  margin-top: var(--space-md);
+}
+
+.detailsLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.instructions {
+  margin: 0 0 var(--space-md);
+  color: var(--color-ink-muted);
+  white-space: pre-wrap;
+}
+
+.notesSection {
+  margin-top: var(--space-xl);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  resize: vertical;
+}
