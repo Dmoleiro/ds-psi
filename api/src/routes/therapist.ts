@@ -485,6 +485,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       if (error instanceof Error && error.message === 'INVALID_PIPELINE_STAGE') {
         return reply.status(400).send({ error: 'Etapa inválida para este caso' })
       }
+      if (error instanceof Error && error.message === 'INVALID_PIPELINE_STAGE_OVERRIDE') {
+        return reply.status(400).send({ error: 'Etapa inválida para conclusão manual' })
+      }
       throw error
     }
   })

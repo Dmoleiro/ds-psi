@@ -261,6 +261,7 @@ export type AssessmentPipelineStage = {
   label: string
   status: AssessmentPipelineStageStatus
   blockers: string[]
+  manuallyComplete: boolean
 }
 
 export type AssessmentPipeline = {
@@ -528,6 +529,10 @@ export const therapistApi = {
       notes?: string | null
       reportDeliveredAt?: string | null
       advance?: boolean
+      stageOverride?: {
+        stage: Exclude<AssessmentPipelineStageId, 'concluido'>
+        complete: boolean
+      }
     },
   ) =>
     apiRequest<{ pipeline: AssessmentPipeline }>(`/api/therapist/patients/${id}/assessment-pipeline`, {

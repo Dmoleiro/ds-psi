@@ -6,8 +6,10 @@ import {
   WISC_EVALUATION_OPTIONS,
   type PatientEvaluationSelections,
 } from '../../lib/patientEvaluations'
-import { emptyWiscResults } from '../../lib/wiscResults'
+import { emptyWiscResults, hasWiscResultsData } from '../../lib/wiscResults'
+import { emptyBancResults, hasBancResultsData } from '../../lib/bancResults'
 import { WiscResultsTables } from './WiscResultsTables'
+import { BancResultsTables } from './BancResultsTables'
 import { Card } from '../ui/Card'
 import styles from './PatientEvaluationsPanel.module.css'
 
@@ -22,11 +24,27 @@ type Props = {
 
 type SelectionField = 'wiscSelections' | 'bancSelections' | 'additionalMethodSelections'
 
+type MethodTab =
+  | { id: 'wisc'; label: 'WISC III' }
+  | { id: 'banc'; label: 'BANC' }
+  | { id: `additional-${number}`; label: string; methodIndex: number }
+
+const METHOD_TABS: MethodTab[] = [
+  { id: 'wisc', label: 'WISC III' },
+  { id: 'banc', label: 'BANC' },
+  ...ADDITIONAL_EVALUATION_METHODS.map((method, methodIndex) => ({
+    id: `additional-${methodIndex}` as const,
+    label: method.title,
+    methodIndex,
+  })),
+]
+
 const EMPTY_SELECTIONS: PatientEvaluationSelections = {
   wiscSelections: [],
   bancSelections: [],
   additionalMethodSelections: [],
   wiscResults: emptyWiscResults(),
+  bancResults: emptyBancResults(),
 }
 
 export function PatientEvaluationsPanel({
@@ -41,6 +59,7 @@ export function PatientEvaluationsPanel({
   })
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [error, setError] = useState('')
+  const [activeMethodTab, setActiveMethodTab] = useState<MethodTab['id']>('wisc')
   const saveTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -48,6 +67,7 @@ export function PatientEvaluationsPanel({
       ...EMPTY_SELECTIONS,
       ...initialSelections,
       wiscResults: initialSelections.wiscResults ?? emptyWiscResults(),
+      bancResults: initialSelections.bancResults ?? emptyBancResults(),
     })
   }, [
     patientId,
@@ -55,7 +75,52 @@ export function PatientEvaluationsPanel({
     initialSelections.bancSelections,
     initialSelections.additionalMethodSelections,
     initialSelections.wiscResults,
+    initialSelections.bancResults,
   ])
+
+  function hasAdditionalMethodContent(methodIndex: number): boolean {
+    const method = ADDITIONAL_EVALUATION_METHODS[methodIndex]
+    if (!method) return false
+    const optionKeys = new Set(method.options.map((option) => option.key))
+    return selections.additionalMethodSelections.some((key) => optionKeys.has(key))
+  }
+
+  function hasMethodTabContent(tab: MethodTab): boolean {
+    if (tab.id === 'wisc') {
+      return selections.wiscSelections.length > 0 || hasWiscResultsData(selections.wiscResults)
+    }
+    if (tab.id === 'banc') {
+      return selections.bancSelections.length > 0 || hasBancResultsData(selections.bancResults)
+    }
+    if (tab.id.startsWith('additional-')) {
+      return hasAdditionalMethodContent(tab.methodIndex)
+    }
+    return false
+  }
+
+  function methodButtonClassName(tab: MethodTab): string {
+    const classes = [styles.methodButton]
+    if (activeMethodTab === tab.id) {
+      classes.push(styles.methodButtonActive)
+    } else if (hasMethodTabContent(tab)) {
+      classes.push(styles.methodButtonFilled)
+    }
+    return classes.join(' ')
+  }
+
+  const visibleMethodTabs = METHOD_TABS.filter((tab) => {
+    if (!readOnly) return true
+    return hasMethodTabContent(tab)
+  })
+
+  useEffect(() => {
+    setActiveMethodTab('wisc')
+  }, [patientId])
+
+  useEffect(() => {
+    if (visibleMethodTabs.some((tab) => tab.id === activeMethodTab)) return
+    setActiveMethodTab(visibleMethodTabs[0]?.id ?? 'wisc')
+  }, [activeMethodTab, visibleMethodTabs])
 
   const persist = useCallback(
     async (next: PatientEvaluationSelections) => {
@@ -129,8 +194,10 @@ export function PatientEvaluationsPanel({
     const selectedSet = new Set(selections.wiscSelections)
 
     return (
-      <section className={styles.methodSection}>
-        <h3 className={styles.methodTitle}>WISC III</h3>
+      <section className={styles.methodSection} aria-labelledby="wisc-method-heading">
+        <h3 id="wisc-method-heading" className={styles.srOnly}>
+          WISC III
+        </h3>
         {readOnly && selections.wiscSelections.length === 0 ? (
           <p className={styles.muted}>Nenhuma subescala registada.</p>
         ) : (
@@ -180,8 +247,73 @@ export function PatientEvaluationsPanel({
     )
   }
 
+  function updateBancResults(nextBancResults: PatientEvaluationSelections['bancResults']) {
+    if (readOnly) return
+    const next = { ...selections, bancResults: nextBancResults }
+    setSelections(next)
+    scheduleSave(next)
+  }
+
+  function renderBancSection() {
+    const selectedSet = new Set(selections.bancSelections)
+
+    return (
+      <section className={styles.methodSection} aria-labelledby="banc-method-heading">
+        <h3 id="banc-method-heading" className={styles.srOnly}>
+          BANC
+        </h3>
+        {readOnly && selections.bancSelections.length === 0 ? (
+          <p className={styles.muted}>Nenhuma subescala registada.</p>
+        ) : (
+          <ul className={styles.optionList}>
+            {BANC_EVALUATION_OPTIONS.map((option, index) => {
+              const checked = selectedSet.has(option.key)
+              if (readOnly && !checked) return null
+
+              return (
+                <li key={option.key} className={styles.optionItem}>
+                  {readOnly ? (
+                    <span className={styles.readOnlyOption}>
+                      <span className={styles.optionIndex}>{index + 1}.</span>
+                      {option.label}
+                    </span>
+                  ) : (
+                    <label className={styles.optionLabel}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) =>
+                          toggleSelection(
+                            'bancSelections',
+                            option.key,
+                            event.target.checked,
+                            BANC_EVALUATION_OPTIONS,
+                          )
+                        }
+                      />
+                      <span className={styles.optionIndex}>{index + 1}.</span>
+                      <span>{option.label}</span>
+                    </label>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+
+        <BancResultsTables
+          key={`${patientId}-banc`}
+          value={selections.bancResults}
+          readOnly={readOnly}
+          onChange={updateBancResults}
+        />
+      </section>
+    )
+  }
+
   function renderMethod(
     title: string,
+    headingId: string,
     options: ReadonlyArray<{ key: string; label: string }>,
     selected: string[],
     field: SelectionField,
@@ -190,8 +322,10 @@ export function PatientEvaluationsPanel({
     const selectedSet = new Set(selected)
 
     return (
-      <section className={styles.methodSection}>
-        <h3 className={styles.methodTitle}>{title}</h3>
+      <section className={styles.methodSection} aria-labelledby={headingId}>
+        <h3 id={headingId} className={styles.srOnly}>
+          {title}
+        </h3>
         {readOnly && selected.length === 0 ? (
           <p className={styles.muted}>{emptyLabel}</p>
         ) : (
@@ -250,16 +384,52 @@ export function PatientEvaluationsPanel({
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {renderWiscSection()}
-      {renderMethod('BANC', BANC_EVALUATION_OPTIONS, selections.bancSelections, 'bancSelections')}
-      {ADDITIONAL_EVALUATION_METHODS.map((method) =>
-        renderMethod(
-          method.title,
-          method.options,
-          selections.additionalMethodSelections,
-          'additionalMethodSelections',
-          'Nenhum método registado.',
-        ),
+      {visibleMethodTabs.length === 0 ? (
+        <p className={styles.muted}>Nenhum método de avaliação registado.</p>
+      ) : (
+        <>
+          <div className={styles.methodButtonGroup} role="tablist" aria-label="Métodos de avaliação">
+            {visibleMethodTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                id={`method-tab-${tab.id}`}
+                aria-selected={activeMethodTab === tab.id}
+                aria-controls={`method-panel-${tab.id}`}
+                className={methodButtonClassName(tab)}
+                onClick={() => setActiveMethodTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.methodTabPanels}>
+            {visibleMethodTabs.map((tab) => (
+              <div
+                key={tab.id}
+                id={`method-panel-${tab.id}`}
+                role="tabpanel"
+                aria-labelledby={`method-tab-${tab.id}`}
+                hidden={activeMethodTab !== tab.id}
+                className={styles.methodTabPanel}
+              >
+                {tab.id === 'wisc' && renderWiscSection()}
+                {tab.id === 'banc' && renderBancSection()}
+                {'methodIndex' in tab &&
+                  renderMethod(
+                    ADDITIONAL_EVALUATION_METHODS[tab.methodIndex]!.title,
+                    `additional-method-heading-${tab.methodIndex}`,
+                    ADDITIONAL_EVALUATION_METHODS[tab.methodIndex]!.options,
+                    selections.additionalMethodSelections,
+                    'additionalMethodSelections',
+                    'Nenhum método registado.',
+                  )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </Card>
   )

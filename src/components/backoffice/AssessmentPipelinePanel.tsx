@@ -4,12 +4,17 @@ import {
   coordinatorApi,
   therapistApi,
   type AssessmentPipeline,
+  type AssessmentPipelineStage,
+  type AssessmentPipelineStageId,
   type AssessmentPipelineStageStatus,
 } from '../../lib/api'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import styles from './AssessmentPipelinePanel.module.css'
+
+type OverridablePipelineStageId = Exclude<AssessmentPipelineStageId, 'concluido'>
+type OverridablePipelineStage = AssessmentPipelineStage & { id: OverridablePipelineStageId }
 
 type Props = {
   token: string
@@ -20,8 +25,12 @@ type Props = {
   onOpenDocumentsTab?: () => void
 }
 
-function stageStatusLabel(status: AssessmentPipelineStageStatus): string {
-  switch (status) {
+function stageStatusLabel(stage: AssessmentPipelineStage): string {
+  if (stage.manuallyComplete) {
+    return 'Concluída (manual)'
+  }
+
+  switch (stage.status) {
     case 'complete':
       return 'Concluída'
     case 'in_progress':
@@ -30,6 +39,29 @@ function stageStatusLabel(status: AssessmentPipelineStageStatus): string {
       return 'N/A'
     default:
       return 'Por iniciar'
+  }
+}
+
+function canOverrideStage(stage: AssessmentPipelineStage): stage is OverridablePipelineStage {
+  return stage.id !== 'concluido' && stage.status !== 'skipped'
+}
+
+function overrideActionLabel(stage: AssessmentPipelineStage, complete: boolean): string {
+  if (!complete) {
+    return stage.id === 'picca' ? 'Anular N/A' : 'Anular conclusão manual'
+  }
+
+  switch (stage.id) {
+    case 'picca':
+      return 'Marcar PICCA como N/A'
+    case 'intake':
+      return 'Marcar admissão como concluída'
+    case 'avaliacao':
+      return 'Marcar avaliação como concluída'
+    case 'relatorio':
+      return 'Marcar relatório como concluído'
+    default:
+      return 'Marcar como concluída'
   }
 }
 
@@ -64,7 +96,7 @@ export function AssessmentPipelinePanel({
   const [pipeline, setPipeline] = useState<AssessmentPipeline | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [actionLoading, setActionLoading] = useState<'advance' | 'report' | null>(null)
+  const [actionLoading, setActionLoading] = useState<'advance' | 'report' | AssessmentPipelineStageId | null>(null)
 
   const loadPipeline = useCallback(async () => {
     setLoading(true)
@@ -114,6 +146,21 @@ export function AssessmentPipelinePanel({
     }
   }
 
+  async function handleStageOverride(stage: OverridablePipelineStage, complete: boolean) {
+    setActionLoading(stage.id)
+    setError('')
+    try {
+      const result = await therapistApi.updateAssessmentPipeline(token, patientId, {
+        stageOverride: { stage: stage.id, complete },
+      })
+      setPipeline(result.pipeline)
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível atualizar a etapa')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   if (loading) {
     return (
       <Card as="section" className={styles.card}>
@@ -150,7 +197,7 @@ export function AssessmentPipelinePanel({
         </div>
         {currentStage && (
           <Badge variant={stageStatusVariant(currentStage.status)}>
-            {stageStatusLabel(currentStage.status)}
+            {stageStatusLabel(currentStage)}
           </Badge>
         )}
       </div>
@@ -177,7 +224,23 @@ export function AssessmentPipelinePanel({
               </span>
               <div className={styles.stepBody}>
                 <span className={styles.stepLabel}>{stage.label}</span>
-                <span className={styles.stepStatus}>{stageStatusLabel(stage.status)}</span>
+                <span className={styles.stepStatus}>{stageStatusLabel(stage)}</span>
+                {!readOnly &&
+                  canOverrideStage(stage) &&
+                  (stage.manuallyComplete || stage.status !== 'complete') && (
+                  <button
+                    type="button"
+                    className={styles.stepAction}
+                    onClick={() =>
+                      void handleStageOverride(stage, stage.manuallyComplete ? false : true)
+                    }
+                    disabled={actionLoading === stage.id}
+                  >
+                    {actionLoading === stage.id
+                      ? 'A guardar…'
+                      : overrideActionLabel(stage, stage.manuallyComplete ? false : true)}
+                  </button>
+                )}
               </div>
             </li>
           )

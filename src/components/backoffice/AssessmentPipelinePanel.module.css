@@ -79,6 +79,24 @@
   color: var(--color-ink-muted);
 }
 
+.stepAction {
+  margin-top: 0.25rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--color-accent, #2f6b4f);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.stepAction:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .blockers {
   margin-top: var(--space-lg);
   padding-top: var(--space-md);

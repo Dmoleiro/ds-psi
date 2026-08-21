@@ -39,9 +39,87 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
+.methodButtonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: var(--space-lg);
+}
+
+.methodButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface, #fff);
+  padding: 0.5rem 0.95rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  color: var(--color-ink);
+  transition:
+    background-color var(--transition-fast, 0.15s ease),
+    border-color var(--transition-fast, 0.15s ease),
+    color var(--transition-fast, 0.15s ease);
+}
+
+.methodButton:hover {
+  background: var(--color-bg-warm, #f9f7f4);
+  border-color: var(--color-ink-muted);
+}
+
+.methodButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.methodButtonFilled {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 14%, white);
+  color: var(--color-primary);
+}
+
+.methodButtonFilled:hover {
+  border-color: var(--color-primary-hover);
+  background: color-mix(in srgb, var(--color-primary) 22%, white);
+  color: var(--color-primary-hover);
+}
+
+.methodButtonActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.methodButtonActive:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #fff;
+}
+
+.methodTabPanels {
+  min-height: 0;
+}
+
+.methodTabPanel[hidden] {
+  display: none;
+}
+
 .methodTitle {
   margin: 0 0 var(--space-md);
   font-size: 1rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .optionList {
@@ -540,4 +618,310 @@
 
 .questionnaireSection > .muted:first-of-type {
   margin-bottom: var(--space-md);
+}
+
+.ageFieldWide {
+  flex: 2;
+  min-width: 12rem;
+}
+
+.bancHeaderMemoria {
+  color: #1e5a8a;
+  background: rgba(135, 206, 250, 0.2);
+}
+
+.bancHeaderLinguagem {
+  color: #6b2d7b;
+  background: rgba(186, 104, 200, 0.18);
+}
+
+.bancHeaderAtencao {
+  color: #2d6a2d;
+  background: rgba(144, 238, 144, 0.22);
+}
+
+.bancHeaderOrientacao {
+  color: #555;
+  background: rgba(180, 180, 180, 0.2);
+}
+
+.bancPerfilSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.bancSectionHeading {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-sm);
+}
+
+.bancCompositeBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.bancCompositeTitle {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.9375rem;
+  border-radius: var(--radius-sm);
+}
+
+.bancCompositeInactive {
+  opacity: 0.45;
+}
+
+.bancResultsBody {
+  --banc-col-tests: 34%;
+  --banc-col-rb: 5.75rem;
+  --banc-col-rp: 5.75rem;
+  --banc-col-plot: 28%;
+  --banc-col-grupo: 9rem;
+  --banc-col-index: 5.75rem;
+  --banc-col-pc: 5.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-top: var(--space-md);
+}
+
+.bancResultsBody .resultsTitle {
+  margin: 0;
+}
+
+.bancResultsBody .autoScoreNote,
+.bancResultsBody .autoScoreOk {
+  margin: 0;
+}
+
+.bancResultsBody .bancCompositeBlock,
+.bancResultsBody .bancPerfilSection {
+  margin-top: 0;
+}
+
+.bancResultsBody .bancTable {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 46rem;
+}
+
+.bancColTests {
+  width: var(--banc-col-tests);
+}
+
+.bancColRb {
+  width: var(--banc-col-rb);
+}
+
+.bancColRp,
+.bancColRpHeader {
+  width: var(--banc-col-rp);
+}
+
+.bancColPlot {
+  width: var(--banc-col-plot);
+}
+
+.bancColTestsComposite {
+  width: calc(var(--banc-col-tests) + var(--banc-col-rb));
+}
+
+.bancColGrupo {
+  width: var(--banc-col-grupo);
+}
+
+.bancColIndex {
+  width: var(--banc-col-index);
+}
+
+.bancColPc {
+  width: var(--banc-col-pc);
+}
+
+.bancPerfilInactive {
+  opacity: 0.45;
+}
+
+.bancMeasureHint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--color-ink-muted);
+}
+
+.bancMeasureLabel span {
+  display: block;
+}
+
+.bancItalic {
+  font-style: italic;
+  padding-left: 0.75rem;
+}
+
+.bancRpCell {
+  font-weight: 600;
+}
+
+.bancTintBlue {
+  background: rgba(135, 206, 250, 0.25);
+}
+
+.bancTintOrange {
+  background: rgba(255, 200, 120, 0.35);
+}
+
+.bancTintPurple {
+  background: rgba(186, 104, 200, 0.2);
+}
+
+.bancTintGreen {
+  background: rgba(144, 238, 144, 0.25);
+}
+
+.bancTintYellow {
+  background: rgba(255, 255, 160, 0.35);
+}
+
+.bancTintGrey {
+  background: rgba(200, 200, 200, 0.25);
+}
+
+.bancPlotMemoria {
+  background: rgba(135, 206, 250, 0.08);
+}
+
+.bancPlotLinguagem {
+  background: rgba(186, 104, 200, 0.08);
+}
+
+.bancPlotAtencao {
+  background: rgba(144, 238, 144, 0.1);
+}
+
+.bancPlotOrientacao {
+  background: rgba(180, 180, 180, 0.1);
+}
+
+.bancPlotHeaderCell {
+  vertical-align: bottom;
+  padding-bottom: 0.25rem;
+}
+
+.bancPlotHeaderLabel {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.bancPlotScaleHeader {
+  display: grid;
+  grid-template-columns: repeat(19, minmax(0, 1fr));
+  gap: 0;
+  font-size: 0.62rem;
+  line-height: 1;
+  color: var(--color-ink-muted);
+  border-bottom: 1px solid var(--color-border-soft);
+  padding-bottom: 0.15rem;
+}
+
+.bancPlotScaleTick,
+.bancPlotScaleTickAverage {
+  text-align: center;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.bancPlotScaleTick:first-child,
+.bancPlotScaleTickAverage:first-child {
+  border-left-color: rgba(0, 0, 0, 0.14);
+}
+
+.bancPlotScaleHeader span:last-child {
+  border-right: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.bancPlotScaleTickAverage {
+  font-weight: 700;
+  color: var(--color-ink, #222);
+}
+
+.bancPlotTrack {
+  position: relative;
+  height: 1.25rem;
+  width: 100%;
+  border-top: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.bancPlotGrid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(19, minmax(0, 1fr));
+  pointer-events: none;
+}
+
+.bancPlotGridCell {
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bancPlotGridCell:first-child {
+  border-left-color: rgba(0, 0, 0, 0.16);
+}
+
+.bancPlotGridCell:last-child {
+  border-right: 1px solid rgba(0, 0, 0, 0.16);
+}
+
+.bancPlotAverageBand {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% * 7 / 19);
+  width: calc(100% * 5 / 19);
+  background: rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+
+.bancPlotMemoria .bancPlotAverageBand {
+  background: rgba(135, 206, 250, 0.35);
+}
+
+.bancPlotLinguagem .bancPlotAverageBand {
+  background: rgba(186, 104, 200, 0.25);
+}
+
+.bancPlotAtencao .bancPlotAverageBand {
+  background: rgba(144, 238, 144, 0.35);
+}
+
+.bancPlotOrientacao .bancPlotAverageBand {
+  background: rgba(120, 120, 120, 0.25);
+}
+
+.bancPlotDot {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: -0.275rem;
+  margin-top: -0.275rem;
+  border-radius: 50%;
+  background: var(--color-ink, #222);
+  border: 1px solid #fff;
+}
+
+.bancPlotEmpty {
+  color: var(--color-ink-muted);
+}
+
+.resultsActions {
+  margin-top: var(--space-md);
 }

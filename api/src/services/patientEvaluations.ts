@@ -10,11 +10,13 @@ import {
   QUESTIONNAIRE_EVALUATION_KEYS,
 } from '../lib/patientEvaluations.js'
 import { sanitizeWiscResults } from '../lib/wiscResults.js'
+import { sanitizeBancResults } from '../lib/bancResults.js'
 
 export function formatPatientEvaluationSelections(patient: {
   wiscSelections: unknown
   wiscResults?: unknown
   bancSelections: unknown
+  bancResults?: unknown
   additionalMethodSelections?: unknown
   questionnaireSelections?: unknown
 }) {
@@ -22,6 +24,7 @@ export function formatPatientEvaluationSelections(patient: {
     wiscSelections: sanitizeWiscSelections(patient.wiscSelections),
     wiscResults: sanitizeWiscResults(patient.wiscResults),
     bancSelections: sanitizeBancSelections(patient.bancSelections),
+    bancResults: sanitizeBancResults(patient.bancResults),
     additionalMethodSelections: sanitizeAdditionalMethodSelections(patient.additionalMethodSelections),
     questionnaireSelections: sanitizeQuestionnaireSelections(patient.questionnaireSelections),
   }
@@ -34,6 +37,7 @@ export async function updateTherapistPatientEvaluations(
     wiscSelections: unknown
     wiscResults: unknown
     bancSelections: unknown
+    bancResults: unknown
     additionalMethodSelections: unknown
     questionnaireSelections: unknown
   },
@@ -49,6 +53,7 @@ export async function updateTherapistPatientEvaluations(
   const wiscSelections = sanitizeWiscSelections(data.wiscSelections)
   const wiscResults = sanitizeWiscResults(data.wiscResults)
   const bancSelections = sanitizeBancSelections(data.bancSelections)
+  const bancResults = sanitizeBancResults(data.bancResults)
   const additionalMethodSelections = sanitizeAdditionalMethodSelections(data.additionalMethodSelections)
   const questionnaireSelections = sanitizeQuestionnaireSelections(data.questionnaireSelections)
 
@@ -58,6 +63,7 @@ export async function updateTherapistPatientEvaluations(
       wiscSelections,
       wiscResults,
       bancSelections,
+      bancResults,
       additionalMethodSelections,
       questionnaireSelections,
     },
@@ -65,6 +71,7 @@ export async function updateTherapistPatientEvaluations(
       wiscSelections: true,
       wiscResults: true,
       bancSelections: true,
+      bancResults: true,
       additionalMethodSelections: true,
       questionnaireSelections: true,
     },

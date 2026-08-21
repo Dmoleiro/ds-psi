@@ -128,10 +128,12 @@ model Patient {
   wiscSelections Json     @default("[]") @map("wisc_selections")
   wiscResults Json         @default("{}") @map("wisc_results")
   bancSelections Json     @default("[]") @map("banc_selections")
+  bancResults Json         @default("{}") @map("banc_results")
   additionalMethodSelections Json @default("[]") @map("additional_method_selections")
   questionnaireSelections Json @default("[]") @map("questionnaire_selections")
   assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")
   assessmentPipelineNotes String? @map("assessment_pipeline_notes") @db.Text
+  assessmentPipelineStageOverrides Json @default("{}") @map("assessment_pipeline_stage_overrides")
   assessmentReportDeliveredAt DateTime? @map("assessment_report_delivered_at")
   active        Boolean   @default(true)
   createdAt     DateTime  @default(now()) @map("created_at")

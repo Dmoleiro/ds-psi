@@ -26,6 +26,8 @@ import {
 import tabStyles from './PatientDetailPage.module.css'
 import type { WiscResults } from '../../lib/wiscResults'
 import { emptyWiscResults } from '../../lib/wiscResults'
+import type { BancResults } from '../../lib/bancResults'
+import { emptyBancResults } from '../../lib/bancResults'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
@@ -92,6 +94,7 @@ type PatientDetail = {
   wiscSelections: string[]
   wiscResults?: WiscResults
   bancSelections: string[]
+  bancResults?: BancResults
   additionalMethodSelections?: string[]
   questionnaireSelections?: string[]
   intakeSessions: SessionRow[]
@@ -961,6 +964,7 @@ export function PatientDetailPage() {
             wiscSelections: patient.wiscSelections ?? [],
             wiscResults: patient.wiscResults ?? emptyWiscResults(),
             bancSelections: patient.bancSelections ?? [],
+            bancResults: patient.bancResults ?? emptyBancResults(),
             additionalMethodSelections: patient.additionalMethodSelections ?? [],
           }}
         />

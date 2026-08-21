@@ -4,7 +4,11 @@ import { prisma } from '../lib/prisma.js'
 import {
   buildAssessmentPipelineView,
   getVisiblePipelineStages,
+  OVERRIDABLE_PIPELINE_STAGES,
+  sanitizeStageOverrides,
+  type OverridablePipelineStageId,
   type PipelineStageId,
+  type PipelineStageOverrides,
 } from '../lib/assessmentPipeline.js'
 import { sanitizeAdditionalMethodSelections, sanitizeBancSelections, sanitizeWiscSelections } from '../lib/patientEvaluations.js'
 import { assertCoordinatorPatientAccess } from './coordinatorPatients.js'
@@ -47,6 +51,12 @@ export const updateAssessmentPipelineSchema = z.object({
   notes: z.string().max(5000).nullable().optional(),
   reportDeliveredAt: z.string().datetime().nullable().optional(),
   advance: z.boolean().optional(),
+  stageOverride: z
+    .object({
+      stage: z.enum(['intake', 'avaliacao', 'picca', 'relatorio']),
+      complete: z.boolean(),
+    })
+    .optional(),
 })
 
 async function loadPipelinePatient(where: { id: string; therapistId?: string }) {
@@ -67,6 +77,7 @@ function formatPipelinePatient(patient: NonNullable<Awaited<ReturnType<typeof lo
     notes: patient.assessmentPipelineNotes,
     reportDeliveredAt: patient.assessmentReportDeliveredAt,
     piccaEnabled,
+    stageOverrides: sanitizeStageOverrides(patient.assessmentPipelineStageOverrides),
     wiscSelections,
     bancSelections,
     additionalMethodSelections,
@@ -135,6 +146,7 @@ export async function updateTherapistAssessmentPipeline(
     assessmentPipelineStage?: AssessmentPipelineStage
     assessmentPipelineNotes?: string | null
     assessmentReportDeliveredAt?: Date | null
+    assessmentPipelineStageOverrides?: PipelineStageOverrides
   } = {}
 
   if (input.advance || input.currentStage) {
@@ -149,6 +161,24 @@ export async function updateTherapistAssessmentPipeline(
     data.assessmentReportDeliveredAt = input.reportDeliveredAt
       ? new Date(input.reportDeliveredAt)
       : null
+  }
+
+  if (input.stageOverride) {
+    const stage = input.stageOverride.stage as OverridablePipelineStageId
+    if (!OVERRIDABLE_PIPELINE_STAGES.includes(stage)) {
+      throw new Error('INVALID_PIPELINE_STAGE_OVERRIDE')
+    }
+    if (stage === 'picca' && !piccaEnabled) {
+      throw new Error('INVALID_PIPELINE_STAGE_OVERRIDE')
+    }
+
+    const overrides = sanitizeStageOverrides(patient.assessmentPipelineStageOverrides)
+    if (input.stageOverride.complete) {
+      overrides[stage] = true
+    } else {
+      delete overrides[stage]
+    }
+    data.assessmentPipelineStageOverrides = overrides
   }
 
   if (Object.keys(data).length === 0) {

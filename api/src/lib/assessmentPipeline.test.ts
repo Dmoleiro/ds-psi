@@ -4,6 +4,7 @@ import {
   getIntakePipelineState,
   getNextPipelineStage,
   getVisiblePipelineStages,
+  sanitizeStageOverrides,
 } from './assessmentPipeline.js'
 
 describe('getIntakePipelineState', () => {
@@ -58,6 +59,7 @@ describe('buildAssessmentPipelineView', () => {
       notes: null,
       reportDeliveredAt: null,
       piccaEnabled: false,
+      stageOverrides: {},
       wiscSelections: [],
       bancSelections: [],
       additionalMethodSelections: [],
@@ -85,6 +87,7 @@ describe('buildAssessmentPipelineView', () => {
       notes: null,
       reportDeliveredAt: null,
       piccaEnabled: false,
+      stageOverrides: {},
       wiscSelections: [],
       bancSelections: [],
       additionalMethodSelections: [],
@@ -104,5 +107,48 @@ describe('buildAssessmentPipelineView', () => {
 
     expect(view.canAdvance).toBe(false)
     expect(view.currentStageBlockers).toContain('Indicar testes planeados')
+  })
+
+  it('allows advancing from avaliacao when manually marked complete', () => {
+    const view = buildAssessmentPipelineView({
+      currentStage: 'avaliacao',
+      notes: null,
+      reportDeliveredAt: null,
+      piccaEnabled: false,
+      stageOverrides: { avaliacao: true },
+      wiscSelections: [],
+      bancSelections: [],
+      additionalMethodSelections: [],
+      intakeSessions: [
+        {
+          status: 'completed',
+          forms: [
+            { formId: 'ficha-inscricao', status: 'submitted' },
+            { formId: 'queixa-inicial', status: 'submitted' },
+          ],
+        },
+      ],
+      piccaSessions: [],
+      piccaInteractiveSessions: [],
+      documentCount: 0,
+    })
+
+    const avaliacao = view.stages.find((stage) => stage.id === 'avaliacao')
+    expect(avaliacao?.status).toBe('complete')
+    expect(avaliacao?.manuallyComplete).toBe(true)
+    expect(view.canAdvance).toBe(true)
+  })
+})
+
+describe('sanitizeStageOverrides', () => {
+  it('keeps only valid override flags', () => {
+    expect(
+      sanitizeStageOverrides({
+        avaliacao: true,
+        picca: true,
+        concluido: true,
+        relatorio: 'yes',
+      }),
+    ).toEqual({ avaliacao: true, picca: true })
   })
 })

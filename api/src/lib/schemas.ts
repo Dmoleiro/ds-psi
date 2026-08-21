@@ -149,12 +149,62 @@ export const wiscResultsSchema = z
   })
   .default({})
 
+const bancMeasureResultSchema = z
+  .object({
+    rb: z.string().max(16).optional(),
+    rp: z.string().max(8).optional(),
+  })
+  .partial()
+  .default({})
+
+const bancGlobalIndexRowSchema = z
+  .object({
+    grupoNormativo: z.string().max(64).optional(),
+    somatorio: z.string().max(8).optional(),
+    indice: z.string().max(8).optional(),
+    percentil: z.string().max(16).optional(),
+  })
+  .partial()
+  .default({})
+
+const bancCompositeCellSchema = z
+  .object({
+    measureKey: z.string().max(64).optional(),
+    rp: z.string().max(8).optional(),
+  })
+  .partial()
+  .default({})
+
+export const bancResultsSchema = z
+  .object({
+    ageYears: z.string().max(8).optional(),
+    ageMonths: z.string().max(8).optional(),
+    normGroup: z.string().max(64).optional(),
+    measures: z.record(z.string(), bancMeasureResultSchema).default({}),
+    globalIndices: z
+      .object({
+        memoria: bancGlobalIndexRowSchema,
+        linguagem: bancGlobalIndexRowSchema,
+        atencao: bancGlobalIndexRowSchema,
+      })
+      .default({
+        memoria: {},
+        linguagem: {},
+        atencao: {},
+      }),
+    compositeMemoria: z.record(z.string(), bancCompositeCellSchema).default({}),
+    compositeLinguagem: z.record(z.string(), bancCompositeCellSchema).default({}),
+    compositeAtencao: z.record(z.string(), bancCompositeCellSchema).default({}),
+  })
+  .default({})
+
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
   additionalMethodSelections: z.array(z.string()).default([]),
   questionnaireSelections: z.array(z.string()).default([]),
   wiscResults: wiscResultsSchema,
+  bancResults: bancResultsSchema,
 })
 
 export const patientAppointmentNotesSchema = z.object({

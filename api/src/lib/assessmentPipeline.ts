@@ -11,6 +11,16 @@ export const PIPELINE_STAGE_ORDER = [
 export type PipelineStageId = (typeof PIPELINE_STAGE_ORDER)[number]
 export type PipelineStageStatus = 'pending' | 'in_progress' | 'complete' | 'skipped'
 
+export const OVERRIDABLE_PIPELINE_STAGES = [
+  'intake',
+  'avaliacao',
+  'picca',
+  'relatorio',
+] as const satisfies readonly PipelineStageId[]
+
+export type OverridablePipelineStageId = (typeof OVERRIDABLE_PIPELINE_STAGES)[number]
+export type PipelineStageOverrides = Partial<Record<OverridablePipelineStageId, true>>
+
 export const PIPELINE_STAGE_LABELS: Record<PipelineStageId, string> = {
   intake: 'Admissão',
   avaliacao: 'Avaliação',
@@ -53,6 +63,33 @@ export type PipelineStageSnapshot = {
   label: string
   status: PipelineStageStatus
   blockers: string[]
+  manuallyComplete: boolean
+}
+
+export function sanitizeStageOverrides(value: unknown): PipelineStageOverrides {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {}
+  }
+
+  const result: PipelineStageOverrides = {}
+  for (const stage of OVERRIDABLE_PIPELINE_STAGES) {
+    if ((value as Record<string, unknown>)[stage] === true) {
+      result[stage] = true
+    }
+  }
+  return result
+}
+
+function applyStageOverride(
+  stageId: OverridablePipelineStageId,
+  overrides: PipelineStageOverrides,
+  computed: { status: PipelineStageStatus; blockers: string[] },
+): { status: PipelineStageStatus; blockers: string[]; manuallyComplete: boolean } {
+  if (overrides[stageId]) {
+    return { status: 'complete', blockers: [], manuallyComplete: true }
+  }
+
+  return { ...computed, manuallyComplete: false }
 }
 
 export function getVisiblePipelineStages(piccaEnabled: boolean): PipelineStageId[] {
@@ -227,6 +264,7 @@ export function buildAssessmentPipelineView(input: {
   notes: string | null
   reportDeliveredAt: Date | null
   piccaEnabled: boolean
+  stageOverrides: PipelineStageOverrides
   wiscSelections: string[]
   bancSelections: string[]
   additionalMethodSelections: string[]
@@ -235,29 +273,42 @@ export function buildAssessmentPipelineView(input: {
   piccaInteractiveSessions: PiccaInteractiveSessionInput[]
   documentCount: number
 }) {
-  const intake = getIntakePipelineState(input.intakeSessions)
+  const overrides = input.stageOverrides
+  const intake = applyStageOverride('intake', overrides, getIntakePipelineState(input.intakeSessions))
   const intakeComplete = intake.status === 'complete'
-  const avaliacao = getAvaliacaoPipelineState(
-    input.wiscSelections,
-    input.bancSelections,
-    input.additionalMethodSelections,
-    intakeComplete,
+  const avaliacao = applyStageOverride(
+    'avaliacao',
+    overrides,
+    getAvaliacaoPipelineState(
+      input.wiscSelections,
+      input.bancSelections,
+      input.additionalMethodSelections,
+      intakeComplete,
+    ),
   )
   const picca = input.piccaEnabled
-    ? getPiccaPipelineState(input.piccaSessions, input.piccaInteractiveSessions)
-    : { status: 'skipped' as const, blockers: [] as string[] }
-  const relatorio = getRelatorioPipelineState(input.reportDeliveredAt, input.documentCount)
+    ? applyStageOverride(
+        'picca',
+        overrides,
+        getPiccaPipelineState(input.piccaSessions, input.piccaInteractiveSessions),
+      )
+    : { status: 'skipped' as const, blockers: [] as string[], manuallyComplete: false }
+  const relatorio = applyStageOverride(
+    'relatorio',
+    overrides,
+    getRelatorioPipelineState(input.reportDeliveredAt, input.documentCount),
+  )
   const concluido = getConcluidoPipelineState(
     relatorio.status === 'complete',
     input.currentStage,
   )
 
-  const stageStates: Record<PipelineStageId, { status: PipelineStageStatus; blockers: string[] }> = {
+  const stageStates: Record<PipelineStageId, { status: PipelineStageStatus; blockers: string[]; manuallyComplete: boolean }> = {
     intake,
     avaliacao,
     picca,
     relatorio,
-    concluido,
+    concluido: { ...concluido, manuallyComplete: false },
   }
 
   const visibleStages = getVisiblePipelineStages(input.piccaEnabled)
@@ -266,6 +317,7 @@ export function buildAssessmentPipelineView(input: {
     label: PIPELINE_STAGE_LABELS[id],
     status: stageStates[id].status,
     blockers: stageStates[id].blockers,
+    manuallyComplete: stageStates[id].manuallyComplete,
   }))
 
   const currentStageBlockers = stageStates[input.currentStage]?.blockers ?? []

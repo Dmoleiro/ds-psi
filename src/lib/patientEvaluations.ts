@@ -104,6 +104,7 @@ export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'cdi', label: 'CDI' },
 ] as const
 
+import type { BancResults } from './bancResults'
 import type { WiscResults } from './wiscResults'
 
 export type PatientEvaluationSelections = {
@@ -111,4 +112,5 @@ export type PatientEvaluationSelections = {
   bancSelections: string[]
   additionalMethodSelections: string[]
   wiscResults: WiscResults
+  bancResults: BancResults
 }
