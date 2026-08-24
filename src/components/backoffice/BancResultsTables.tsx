@@ -15,12 +15,15 @@ import {
   type BancResults,
   type BancSectionKey,
 } from '../../lib/bancResults'
+import { resolveEvaluationAge, type EvaluationAgeFields } from '../../lib/chronologicalAge'
+import { EvaluationAgeInput } from './EvaluationAgeInput'
 import styles from './PatientEvaluationsPanel.module.css'
 
 type Props = {
   value: BancResults
   readOnly?: boolean
   defaultOpen?: boolean
+  defaultBirthDate?: string
   onChange: (next: BancResults) => void
 }
 
@@ -72,6 +75,7 @@ export function BancResultsTables({
   value,
   readOnly = false,
   defaultOpen = false,
+  defaultBirthDate = '',
   onChange,
 }: Props) {
   const [confirmClear, setConfirmClear] = useState(false)
@@ -79,9 +83,9 @@ export function BancResultsTables({
   const results = useMemo(() => deriveBancResults(rawResults), [rawResults])
   const hasData = useMemo(() => hasBancResultsData(rawResults), [rawResults])
   const [sectionOpen, setSectionOpen] = useState(() => defaultOpen || hasData)
-  const autoConvert = canAutoConvertBancRb(rawResults.ageYears, rawResults.ageMonths)
-  const blockReason = getBancAutoScoreBlockReason(rawResults.ageYears, rawResults.ageMonths)
-  const ageYearsNum = parseBancAgeYears(rawResults.ageYears)
+  const autoConvert = canAutoConvertBancRb(results.ageYears, results.ageMonths)
+  const blockReason = getBancAutoScoreBlockReason(results.ageYears, results.ageMonths)
+  const ageYearsNum = parseBancAgeYears(results.ageYears)
 
   useEffect(() => {
     if (!confirmClear) return
@@ -99,6 +103,10 @@ export function BancResultsTables({
         ...patch,
       }),
     )
+  }
+
+  function updateAgeFields(next: EvaluationAgeFields) {
+    commit(next)
   }
 
   function updateMeasure(key: string, field: 'rb' | 'rp', nextValue: string) {
@@ -294,36 +302,24 @@ export function BancResultsTables({
 
       <div className={`${styles.resultsBody} ${styles.bancResultsBody}`}>
         <div className={styles.ageRow}>
-          <label className={styles.ageField}>
-            Idade (anos)
-            <input
-              className={styles.tableInput}
-              value={rawResults.ageYears}
-              readOnly={readOnly}
-              aria-label="Idade em anos"
-              onChange={(event) => commit({ ageYears: event.target.value })}
-            />
-          </label>
-          <label className={styles.ageField}>
-            Idade (meses)
-            <input
-              className={styles.tableInput}
-              value={rawResults.ageMonths}
-              readOnly={readOnly}
-              aria-label="Idade em meses"
-              onChange={(event) => commit({ ageMonths: event.target.value })}
-            />
-          </label>
-          <label className={styles.ageFieldWide}>
-            Grupo normativo de referência
-            <input
-              className={styles.tableInput}
-              value={results.normGroup}
-              readOnly={readOnly || autoConvert}
-              aria-label="Grupo normativo de referência"
-              onChange={(event) => commit({ normGroup: event.target.value })}
-            />
-          </label>
+          <EvaluationAgeInput
+            value={resolveEvaluationAge(results)}
+            readOnly={readOnly}
+            defaultBirthDate={defaultBirthDate}
+            extra={
+              <label className={`${styles.ageField} ${styles.ageFieldWide}`}>
+                <span>Grupo normativo de referência</span>
+                <input
+                  className={styles.tableInput}
+                  value={results.normGroup}
+                  readOnly={readOnly || autoConvert}
+                  aria-label="Grupo normativo de referência"
+                  onChange={(event) => commit({ normGroup: event.target.value })}
+                />
+              </label>
+            }
+            onChange={updateAgeFields}
+          />
         </div>
 
         {blockReason ? (

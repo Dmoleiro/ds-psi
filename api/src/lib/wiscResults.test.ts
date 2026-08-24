@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  applyWiscAgeChange,
   canAutoConvertWiscRawScores,
   computeWiscSomaPadronizados,
   deriveWiscResults,
@@ -61,6 +62,9 @@ describe('wiscResults', () => {
     ).toEqual({
       ageYears: '',
       ageMonths: '',
+      ageInputMode: 'years_months',
+      birthDate: '',
+      evaluationDate: '',
       subtests: {
         codigo: {
           brutos: '12',
@@ -305,10 +309,28 @@ describe('wiscResults', () => {
     expect(getWiscScadAcidDesignation(total, WISC_ACID_SUBTEST_KEYS)).toBe('Total')
   })
 
-  it('explains missing 8;6–9;5 norms and still keeps manual scaled scores', () => {
+  it('auto-converts raw scores for 8;6 after missing annex tables were added', () => {
     const results = {
       ageYears: '8',
       ageMonths: '6',
+      subtests: {
+        informacao: { brutos: '12', padronizado: emptyWiscPadronizadoColumns() },
+      },
+      somaPadronizados: emptyWiscPadronizadoColumns(),
+      scaleSummary: {},
+      gaiSummary: emptyWiscGaiSummary(),
+    }
+
+    expect(canAutoConvertWiscRawScores(results)).toBe(true)
+    const derived = deriveWiscResults(results)
+    expect(derived.subtests.informacao.padronizado.verbal).toBe('11')
+    expect(derived.subtests.informacao.padronizado.cv).toBe('11')
+  })
+
+  it('keeps manual scaled scores when auto conversion is blocked by age', () => {
+    const results = {
+      ageYears: '17',
+      ageMonths: '0',
       subtests: {
         informacao: { brutos: '12', padronizado: scaled({ verbal: '11', cv: '11' }) },
       },
@@ -322,15 +344,87 @@ describe('wiscResults', () => {
           intervaloConfianca95: '95-109',
         },
       },
+      gaiSummary: emptyWiscGaiSummary(),
     }
 
     expect(canAutoConvertWiscRawScores(results)).toBe(false)
-    expect(getWiscAutoScoreBlockReason(results)).toMatch(/8;6 a 9;5/)
+    expect(getWiscAutoScoreBlockReason(results)).toMatch(/6;0 aos 16;11/)
 
     const derived = deriveWiscResults(results)
     expect(derived.subtests.informacao.padronizado.verbal).toBe('11')
     expect(derived.scaleSummary.verbal.qi).toBe('102')
     expect(derived.scaleSummary.verbal.intervaloConfianca90).toBe('96-108')
     expect(derived.scaleSummary.verbal.intervaloConfianca95).toBe('95-109')
+  })
+
+  it('clears previously generated scores when the age moves outside norm range', () => {
+    const scored = deriveWiscResults({
+      ageYears: '10',
+      ageMonths: '0',
+      subtests: {
+        informacao: { ...emptyWiscSubtestResult(), brutos: '14' },
+        semelhancas: { ...emptyWiscSubtestResult(), brutos: '10' },
+        aritmetica: { ...emptyWiscSubtestResult(), brutos: '13' },
+        vocabularios: { ...emptyWiscSubtestResult(), brutos: '19' },
+        compreensao: { ...emptyWiscSubtestResult(), brutos: '13' },
+        complemento_de_gravuras: { ...emptyWiscSubtestResult(), brutos: '19' },
+        codigo: { ...emptyWiscSubtestResult(), brutos: '43' },
+        disposicao_de_gravuras: { ...emptyWiscSubtestResult(), brutos: '25' },
+        cubos: { ...emptyWiscSubtestResult(), brutos: '35' },
+        composicao_de_objectos: { ...emptyWiscSubtestResult(), brutos: '28' },
+        pesquisa_de_simbolos: { ...emptyWiscSubtestResult(), brutos: '21' },
+      },
+      somaPadronizados: emptyWiscPadronizadoColumns(),
+      scaleSummary: {},
+      gaiSummary: emptyWiscGaiSummary(),
+    })
+
+    expect(scored.subtests.informacao.padronizado.verbal).toBe('10')
+    expect(scored.scaleSummary.verbal.qi).toBe('100')
+
+    const outOfRange = applyWiscAgeChange(scored, 'ageYears', '17')
+
+    expect(getWiscAutoScoreBlockReason(outOfRange)).toMatch(/6;0 aos 16;11/)
+    expect(outOfRange.subtests.informacao.brutos).toBe('14')
+    expect(outOfRange.subtests.informacao.padronizado.verbal).toBe('')
+    expect(outOfRange.subtests.informacao.padronizado.cv).toBe('')
+    expect(outOfRange.somaPadronizados.verbal).toBe('')
+    expect(outOfRange.scaleSummary.verbal.qi).toBe('')
+    expect(outOfRange.scaleSummary.verbal.percentil).toBe('')
+    expect(outOfRange.scaleSummary.verbal.intervaloConfianca90).toBe('')
+    expect(outOfRange.gaiSummary.gai).toBe('')
+    expect(outOfRange.gaiSummary.percentil).toBe('')
+  })
+
+  it('recomputes scaled scores when the age changes within norm range', () => {
+    const scored = deriveWiscResults({
+      ageYears: '10',
+      ageMonths: '0',
+      subtests: {
+        informacao: { ...emptyWiscSubtestResult(), brutos: '14' },
+      },
+      somaPadronizados: emptyWiscPadronizadoColumns(),
+      scaleSummary: {},
+      gaiSummary: emptyWiscGaiSummary(),
+    })
+
+    expect(scored.subtests.informacao.padronizado.verbal).toBe('10')
+
+    const moved = applyWiscAgeChange(scored, 'ageYears', '8')
+    const atEightHalf = applyWiscAgeChange(moved, 'ageMonths', '6')
+
+    expect(canAutoConvertWiscRawScores(atEightHalf)).toBe(true)
+    expect(atEightHalf.subtests.informacao.padronizado.verbal).toBe('12')
+  })
+
+  it('derives years and months from birth and evaluation dates', () => {
+    const derived = sanitizeWiscResults({
+      ageInputMode: 'dates',
+      birthDate: '2015-03-10',
+      evaluationDate: '2025-09-10',
+    })
+    expect(derived.ageInputMode).toBe('dates')
+    expect(derived.ageYears).toBe('10')
+    expect(derived.ageMonths).toBe('6')
   })
 })

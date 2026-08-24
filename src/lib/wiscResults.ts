@@ -1,3 +1,8 @@
+import {
+  emptyEvaluationAgeFields,
+  resolveEvaluationAge,
+  type AgeInputMode,
+} from './chronologicalAge'
 import { WISC_EVALUATION_OPTIONS } from './patientEvaluations'
 import wiscGaiNorms from './wiscGaiNorms.json'
 import wiscIiiNorms from './wiscIiiNorms.json'
@@ -30,6 +35,9 @@ export type WiscGaiSummary = {
 export type WiscResults = {
   ageYears: string
   ageMonths: string
+  ageInputMode?: AgeInputMode
+  birthDate?: string
+  evaluationDate?: string
   subtests: Record<string, WiscSubtestResult>
   somaPadronizados: WiscPadronizadoColumns
   scaleSummary: Record<string, WiscScaleSummaryRow>
@@ -143,8 +151,7 @@ export function emptyWiscGaiSummary(): WiscGaiSummary {
 
 export function emptyWiscResults(): WiscResults {
   return {
-    ageYears: '',
-    ageMonths: '',
+    ...emptyEvaluationAgeFields(),
     subtests: {},
     somaPadronizados: emptyWiscPadronizadoColumns(),
     scaleSummary: {},
@@ -197,13 +204,53 @@ export function getWiscAutoScoreBlockReason(results: WiscResults): string | null
     return 'O WISC-III tem normas dos 6;0 aos 16;11. Fora desta idade a conversão automática não é possível — pode preencher os resultados padronizados manualmente.'
   }
   if (!findWiscAgeBand(age.years, age.months)) {
-    return 'Não há tabela de conversão disponível para esta idade neste sistema (faltam as normas de 8;6 a 9;5 no manual digitalizado). Pode preencher os resultados padronizados manualmente.'
+    return 'Não há tabela de conversão disponível para esta idade neste sistema. Pode preencher os resultados padronizados manualmente.'
   }
   return null
 }
 
 export function canAutoConvertWiscRawScores(results: WiscResults): boolean {
   return getWiscAutoScoreBlockReason(results) === null
+}
+
+/** Drop auto-filled scaled scores, QI and GAI while keeping raw scores and age. */
+export function clearWiscGeneratedScores(results: WiscResults): WiscResults {
+  const subtests: Record<string, WiscSubtestResult> = {}
+  for (const row of WISC_SUBTEST_RESULT_ROWS) {
+    const current = results.subtests[row.key]
+    if (!current) continue
+    subtests[row.key] = {
+      brutos: current.brutos ?? '',
+      padronizado: emptyWiscPadronizadoColumns(),
+    }
+  }
+  return {
+    ...results,
+    ...resolveEvaluationAge(results),
+    subtests,
+    somaPadronizados: emptyWiscPadronizadoColumns(),
+    scaleSummary: {},
+    gaiSummary: emptyWiscGaiSummary(),
+  }
+}
+
+export function applyWiscAgeFields(results: WiscResults, patch: Partial<WiscResults>): WiscResults {
+  const merged = { ...results, ...patch }
+  const age = resolveEvaluationAge(merged)
+  let next: WiscResults = { ...merged, ...age }
+  const ageChanged = age.ageYears !== results.ageYears || age.ageMonths !== results.ageMonths
+  if (ageChanged && parseWiscAge(next) !== null && !canAutoConvertWiscRawScores(next)) {
+    next = clearWiscGeneratedScores(next)
+  }
+  return deriveWiscResults(next)
+}
+
+export function applyWiscAgeChange(
+  results: WiscResults,
+  field: 'ageYears' | 'ageMonths',
+  nextValue: string,
+): WiscResults {
+  return applyWiscAgeFields(results, { [field]: nextValue })
 }
 
 export function lookupWiscScaledScore(
@@ -498,10 +545,12 @@ export function stripNonEditableWiscPadronizado(
 }
 
 export function deriveWiscResults(results: WiscResults): WiscResults {
-  const autoConvert = canAutoConvertWiscRawScores(results)
+  const age = resolveEvaluationAge(results)
+  const withAge = { ...results, ...age }
+  const autoConvert = canAutoConvertWiscRawScores(withAge)
   const subtests = autoConvert
-    ? applyWiscRawScoreConversion(results)
-    : stripNonEditableWiscPadronizado(results.subtests)
+    ? applyWiscRawScoreConversion(withAge)
+    : stripNonEditableWiscPadronizado(withAge.subtests)
   const somaPadronizados = computeWiscSomaPadronizados(subtests)
   const scaleResultados = computeWiscScaleResultados(somaPadronizados)
   const scaleSummary: Record<string, WiscScaleSummaryRow> = {}
@@ -520,8 +569,7 @@ export function deriveWiscResults(results: WiscResults): WiscResults {
   }
 
   return {
-    ageYears: results.ageYears ?? '',
-    ageMonths: results.ageMonths ?? '',
+    ...age,
     subtests,
     somaPadronizados,
     scaleSummary,
@@ -532,6 +580,7 @@ export function deriveWiscResults(results: WiscResults): WiscResults {
 export function hasWiscResultsData(results: WiscResults): boolean {
   const derived = deriveWiscResults(results)
   if (derived.ageYears.trim() !== '' || derived.ageMonths.trim() !== '') return true
+  if ((derived.birthDate ?? '').trim() !== '' || (derived.evaluationDate ?? '').trim() !== '') return true
   const hasSubtests = Object.entries(derived.subtests).some(
     ([key, row]) =>
       row.brutos !== '' ||

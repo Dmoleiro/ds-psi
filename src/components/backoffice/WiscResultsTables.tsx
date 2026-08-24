@@ -3,6 +3,7 @@ import {
   WISC_PADRONIZADO_COLUMNS,
   WISC_SCALE_SUMMARY_ROWS,
   WISC_SUBTEST_RESULT_ROWS,
+  applyWiscAgeFields,
   canAutoConvertWiscRawScores,
   canAutoFillWiscGai,
   computeSomatorioEscalaCompleta,
@@ -25,12 +26,15 @@ import {
   type WiscScaleSummaryRow,
   type WiscSubtestResult,
 } from '../../lib/wiscResults'
+import { resolveEvaluationAge, type EvaluationAgeFields } from '../../lib/chronologicalAge'
+import { EvaluationAgeInput } from './EvaluationAgeInput'
 import styles from './PatientEvaluationsPanel.module.css'
 
 type Props = {
   value: WiscResults
   readOnly?: boolean
   defaultOpen?: boolean
+  defaultBirthDate?: string
   onChange: (next: WiscResults) => void
 }
 
@@ -114,6 +118,7 @@ export function WiscResultsTables({
   value,
   readOnly = false,
   defaultOpen = false,
+  defaultBirthDate = '',
   onChange,
 }: Props) {
   const [infoOpen, setInfoOpen] = useState(false)
@@ -123,9 +128,9 @@ export function WiscResultsTables({
   const somatorioEscalaCompleta = computeSomatorioEscalaCompleta(results.somaPadronizados)
   const hasData = useMemo(() => hasWiscResultsData(rawResults), [rawResults])
   const [sectionOpen, setSectionOpen] = useState(() => defaultOpen || hasWiscResultsData(rawResults))
-  const autoConvert = canAutoConvertWiscRawScores(rawResults)
+  const autoConvert = canAutoConvertWiscRawScores(results)
   const autoFillGai = canAutoFillWiscGai(results.somaPadronizados)
-  const blockReason = getWiscAutoScoreBlockReason(rawResults)
+  const blockReason = getWiscAutoScoreBlockReason(results)
 
   useEffect(() => {
     if (!infoOpen && !confirmClear) return
@@ -152,8 +157,8 @@ export function WiscResultsTables({
     )
   }
 
-  function updateAge(field: 'ageYears' | 'ageMonths', nextValue: string) {
-    commit({ [field]: nextValue })
+  function updateAgeFields(next: EvaluationAgeFields) {
+    onChange(applyWiscAgeFields(rawResults, next))
   }
 
   function updateSubtest(key: string, patch: Partial<WiscSubtestResult>) {
@@ -245,31 +250,13 @@ export function WiscResultsTables({
       <div className={styles.resultsBody}>
         <div className={styles.resultsBlock}>
           <div className={styles.ageRow}>
-            <label className={styles.ageField}>
-              <span>Idade na avaliação</span>
-              <span className={styles.ageInputs}>
-                <input
-                  className={styles.tableInput}
-                  inputMode="numeric"
-                  placeholder="6–16"
-                  value={results.ageYears}
-                  disabled={readOnly}
-                  aria-label="Idade em anos"
-                  onChange={(event) => updateAge('ageYears', event.target.value)}
-                />
-                <span>anos</span>
-                <input
-                  className={styles.tableInput}
-                  inputMode="numeric"
-                  placeholder="0–11"
-                  value={results.ageMonths}
-                  disabled={readOnly}
-                  aria-label="Idade em meses"
-                  onChange={(event) => updateAge('ageMonths', event.target.value)}
-                />
-                <span>meses</span>
-              </span>
-            </label>
+            <EvaluationAgeInput
+              value={resolveEvaluationAge(results)}
+              readOnly={readOnly}
+              defaultBirthDate={defaultBirthDate}
+              yearsPlaceholder="6–16"
+              onChange={updateAgeFields}
+            />
             <div className={styles.toolbar}>
               <button type="button" className={styles.infoButton} onClick={() => setInfoOpen(true)}>
                 Como é calculado
@@ -575,13 +562,15 @@ export function WiscResultsTables({
             <div className={styles.infoBody}>
               <p>
                 O sistema segue o Anexo A do manual CEGOC (WISC-III). Só precisa de indicar a{' '}
-                <strong>idade na avaliação</strong> (anos e meses) e os <strong>resultados brutos</strong>{' '}
-                de cada subteste. O resto é calculado a partir das tabelas oficiais.
+                <strong>idade na avaliação</strong> — em anos e meses, ou a partir da data de
+                nascimento e da data da avaliação — e os <strong>resultados brutos</strong> de cada
+                subteste. O resto é calculado a partir das tabelas oficiais.
               </p>
 
               <h4>1. Idade e Tabela 36 (bruto → padronizado)</h4>
               <p>
-                A idade escolhe a tabela de conversão certa. As normas vão dos <strong>6;0</strong> aos{' '}
+                A idade escolhe a tabela de conversão certa — em anos e meses, ou calculada a partir
+                das datas. As normas vão dos <strong>6;0</strong> aos{' '}
                 <strong>16;11</strong>, em intervalos de <strong>6 meses</strong>:
               </p>
               <ul>
@@ -719,10 +708,9 @@ export function WiscResultsTables({
 
               <h4>Quando a conversão automática não funciona</h4>
               <p>
-                Se a idade estiver fora dos 6;0–16;11, ou se faltar a tabela dessa idade (neste
-                sistema faltam as normas de <strong>8;6 a 9;5</strong> no manual digitalizado), a
-                conversão automática é desligada. Pode continuar a preencher manualmente os
-                padronizados, o QI / índice, o percentil e os intervalos de confiança.
+                Se a idade estiver fora dos 6;0–16;11, a conversão automática é desligada. Pode
+                continuar a preencher manualmente os padronizados, o QI / índice, o percentil e os
+                intervalos de confiança.
               </p>
             </div>
           </div>

@@ -76,4 +76,16 @@ describe('bancResults', () => {
     expect(derived.globalIndices.atencao.somatorio).not.toBe('')
     expect(Object.keys(derived.compositeMemoria)).toHaveLength(4)
   })
+
+  it('derives years, months and norm group from birth and evaluation dates', () => {
+    const raw = emptyBancResults()
+    raw.ageInputMode = 'dates'
+    raw.birthDate = '2015-03-10'
+    raw.evaluationDate = '2025-09-10'
+
+    const derived = deriveBancResults(raw)
+    expect(derived.ageYears).toBe('10')
+    expect(derived.ageMonths).toBe('6')
+    expect(derived.normGroup).toBe('10 – 15 anos')
+  })
 })

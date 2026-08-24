@@ -142,6 +142,9 @@ export const wiscResultsSchema = z
   .object({
     ageYears: z.string().max(8).optional(),
     ageMonths: z.string().max(8).optional(),
+    ageInputMode: z.enum(['years_months', 'dates']).optional(),
+    birthDate: z.string().max(10).optional(),
+    evaluationDate: z.string().max(10).optional(),
     subtests: z.record(z.string(), wiscSubtestResultSchema).default({}),
     somaPadronizados: wiscPadronizadoColumnsSchema.default({}),
     scaleSummary: z.record(z.string(), wiscScaleSummaryRowSchema).default({}),
@@ -179,6 +182,9 @@ export const bancResultsSchema = z
   .object({
     ageYears: z.string().max(8).optional(),
     ageMonths: z.string().max(8).optional(),
+    ageInputMode: z.enum(['years_months', 'dates']).optional(),
+    birthDate: z.string().max(10).optional(),
+    evaluationDate: z.string().max(10).optional(),
     normGroup: z.string().max(64).optional(),
     measures: z.record(z.string(), bancMeasureResultSchema).default({}),
     globalIndices: z

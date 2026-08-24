@@ -1,3 +1,8 @@
+import {
+  emptyEvaluationAgeFields,
+  resolveEvaluationAge,
+  type AgeInputMode,
+} from './chronologicalAge.js'
 import bancAnexoANorms from './bancAnexoANorms.json' with { type: 'json' }
 import bancIndexNorms from './bancIndexNorms.json' with { type: 'json' }
 import bancRegressionNorms from './bancRegressionNorms.json' with { type: 'json' }
@@ -35,6 +40,9 @@ export type BancGlobalIndexRow = {
 export type BancResults = {
   ageYears: string
   ageMonths: string
+  ageInputMode?: AgeInputMode
+  birthDate?: string
+  evaluationDate?: string
   normGroup: string
   measures: Record<string, BancMeasureResult>
   globalIndices: {
@@ -135,8 +143,7 @@ export function emptyBancResults(): BancResults {
     measures[key] = emptyMeasureResult()
   }
   return {
-    ageYears: '',
-    ageMonths: '',
+    ...emptyEvaluationAgeFields(),
     normGroup: '',
     measures,
     globalIndices: {
@@ -398,10 +405,11 @@ function deriveMeasureRp(
 }
 
 export function deriveBancResults(raw: BancResults): BancResults {
-  const ageYearsNum = Number.parseInt(raw.ageYears, 10)
-  const ageDecimal = getBancAgeInYears(raw.ageYears, raw.ageMonths)
+  const age = resolveEvaluationAge(raw)
+  const ageYearsNum = Number.parseInt(age.ageYears, 10)
+  const ageDecimal = getBancAgeInYears(age.ageYears, age.ageMonths)
   const normGroup = Number.isFinite(ageYearsNum)
-    ? getBancNormGroupLabel(raw.ageYears, raw.ageMonths)
+    ? getBancNormGroupLabel(age.ageYears, age.ageMonths)
     : raw.normGroup.trim()
 
   const measures: Record<string, BancMeasureResult> = {}
@@ -473,8 +481,7 @@ export function deriveBancResults(raw: BancResults): BancResults {
   }
 
   return {
-    ageYears: raw.ageYears,
-    ageMonths: raw.ageMonths,
+    ...age,
     normGroup,
     measures,
     globalIndices,
@@ -486,6 +493,7 @@ export function deriveBancResults(raw: BancResults): BancResults {
 
 export function hasBancResultsData(results: BancResults): boolean {
   if (results.ageYears.trim() || results.ageMonths.trim() || results.normGroup.trim()) return true
+  if ((results.birthDate ?? '').trim() || (results.evaluationDate ?? '').trim()) return true
   for (const measure of Object.values(results.measures)) {
     if (measure.rb.trim() || measure.rp.trim()) return true
   }
@@ -536,8 +544,7 @@ export function sanitizeBancResults(value: unknown): BancResults {
   }
 
   return deriveBancResults({
-    ageYears: typeof input.ageYears === 'string' ? input.ageYears.slice(0, 8) : '',
-    ageMonths: typeof input.ageMonths === 'string' ? input.ageMonths.slice(0, 8) : '',
+    ...resolveEvaluationAge(input),
     normGroup: typeof input.normGroup === 'string' ? input.normGroup.slice(0, 64) : '',
     measures,
     globalIndices: {

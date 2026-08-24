@@ -20,6 +20,7 @@ type Props = {
   patientId: string
   initialSelections: PatientEvaluationSelections
   readOnly?: boolean
+  patientBirthDate?: string
 }
 
 type SelectionField = 'wiscSelections' | 'bancSelections' | 'additionalMethodSelections'
@@ -52,6 +53,7 @@ export function PatientEvaluationsPanel({
   patientId,
   initialSelections,
   readOnly = false,
+  patientBirthDate = '',
 }: Props) {
   const [selections, setSelections] = useState<PatientEvaluationSelections>({
     ...EMPTY_SELECTIONS,
@@ -241,6 +243,7 @@ export function PatientEvaluationsPanel({
           key={patientId}
           value={selections.wiscResults}
           readOnly={readOnly}
+          defaultBirthDate={patientBirthDate}
           onChange={updateWiscResults}
         />
       </section>
@@ -305,6 +308,7 @@ export function PatientEvaluationsPanel({
           key={`${patientId}-banc`}
           value={selections.bancResults}
           readOnly={readOnly}
+          defaultBirthDate={patientBirthDate}
           onChange={updateBancResults}
         />
       </section>

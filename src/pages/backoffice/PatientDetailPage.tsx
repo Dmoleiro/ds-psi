@@ -960,6 +960,7 @@ export function PatientDetailPage() {
           token={token}
           patientId={id}
           readOnly={readOnly}
+          patientBirthDate={patient.birthDate ? patient.birthDate.slice(0, 10) : ''}
           initialSelections={{
             wiscSelections: patient.wiscSelections ?? [],
             wiscResults: patient.wiscResults ?? emptyWiscResults(),
