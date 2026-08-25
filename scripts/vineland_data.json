@@ -1,0 +1,1870 @@
+{
+  "identification": [
+    {
+      "id": "subj_nome",
+      "text": "Nome",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_sexo",
+      "text": "Sexo",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_morada",
+      "text": "Morada",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_telefone",
+      "text": "Telefone",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_ano_escolar",
+      "text": "Ano Escolar",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_estab",
+      "text": "Establ. Ensino",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_diagnostico",
+      "text": "Diagnóstico",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_raca",
+      "text": "Raça",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_nivel_social",
+      "text": "Nível social",
+      "section": "sujeito"
+    },
+    {
+      "id": "subj_outras",
+      "text": "Outras informações",
+      "section": "sujeito",
+      "wide": true
+    },
+    {
+      "id": "int_nome",
+      "text": "Nome",
+      "section": "entrevistado"
+    },
+    {
+      "id": "int_sexo",
+      "text": "Sexo",
+      "section": "entrevistado"
+    },
+    {
+      "id": "int_relacao",
+      "text": "Relação com o sujeito",
+      "section": "entrevistado"
+    },
+    {
+      "id": "ent_nome",
+      "text": "Nome",
+      "section": "entrevistador"
+    },
+    {
+      "id": "ent_sexo",
+      "text": "Sexo",
+      "section": "entrevistador"
+    },
+    {
+      "id": "ent_posicao",
+      "text": "Posição",
+      "section": "entrevistador"
+    },
+    {
+      "id": "data_entrevista",
+      "text": "Data entrevista",
+      "section": "idade"
+    },
+    {
+      "id": "data_nascimento",
+      "text": "Data nascimento",
+      "section": "idade"
+    },
+    {
+      "id": "idade_cronologica",
+      "text": "Idade cronológica",
+      "section": "idade"
+    },
+    {
+      "id": "idade_inicio_itens",
+      "text": "Idade usada para iniciar itens",
+      "section": "idade"
+    },
+    {
+      "id": "motivo_entrevista",
+      "text": "Motivo da entrevista",
+      "section": "idade"
+    },
+    {
+      "id": "test_inteligencia",
+      "text": "Inteligência",
+      "section": "outros_testes"
+    },
+    {
+      "id": "test_realizacao",
+      "text": "Realização",
+      "section": "outros_testes"
+    },
+    {
+      "id": "test_comport_adapt",
+      "text": "Comportamento adaptativo",
+      "section": "outros_testes"
+    },
+    {
+      "id": "test_outros",
+      "text": "Outros",
+      "section": "outros_testes",
+      "wide": true
+    }
+  ],
+  "interviewNotes": [
+    {
+      "id": "notes_funcional",
+      "text": "Estimativa do nível funcional do indivíduo por parte do entrevistado",
+      "rows": 4
+    },
+    {
+      "id": "notes_lingua",
+      "text": "Língua usada na entrevista",
+      "rows": 2
+    },
+    {
+      "id": "notes_caracteristicas",
+      "text": "Características especiais do indivíduo",
+      "rows": 4
+    },
+    {
+      "id": "notes_relacao",
+      "text": "Estimativa do relacionamento estabelecido com o entrevistado",
+      "rows": 3
+    },
+    {
+      "id": "notes_rigor",
+      "text": "Estimativa do rigor do entrevistado",
+      "rows": 3
+    },
+    {
+      "id": "notes_global",
+      "text": "Observação global",
+      "rows": 5
+    }
+  ],
+  "maladaptivePart1": [
+    "Chupa no polegar ou noutro dedo.",
+    "É excessivamente dependente.",
+    "Isola-se.",
+    "Molha a cama.",
+    "Tem distúrbios alimentares.",
+    "Tem distúrbios de sono.",
+    "Rói as unhas.",
+    "Recusa a escola ou o trabalho.",
+    "Exibe ansiedade extrema.",
+    "Exibe tiques.",
+    "Chora ou ri facilmente.",
+    "Tem contacto visual pobre.",
+    "Exibe tristeza excessiva.",
+    "Range os dentes de dia ou de noite.",
+    "É muito impulsivo.",
+    "Tem atenção e concentração pobre.",
+    "É hiperactivo.",
+    "Tem birras.",
+    "É negativista ou desafiante.",
+    "Aborrece os outros ou é insolente.",
+    "Mostra falta de consideração.",
+    "Mente, engana ou rouba.",
+    "É muito agressivo fisicamente.",
+    "Blasfema em situações inapropriadas.",
+    "Foge.",
+    "É teimoso e rabugento.",
+    "Falta à escola ou ao trabalho."
+  ],
+  "areas": [
+    {
+      "id": "comunicacao",
+      "title": "Área da Comunicação",
+      "prefix": "com",
+      "observationsId": "obs_comunicacao",
+      "subdomains": [
+        {
+          "id": "receptiva",
+          "label": "Receptiva",
+          "max": 26
+        },
+        {
+          "id": "expressiva",
+          "label": "Expressiva",
+          "max": 62
+        },
+        {
+          "id": "escrita",
+          "label": "Escrita",
+          "max": 46
+        }
+      ],
+      "items": [
+        {
+          "num": 1,
+          "text": "Volta os olhos e a cabeça em direção ao som.",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 2,
+          "text": "Ouve, pelo menos momentaneamente, quando o educador fala.",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 3,
+          "text": "Sorri como resposta à presença do educador.",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 4,
+          "text": "Sorri como resposta à presença de uma pessoa familiar, para além do educador.",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 5,
+          "text": "Estende os braços quando o educador diz: \"Vem cá.\" Ou \"Upa.\"",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 6,
+          "text": "Demonstra compreender a palavra \"não\".",
+          "subdomain": "receptiva",
+          "age": "<1"
+        },
+        {
+          "num": 7,
+          "text": "Imita sons do adulto, imediatamente depois de os ouvir.",
+          "subdomain": "expressiva",
+          "age": "1"
+        },
+        {
+          "num": 8,
+          "text": "Demonstra compreender o significado de pelo menos 10 palavras.",
+          "subdomain": "receptiva",
+          "age": "1"
+        },
+        {
+          "num": 9,
+          "text": "Gesticula apropriadamente para indicar \"Sim.\", \"Não.\", \"Eu quero.\"",
+          "subdomain": "expressiva",
+          "age": "1"
+        },
+        {
+          "num": 10,
+          "text": "Ouve atentamente as instruções.",
+          "subdomain": "receptiva",
+          "age": "1"
+        },
+        {
+          "num": 11,
+          "text": "Demonstra compreender o significado de \"Sim.\" e \"Está bem.\"",
+          "subdomain": "receptiva",
+          "age": "1"
+        },
+        {
+          "num": 12,
+          "text": "Segue instruções que requerem uma acção e um objecto.",
+          "subdomain": "receptiva",
+          "age": "2"
+        },
+        {
+          "num": 13,
+          "text": "Aponta correctamente para, pelo menos, uma parte principal do corpo.",
+          "subdomain": "receptiva",
+          "age": "2"
+        },
+        {
+          "num": 14,
+          "text": "Utiliza o 1º nome, ou diminutivo dos irmãos, amigos ou colegas, ou diz os seus nomes quando se lhos perguntam.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 15,
+          "text": "Utiliza frases com verbo e nome, ou com dois nomes.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 16,
+          "text": "Nomeia, pelo menos, 20 objectos, sem se lhe perguntar.",
+          "subdomain": "expressiva",
+          "age": "2",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 17,
+          "text": "Ouve uma história, pelo menos durante 5 minutos.",
+          "subdomain": "receptiva",
+          "age": "2"
+        },
+        {
+          "num": 18,
+          "text": "Indica preferência, quando se lhe proporciona escolha.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 19,
+          "text": "Diz, pelo menos, 50 palavras reconhecíveis.",
+          "subdomain": "expressiva",
+          "age": "2",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 20,
+          "text": "Relata experiências espontaneamente e em termos simples.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 21,
+          "text": "Transmite um recado simples.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 22,
+          "text": "Utiliza frases com 4, ou mais, palavras.",
+          "subdomain": "expressiva",
+          "age": "2"
+        },
+        {
+          "num": 23,
+          "text": "Aponta, a pedido, com precisão para todas as partes do corpo.",
+          "subdomain": "receptiva",
+          "age": "2",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 24,
+          "text": "Diz, pelo menos, 100 palavras reconhecíveis.",
+          "subdomain": "expressiva",
+          "age": "2",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 25,
+          "text": "Fala com frases completas.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 26,
+          "text": "Utiliza \"um(a)\" e \"o/a\" nas frases.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 27,
+          "text": "Segue instruções na forma \"Se ... então\".",
+          "subdomain": "receptiva",
+          "age": "3,4"
+        },
+        {
+          "num": 28,
+          "text": "Diz o 1º e o último nome, quando se lhe pergunta.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 29,
+          "text": "Faz perguntas com: \"O que é, Onde, Quem, Porque, Quando\".",
+          "subdomain": "expressiva",
+          "age": "3,4",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 30,
+          "text": "Diz qual o maior de dois objectos não presentes.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 31,
+          "text": "Relata experiências com detalhe, quando se lhe pergunta.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 32,
+          "text": "Utiliza frases com \"atrás\" ou \"entre\", como preposição.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 33,
+          "text": "Utiliza frases com \"à volta\", como preposição, numa frase.",
+          "subdomain": "expressiva",
+          "age": "3,4"
+        },
+        {
+          "num": 34,
+          "text": "Utiliza frases com \"mas\" ou \"ou\".",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 35,
+          "text": "Articula claramente, sem substituir sons.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 36,
+          "text": "Conta histórias populares, contos, lengalengas ou novelas de TV.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 37,
+          "text": "Diz todas as letras do alfabeto de memória.",
+          "subdomain": "escrita",
+          "age": "5"
+        },
+        {
+          "num": 38,
+          "text": "Lê, pelo menos 3 sinais comuns.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 39,
+          "text": "Diz a data dos anos (dia e mês), quando questionada.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 40,
+          "text": "Utiliza plurais irregulares.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 41,
+          "text": "Imprime ou escreve o nome (primeiro e último).",
+          "subdomain": "escrita",
+          "age": "6"
+        },
+        {
+          "num": 42,
+          "text": "Diz o número de telefone, quando questionada.",
+          "subdomain": "expressiva",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 43,
+          "text": "Diz a morada completa, quando questionada.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 44,
+          "text": "Lê, pelo menos 10 palavras, silenciosamente ou em voz alta.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 45,
+          "text": "Imprime ou escreve, pelo menos 10 palavras de memória.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 46,
+          "text": "Exprime ideias em mais do que uma versão sem ajuda.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 47,
+          "text": "Lê em voz alta uma história simples.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 48,
+          "text": "Imprime ou escreve frases simples com 3 ou 4 palavras.",
+          "subdomain": "escrita",
+          "age": "7,8"
+        },
+        {
+          "num": 49,
+          "text": "Está atenta na escola mais de 15 minutos.",
+          "subdomain": "receptiva"
+        },
+        {
+          "num": 50,
+          "text": "Lê por iniciativa própria.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 51,
+          "text": "Lê livros, pelo menos, do 2º ano de escolaridade.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 52,
+          "text": "Ordena alfabeticamente palavras ou itens, pela 1ª letra.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 53,
+          "text": "Imprime ou escreve pequenas notas ou mensagens.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 54,
+          "text": "Dá ordens complexas aos outros.",
+          "subdomain": "expressiva",
+          "age": "9"
+        },
+        {
+          "num": 55,
+          "text": "Escreve as primeiras cartas.",
+          "subdomain": "escrita",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 56,
+          "text": "Lê livros, pelo menos, do 4º ano de escolaridade.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 57,
+          "text": "Escreve com letra manuscrita a maior parte das vezes.",
+          "subdomain": "escrita",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 58,
+          "text": "Usa o dicionário.",
+          "subdomain": "escrita",
+          "age": "10 a 18+"
+        },
+        {
+          "num": 59,
+          "text": "Consulta o sumário de um livro.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 60,
+          "text": "Escreve relatórios ou composições.",
+          "subdomain": "escrita",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 61,
+          "text": "Escreve o endereço completo em envelopes.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 62,
+          "text": "Consulta o índice de um livro.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 63,
+          "text": "Lê jornais.",
+          "subdomain": "escrita",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 64,
+          "text": "Tem objectivos reais a longo prazo e explica detalhadamente como os atingir.",
+          "subdomain": "expressiva"
+        },
+        {
+          "num": 65,
+          "text": "Escreve cartas elaboradas.",
+          "subdomain": "escrita"
+        },
+        {
+          "num": 66,
+          "text": "Lê jornais ou revistas todas as semanas.",
+          "subdomain": "escrita",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 67,
+          "text": "Escreve cartas comerciais.",
+          "subdomain": "escrita",
+          "rules": [
+            "no_score_1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "autonomia",
+      "title": "Área da Autonomia",
+      "prefix": "aut",
+      "observationsId": "obs_autonomia",
+      "subdomains": [
+        {
+          "id": "pessoal",
+          "label": "Pessoal",
+          "max": 78
+        },
+        {
+          "id": "domestica",
+          "label": "Doméstica",
+          "max": 42
+        },
+        {
+          "id": "comunidade",
+          "label": "Comunidade",
+          "max": 64
+        }
+      ],
+      "items": [
+        {
+          "num": 1,
+          "text": "Antecipa o comer quando vê o biberão, o peito ou comida.",
+          "subdomain": "pessoal",
+          "age": "<1"
+        },
+        {
+          "num": 2,
+          "text": "Abre a boca quando se lhe apresenta a colher com comida.",
+          "subdomain": "pessoal",
+          "age": "<1"
+        },
+        {
+          "num": 3,
+          "text": "Retira a comida da colher com a boca.",
+          "subdomain": "pessoal",
+          "age": "<1"
+        },
+        {
+          "num": 4,
+          "text": "Chupa ou masca bolachas.",
+          "subdomain": "pessoal",
+          "age": "<1"
+        },
+        {
+          "num": 5,
+          "text": "Come comida sólida.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 6,
+          "text": "Bebe por chávena ou copo sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 7,
+          "text": "Come sozinha com a colher.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 8,
+          "text": "Demonstra compreender que as coisas quentes são perigosas.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 9,
+          "text": "Indica que tem a fralda suja apontando, vocalizando ou puxando a fralda.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 10,
+          "text": "Chupa pela palha.",
+          "subdomain": "pessoal",
+          "age": "1"
+        },
+        {
+          "num": 11,
+          "text": "Permite que o educador lhe limpe o nariz.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 12,
+          "text": "Come sozinha com o garfo.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 13,
+          "text": "Tira um casaco aberto à frente ou uma camisola sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 14,
+          "text": "Come sozinha com a colher, sem se sujar.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 15,
+          "text": "Demonstra interesse em mudar a roupa quando está molhada ou muito suja.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 16,
+          "text": "Urina na casa de banho ou no bacio.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 17,
+          "text": "Lava-se com ajuda.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 18,
+          "text": "Faz cocó na casa de banho ou no bacio.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 19,
+          "text": "Pede para ir à casa de banho.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 20,
+          "text": "Veste roupas fáceis com elásticos, sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 21,
+          "text": "Demonstra compreender a função do dinheiro.",
+          "subdomain": "comunidade",
+          "age": "2"
+        },
+        {
+          "num": 22,
+          "text": "Dá o que tem na mão quando se lhe pede.",
+          "subdomain": "pessoal",
+          "age": "2"
+        },
+        {
+          "num": 23,
+          "text": "Controla os esfincteres, durante a noite.",
+          "subdomain": "pessoal",
+          "age": "3"
+        },
+        {
+          "num": 24,
+          "text": "Tira água da torneira sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "3"
+        },
+        {
+          "num": 25,
+          "text": "Lava os dentes sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "3",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 26,
+          "text": "Demonstra compreender a função do relógio clássico e do digital.",
+          "subdomain": "comunidade",
+          "age": "3"
+        },
+        {
+          "num": 27,
+          "text": "Colabora nas tarefas domésticas quando se lhe pede.",
+          "subdomain": "domestica",
+          "age": "3"
+        },
+        {
+          "num": 28,
+          "text": "Lava e limpa a cara sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "3"
+        },
+        {
+          "num": 29,
+          "text": "Calça os sapatos correctamente sem ajuda.",
+          "subdomain": "pessoal",
+          "age": "3"
+        },
+        {
+          "num": 30,
+          "text": "Atende o telefone de forma apropriada.",
+          "subdomain": "pessoal",
+          "age": "3",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 31,
+          "text": "Veste-se completamente sozinha, excepto atar laços.",
+          "subdomain": "pessoal",
+          "age": "4"
+        },
+        {
+          "num": 32,
+          "text": "Diz para quem é a chamada telefónica ou que essa pessoa não pode atender.",
+          "subdomain": "pessoal",
+          "age": "4",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 33,
+          "text": "Põe a mesa com ajuda.",
+          "subdomain": "domestica",
+          "age": "4"
+        },
+        {
+          "num": 34,
+          "text": "Cuida de toda a sua higiene sem ajuda e sem ser preciso lembrá-la.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 35,
+          "text": "Olha para os dois lados antes de atravessar a rua.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 36,
+          "text": "Arruma as roupas limpas, sem ajuda, quando se lhe pede.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 37,
+          "text": "Assoa o nariz sem ajuda.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 38,
+          "text": "Levanta da mesa peças quebráveis.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 39,
+          "text": "Seca-se sozinha com uma toalha.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 40,
+          "text": "Aperta todos os fechos.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 41,
+          "text": "Ajuda na preparação de comida (mexer e cozinhar).",
+          "subdomain": "domestica",
+          "age": "5"
+        },
+        {
+          "num": 42,
+          "text": "Demonstra compreender que não é seguro apanhar boleias, aceitar comida ou dinheiro de estranhos.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 43,
+          "text": "Dá laços, sem ajuda.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 44,
+          "text": "Toma banho, ou duche, sem ajuda.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 45,
+          "text": "Olha para os dois lados e atravessa a rua sozinha.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 46,
+          "text": "Põe a mão à frente da boca e do nariz quando tosse ou espirra.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 47,
+          "text": "Utiliza adequadamente a colher, a faca e o garfo.",
+          "subdomain": "pessoal",
+          "age": "6",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 48,
+          "text": "Toma a iniciativa de telefonar para outros.",
+          "subdomain": "comunidade",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 49,
+          "text": "Obedece aos semáforos para peões e outros.",
+          "subdomain": "comunidade",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 50,
+          "text": "Veste-se completamente sozinha, incluindo laços e fechos.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 51,
+          "text": "Faz a sua cama quando se lhe pede.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 52,
+          "text": "Diz o dia da semana quando se lhe pergunta.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 53,
+          "text": "Aperta o cinto do carro sem ajuda.",
+          "subdomain": "comunidade",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 54,
+          "text": "Conhece o valor do dinheiro.",
+          "subdomain": "comunidade",
+          "age": "7"
+        },
+        {
+          "num": 55,
+          "text": "Utiliza funcionalmente instrumentos domésticos.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 56,
+          "text": "Identifica a esquerda e a direita nos outros.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 57,
+          "text": "Levanta a mesa sem ajuda quando se lhe pede.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 58,
+          "text": "Varre, lava ou aspira o chão cuidadosamente sem ajuda quando se lhe pede.",
+          "subdomain": "domestica",
+          "age": "8"
+        },
+        {
+          "num": 59,
+          "text": "Utiliza adequadamente o telefone de emergência.",
+          "subdomain": "comunidade",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 60,
+          "text": "Pede a sua refeição no restaurante.",
+          "subdomain": "comunidade",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 61,
+          "text": "Diz a data completa quando se lhe pergunta.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 62,
+          "text": "Troca de roupa em antecipação às mudanças do tempo sem ser necessário lembrá-la.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 63,
+          "text": "Evita pessoas com doenças contagiosas, sem ser necessário lembrá-la.",
+          "subdomain": "pessoal"
+        },
+        {
+          "num": 64,
+          "text": "Sabe ver as horas com intervalos de 5 minutos.",
+          "subdomain": "pessoal",
+          "age": "9/10"
+        },
+        {
+          "num": 65,
+          "text": "Cuida sozinha do seu cabelo sem ser necessário lembrá-la.",
+          "subdomain": "pessoal",
+          "age": "10",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 66,
+          "text": "Utiliza o fogão ou o microondas para cozinhar.",
+          "subdomain": "domestica",
+          "age": "11/12"
+        },
+        {
+          "num": 67,
+          "text": "Utiliza os produtos de limpeza da casa adequadamente.",
+          "subdomain": "domestica",
+          "age": "11/12"
+        },
+        {
+          "num": 68,
+          "text": "Faz trocos correctamente.",
+          "subdomain": "comunidade",
+          "age": "11/12"
+        },
+        {
+          "num": 69,
+          "text": "Utiliza, sem ajuda, o telefone para todo o tipo de chamadas.",
+          "subdomain": "comunidade",
+          "age": "12",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 70,
+          "text": "Cuida das unhas sem ajuda e sem ser lembrada.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 71,
+          "text": "Prepara sem ajuda comida que requer mistura de ingredientes e cozedura.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 72,
+          "text": "Usa um telefone público.",
+          "subdomain": "comunidade",
+          "age": "13, 14, 15",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 73,
+          "text": "Arruma o seu quarto sem ser necessário lembrar.",
+          "subdomain": "domestica",
+          "age": "13, 14, 15"
+        },
+        {
+          "num": 74,
+          "text": "Poupa para comprar pelo menos um objecto desejado.",
+          "subdomain": "comunidade",
+          "age": "13, 14, 15"
+        },
+        {
+          "num": 75,
+          "text": "Cuida da sua saúde.",
+          "subdomain": "pessoal",
+          "age": "16"
+        },
+        {
+          "num": 76,
+          "text": "Controla o dinheiro.",
+          "subdomain": "comunidade",
+          "age": "16"
+        },
+        {
+          "num": 77,
+          "text": "Faz a sua cama e muda-lhe a roupa regularmente.",
+          "subdomain": "domestica",
+          "age": "16",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 78,
+          "text": "Limpa o seu quarto regularmente sem se lhe pedir.",
+          "subdomain": "domestica",
+          "age": "17, 18"
+        },
+        {
+          "num": 79,
+          "text": "Executa tarefas de rotina na casa (manutenção e reparação) sem se lhe pedir.",
+          "subdomain": "domestica",
+          "age": "17, 18"
+        },
+        {
+          "num": 80,
+          "text": "Prega botões, fechos e molas quando se lhe pede.",
+          "subdomain": "domestica",
+          "age": "17, 18"
+        },
+        {
+          "num": 81,
+          "text": "Faz o orçamento de despesas semanais.",
+          "subdomain": "comunidade",
+          "age": "17, 18"
+        },
+        {
+          "num": 82,
+          "text": "Administra o próprio dinheiro sem ajuda.",
+          "subdomain": "comunidade",
+          "age": "17, 18"
+        },
+        {
+          "num": 83,
+          "text": "Planifica e prepara as refeições principais do dia sem ajuda.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 84,
+          "text": "Chega a horas ao trabalho.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 85,
+          "text": "Cuida das suas roupas de forma independente.",
+          "subdomain": "pessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 86,
+          "text": "Avisa que vai chegar atrasado ao trabalho.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 87,
+          "text": "Avisa quando não vai trabalhar por estar doente.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 88,
+          "text": "Faz o orçamento de despesas mensais.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 89,
+          "text": "Cose as bainhas ou faz outras alterações sem ajuda e sem ser lembrado.",
+          "subdomain": "domestica"
+        },
+        {
+          "num": 90,
+          "text": "Respeita o tempo de intervalo para café ou almoço.",
+          "subdomain": "comunidade"
+        },
+        {
+          "num": 91,
+          "text": "Assume sempre a responsabilidade do seu trabalho.",
+          "subdomain": "comunidade",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 92,
+          "text": "Tem conta bancária e usa-a responsavelmente.",
+          "subdomain": "comunidade"
+        }
+      ]
+    },
+    {
+      "id": "socializacao",
+      "title": "Área da Socialização",
+      "prefix": "soc",
+      "observationsId": "obs_socializacao",
+      "subdomains": [
+        {
+          "id": "interpessoal",
+          "label": "R. Interpessoais",
+          "max": 40
+        },
+        {
+          "id": "jogos_lazer",
+          "label": "Jogos e Lazer",
+          "max": 24
+        },
+        {
+          "id": "regras_sociais",
+          "label": "Regras Sociais",
+          "max": 10
+        }
+      ],
+      "items": [
+        {
+          "num": 1,
+          "text": "Olha para a cara do educador.",
+          "subdomain": "interpessoal",
+          "age": "<1"
+        },
+        {
+          "num": 2,
+          "text": "Responde à voz do educador ou de outra pessoa.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 3,
+          "text": "Distingue o educador dos outros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 4,
+          "text": "Mostra interesse por pessoas ou objectos novos.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 5,
+          "text": "Exprime 2 ou mais emoções reconhecíveis (prazer, tristeza, medo, aflição, etc.)",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 6,
+          "text": "Mostra antecipação de ser levantada pelo educador.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 7,
+          "text": "Mostra afeição às pessoas familiares.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 8,
+          "text": "Mostra interesse por crianças ou colegas, sem ser os irmãos.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 9,
+          "text": "Chama a atenção de uma pessoa familiar.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 10,
+          "text": "Brinca sozinha ou acompanhada com um brinquedo ou um objecto.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 11,
+          "text": "Brinca com os outros em jogos de interacção simples.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 12,
+          "text": "Usa objectos comuns da casa para brincar.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 13,
+          "text": "Mostra interesse pelas actividades dos outros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 14,
+          "text": "Imita movimentos simples dos adultos (bater palmas, dizer adeus c/ a mão)",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 15,
+          "text": "Sorri ou ri apropriadamente, em resposta a interacções positivas.",
+          "subdomain": "interpessoal",
+          "age": "1,2"
+        },
+        {
+          "num": 16,
+          "text": "Dirige-se pelo nome a pelo menos duas pessoas familiares.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 17,
+          "text": "Mostra desejo de agradar ao educador.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 18,
+          "text": "Participa em pelo menos um jogo ou actividade com os outros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 19,
+          "text": "Imita uma tarefa relativamente complexa, horas depois de a ter visto.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 20,
+          "text": "Imita frases do adulto, ouvidas anteriormente.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 21,
+          "text": "Ocupa-se em actividades de faz de conta, sozinha ou com os outros.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 22,
+          "text": "Mostra preferência por alguns amigos de entre outros",
+          "subdomain": "interpessoal",
+          "age": "3"
+        },
+        {
+          "num": 23,
+          "text": "Diz \"Por favor.\" Quando pede alguma coisa.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 24,
+          "text": "Verbaliza o seu estado de alegria, tristeza, medo e zanga.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 25,
+          "text": "Identifica pessoas por outras características, que não o nome.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 26,
+          "text": "Partilha brinquedos ou objectos sem ser preciso dizê-lo.",
+          "subdomain": "interpessoal",
+          "age": "4"
+        },
+        {
+          "num": 27,
+          "text": "Diz os programas de TV favoritos e em que canal e dia passam.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 28,
+          "text": "Segue regras em jogos simples, sem ser preciso lembrá-la.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 29,
+          "text": "Tem um amigo preferido de cada sexo.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 30,
+          "text": "Segue regras da escola.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 31,
+          "text": "Responde verbal e positivamente aos sucessos dos outros.",
+          "subdomain": "interpessoal",
+          "age": "5"
+        },
+        {
+          "num": 32,
+          "text": "Pede desculpa por erros não intencionais.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 33,
+          "text": "Tem um grupo de amigos.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 34,
+          "text": "Segue regras da comunidade.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 35,
+          "text": "Brinca com jogos que requerem capacidades de decisão.",
+          "subdomain": "jogos_lazer",
+          "age": "6"
+        },
+        {
+          "num": 36,
+          "text": "Não fala com a boca cheia.",
+          "subdomain": "regras_sociais"
+        },
+        {
+          "num": 37,
+          "text": "Tem um melhor amigo do mesmo sexo.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 38,
+          "text": "Responde apropriadamente quando se lhe apresenta alguém.",
+          "subdomain": "interpessoal",
+          "age": "7, 8"
+        },
+        {
+          "num": 39,
+          "text": "Faz ou compra pequenas lembranças para o educador, ou membros da família nas férias grandes por sua própria iniciativa.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 40,
+          "text": "Guarda segredos, ou confidências, durante mais de um dia.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 41,
+          "text": "Devolve aos colegas brinquedos, objectos, dinheiro ou livros emprestados.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 42,
+          "text": "Termina conversas apropriadamente.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 43,
+          "text": "Segue limites de tempo definidos pelo educador.",
+          "subdomain": "interpessoal",
+          "age": "9"
+        },
+        {
+          "num": 44,
+          "text": "Evita fazer perguntas ou afirmações que podem magoar ou embaraçar os outros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 45,
+          "text": "Controla a raiva e a dor quando magoada.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 46,
+          "text": "Guarda segredos, ou confidências o tempo que for preciso.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 47,
+          "text": "Usa maneiras apropriadas à mesa, sem se lhe dizer.",
+          "subdomain": "interpessoal",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 48,
+          "text": "Vê TV, ou ouve rádio para se informar sobre uma área de interesse.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 49,
+          "text": "Vai para a escola nocturna ou espectáculos com os amigos, quando acompanhados por um adulto.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 50,
+          "text": "Pesa a consequência dos actos antes de tomar as decisões.",
+          "subdomain": "regras_sociais",
+          "age": "12, 13, 14"
+        },
+        {
+          "num": 51,
+          "text": "Pede desculpa pelos erros (actos ou juízos).",
+          "subdomain": "regras_sociais"
+        },
+        {
+          "num": 52,
+          "text": "Lembra o dia de aniversário da família mais próxima e dos amigos especiais.",
+          "subdomain": "regras_sociais"
+        },
+        {
+          "num": 53,
+          "text": "Inicia conversas ou pontos de interesse particular com os outros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 54,
+          "text": "Tem um passatempo.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 55,
+          "text": "Entrega dinheiro emprestado.",
+          "subdomain": "regras_sociais"
+        },
+        {
+          "num": 56,
+          "text": "Responde a sugestões, ou pistas indirectas durante uma conversa.",
+          "subdomain": "interpessoal",
+          "age": "15 a 18+"
+        },
+        {
+          "num": 57,
+          "text": "Participa em desportos fora da escola.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 58,
+          "text": "Vê TV, ou ouve rádio para informação diária.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 59,
+          "text": "Marca e aceita encontros.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 60,
+          "text": "Vê TV, ou ouve rádio para notícias de um modo geral.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 61,
+          "text": "Vai para a escola nocturna ou espectáculos com os amigos, sem supervisão.",
+          "subdomain": "jogos_lazer",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 62,
+          "text": "Sai à noite com os amigos sem supervisão do adulto.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 63,
+          "text": "Pertence a clubes de adolescentes, grupos de interesse ou a organizações sociais.",
+          "subdomain": "jogos_lazer"
+        },
+        {
+          "num": 64,
+          "text": "Sai com uma pessoa do sexo oposto a uma festa ou a um acontecimento público, onde está muita gente presente.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 65,
+          "text": "Vai a encontros com dois ou três pares.",
+          "subdomain": "interpessoal"
+        },
+        {
+          "num": 66,
+          "text": "Sai com uma pessoa do sexo oposto.",
+          "subdomain": "interpessoal"
+        }
+      ]
+    },
+    {
+      "id": "motricidade",
+      "title": "Área da Motricidade",
+      "prefix": "mot",
+      "observationsId": "obs_motricidade",
+      "subdomains": [
+        {
+          "id": "global",
+          "label": "Global",
+          "max": 40
+        },
+        {
+          "id": "fina",
+          "label": "Fina",
+          "max": 32
+        }
+      ],
+      "items": [
+        {
+          "num": 1,
+          "text": "Segura a cabeça quando está ao colo, pelo menos durante 15 segundos.",
+          "subdomain": "global",
+          "age": "<1"
+        },
+        {
+          "num": 2,
+          "text": "Senta-se com apoio, durante pelo menos 1 minuto.",
+          "subdomain": "global",
+          "age": "<1"
+        },
+        {
+          "num": 3,
+          "text": "Apanha com a mão pequenos objectos, de qualquer maneira.",
+          "subdomain": "fina",
+          "age": "<1"
+        },
+        {
+          "num": 4,
+          "text": "Transfere objectos de uma mão para a outra.",
+          "subdomain": "fina",
+          "age": "<1"
+        },
+        {
+          "num": 5,
+          "text": "Faz pinça.",
+          "subdomain": "fina",
+          "age": "<1"
+        },
+        {
+          "num": 6,
+          "text": "Senta-se sozinha e mantém essa posição sem apoio, durante pelo menos 1 minuto.",
+          "subdomain": "global",
+          "age": "<1"
+        },
+        {
+          "num": 7,
+          "text": "Gatinha sem tocar com a barriga no chão.",
+          "subdomain": "global",
+          "age": "<1"
+        },
+        {
+          "num": 8,
+          "text": "Abre portas que só requerem empurrar ou puxar.",
+          "subdomain": "global",
+          "age": "<1"
+        },
+        {
+          "num": 9,
+          "text": "Rola a bola, enquanto sentada.",
+          "subdomain": "fina",
+          "age": "1"
+        },
+        {
+          "num": 10,
+          "text": "Caminha para explorar o meio.",
+          "subdomain": "global",
+          "age": "1"
+        },
+        {
+          "num": 11,
+          "text": "Sobe e desce para uma cama ou para uma cadeira de adulto.",
+          "subdomain": "global",
+          "age": "1"
+        },
+        {
+          "num": 12,
+          "text": "Sobe para cima de brinquedos baixos (cavalinho, etc.).",
+          "subdomain": "global",
+          "age": "1"
+        },
+        {
+          "num": 13,
+          "text": "Rabisca num papel.",
+          "subdomain": "fina",
+          "age": "1"
+        },
+        {
+          "num": 14,
+          "text": "Sobe as escadas pondo os dois pés em cada degrau.",
+          "subdomain": "global",
+          "age": "2"
+        },
+        {
+          "num": 15,
+          "text": "Desce as escadas pondo os dois pés em cada degrau.",
+          "subdomain": "global",
+          "age": "2"
+        },
+        {
+          "num": 16,
+          "text": "Corre com mudança de velocidade e direcção.",
+          "subdomain": "global",
+          "age": "2"
+        },
+        {
+          "num": 17,
+          "text": "Abre portas puxando ou rodando puxadores.",
+          "subdomain": "fina",
+          "age": "2"
+        },
+        {
+          "num": 18,
+          "text": "Salta por cima de pequenos objectos.",
+          "subdomain": "global",
+          "age": "2"
+        },
+        {
+          "num": 19,
+          "text": "Enrosca e desenrosca tampas de frascos.",
+          "subdomain": "fina",
+          "age": "2"
+        },
+        {
+          "num": 20,
+          "text": "Pedala no triciclo, por mais de 2 metros.",
+          "subdomain": "global",
+          "age": "2",
+          "rules": [
+            "allow_n"
+          ]
+        },
+        {
+          "num": 21,
+          "text": "Salta num só pé sem cair, agarrada a uma pessoa ou objecto.",
+          "subdomain": "global",
+          "age": "2"
+        },
+        {
+          "num": 22,
+          "text": "Constrói uma estrutura tridimensional, com pelo menos cinco blocos.",
+          "subdomain": "fina",
+          "age": "2"
+        },
+        {
+          "num": 23,
+          "text": "Abre e fecha tesouras com uma mão.",
+          "subdomain": "fina",
+          "age": "2"
+        },
+        {
+          "num": 24,
+          "text": "Desce as escadas com pés alternados e sem ajuda.",
+          "subdomain": "global",
+          "age": "3,4 +"
+        },
+        {
+          "num": 25,
+          "text": "Sobe para cima de brinquedos altos.",
+          "subdomain": "global",
+          "age": "3,4 +"
+        },
+        {
+          "num": 26,
+          "text": "Corta com tesoura.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 27,
+          "text": "Salta num só pé sem perder o equilíbrio, pelo menos três vezes.",
+          "subdomain": "global",
+          "age": "3,4 +",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 28,
+          "text": "Completa um puzzle de, pelo menos, seis peças.",
+          "subdomain": "fina",
+          "age": "3,4 +",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 29,
+          "text": "Desenha, com lápis ou caneta, mais do que uma forma reconhecível.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 30,
+          "text": "Corta com a tesoura ao longo de uma linha desenhada.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 31,
+          "text": "Usa a borracha sem rasgar o papel.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 32,
+          "text": "Salta facilmente num só pé.",
+          "subdomain": "global",
+          "age": "3,4 +",
+          "rules": [
+            "no_score_1"
+          ]
+        },
+        {
+          "num": 33,
+          "text": "Abre fechaduras com a chave.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 34,
+          "text": "Corta figuras complexas com a tesoura.",
+          "subdomain": "fina",
+          "age": "3,4 +"
+        },
+        {
+          "num": 35,
+          "text": "Apanha uma bola atirada a uma distância de três metros, mesmo que seja necessário movimentar-se para apanhá-la.",
+          "subdomain": "global",
+          "age": "3,4 +"
+        },
+        {
+          "num": 36,
+          "text": "Anda de bicicleta sem cair e sem rodas de apoio.",
+          "subdomain": "global",
+          "age": "3,4 +",
+          "rules": [
+            "allow_n"
+          ]
+        }
+      ]
+    }
+  ]
+}

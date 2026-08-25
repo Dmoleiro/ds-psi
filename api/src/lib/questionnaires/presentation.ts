@@ -11,6 +11,7 @@ import {
   ADIR_TIMEPOINT_LABELS,
   adirFieldId,
 } from './definitions/adir.js'
+import { VINELAND_SCORE_LABELS } from './vinelandScoring.js'
 
 function labelForStoredValue(
   responseType: ResponseType,
@@ -56,6 +57,22 @@ function formatAnswerValue(
 
   if (formId === 'adir') {
     return formatAdirCodeValue(itemId, value)
+  }
+
+  if (formId === 'vineland') {
+    if (itemId.endsWith('_sev')) {
+      if (value === 'S') return 'S — Severo'
+      if (value === 'M') return 'M — Moderado'
+    }
+    if (value === 2 || value === 1 || value === 0) {
+      const labels = definition.responseLabels ?? RESPONSE_LABELS.vineland_item
+      const index = value === 2 ? 0 : value === 1 ? 1 : 2
+      return labels[index] ?? String(value)
+    }
+    if (value === 'N' || value === 'D') {
+      const labels = definition.responseLabels ?? RESPONSE_LABELS.vineland_item
+      return value === 'N' ? labels[3] ?? 'N' : labels[4] ?? 'D'
+    }
   }
 
   if (definition.responseType === 'forced_choice' && itemOptions?.length) {
@@ -238,11 +255,16 @@ export function formatQuestionnaireAnswers(
 
   const scores = answers._scores
   if (scores && typeof scores === 'object' && !Array.isArray(scores)) {
-    for (const [key, score] of Object.entries(scores as Record<string, unknown>)) {
+    const scoreEntries = scores as Record<string, unknown>
+    for (const [key, score] of Object.entries(scoreEntries)) {
       if (typeof score === 'number') {
+        let label = `Pontuação — ${key}`
+        if (formId === 'vineland') {
+          label = VINELAND_SCORE_LABELS[key] ?? label
+        }
         fields.push({
           key: `_score_${key}`,
-          label: `Pontuação — ${key}`,
+          label,
           value: String(score),
         })
       }

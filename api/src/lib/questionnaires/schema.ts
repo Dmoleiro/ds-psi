@@ -3,6 +3,7 @@ import type { QuestionnaireDefinition, ResponseType } from './types.js'
 import { QUESTIONNAIRE_NOTES_FIELD } from './types.js'
 import { buildInventarioAspergerSchema } from './definitions/inventario_asperger.js'
 import { buildAdirSchema } from './definitions/adir.js'
+import { buildVinelandSchema } from './definitions/vineland.js'
 import { getQuestionnaireDefinition, isQuestionnaireId } from './registry.js'
 
 function numericAnswerSchema(responseType: ResponseType) {
@@ -62,6 +63,7 @@ export function buildQuestionnaireSchema(definition: QuestionnaireDefinition) {
 export function getQuestionnaireFormSchema(formId: string) {
   if (formId === 'inventario_asperger') return buildInventarioAspergerSchema()
   if (formId === 'adir') return buildAdirSchema()
+  if (formId === 'vineland') return buildVinelandSchema()
   if (!isQuestionnaireId(formId)) return null
   const definition = getQuestionnaireDefinition(formId)
   if (!definition) return null

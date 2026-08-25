@@ -3,6 +3,7 @@ import { QueixaInicialForm, normalizeQueixaInicialValues } from './QueixaInicial
 import { AnexarDocumentosForm } from './AnexarDocumentosForm'
 import { InventarioAspergerForm } from './InventarioAspergerForm'
 import { AdirForm } from './AdirForm'
+import { VinelandForm } from './VinelandForm'
 import { QuestionnaireForm } from './QuestionnaireForm'
 import { QUESTIONNAIRE_IDS } from '../../lib/questionnaires'
 import { patientFormRenderers, patientFormValueNormalizers } from './formRegistry'
@@ -13,8 +14,9 @@ patientFormRenderers['anexar-documentos'] = (props) => <AnexarDocumentosForm {..
 patientFormValueNormalizers['queixa-inicial'] = normalizeQueixaInicialValues
 
 for (const id of QUESTIONNAIRE_IDS) {
-  if (id === 'inventario_asperger' || id === 'adir') continue
+  if (id === 'inventario_asperger' || id === 'adir' || id === 'vineland') continue
   patientFormRenderers[id] = (props) => <QuestionnaireForm {...props} />
 }
 patientFormRenderers.inventario_asperger = (props) => <InventarioAspergerForm {...props} />
 patientFormRenderers.adir = (props) => <AdirForm {...props} />
+patientFormRenderers.vineland = (props) => <VinelandForm {...props} />

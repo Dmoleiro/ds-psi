@@ -18,6 +18,7 @@ import { fssrQuestionnaire } from './definitions/fssr.js'
 import { stereotypiesQuestionnaire } from './definitions/stereotypies.js'
 import { divaQuestionnaire } from './definitions/diva.js'
 import { adirQuestionnaire } from './definitions/adir.js'
+import { vinelandQuestionnaire } from './definitions/vineland.js'
 
 const ALL_QUESTIONNAIRES: QuestionnaireDefinition[] = [
   ...sdqQuestionnaires,
@@ -39,6 +40,7 @@ const ALL_QUESTIONNAIRES: QuestionnaireDefinition[] = [
   stereotypiesQuestionnaire,
   divaQuestionnaire,
   adirQuestionnaire,
+  vinelandQuestionnaire,
 ]
 
 const QUESTIONNAIRE_MAP = new Map(ALL_QUESTIONNAIRES.map((q) => [q.id, q]))

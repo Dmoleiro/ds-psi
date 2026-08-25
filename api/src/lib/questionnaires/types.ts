@@ -11,6 +11,7 @@ export type ResponseType =
   | 'frequency0_2'
   | 'forced_choice'
   | 'rating4'
+  | 'vineland_item'
 
 export type QuestionnaireItem = {
   id: string
@@ -36,6 +37,8 @@ export type ScoringRule =
   | { type: 'obq44' }
   | { type: 'cars_total' }
   | { type: 'scared' }
+  | { type: 'adir' }
+  | { type: 'vineland' }
   | { type: 'custom'; compute: (answers: Record<string, unknown>) => Record<string, number> }
 
 export type QuestionnaireDefinition = {
@@ -68,4 +71,11 @@ export const RESPONSE_LABELS: Record<ResponseType, string[]> = {
   frequency0_2: ['Nunca / 0', 'Às vezes / 1', 'Sempre / 2'],
   forced_choice: [],
   rating4: ['1', '2', '3', '4'],
+  vineland_item: [
+    '2 — Sim, normalmente',
+    '1 — Algumas vezes, ou parcialmente',
+    '0 — Não, nunca',
+    'N — Não teve oportunidade',
+    'D — Desconhecido',
+  ],
 }

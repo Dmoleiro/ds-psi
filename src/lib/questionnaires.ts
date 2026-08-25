@@ -35,6 +35,7 @@ export const QUESTIONNAIRE_IDS = [
   'cdi',
   'edah',
   'adir',
+  'vineland',
 ] as const
 
 export type QuestionnaireItem = {

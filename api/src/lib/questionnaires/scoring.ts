@@ -1,4 +1,5 @@
 import type { QuestionnaireDefinition, QuestionnaireScores, ScoringRule } from './types.js'
+import { computeVinelandScores } from './vinelandScoring.js'
 
 function asNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value
@@ -179,6 +180,8 @@ function computeRuleScores(rule: ScoringRule, answers: Record<string, unknown>):
         .reduce((sum, n) => sum + (asNumber(answers[`q${n}`]) ?? 0), 0)
       return scores
     }
+    case 'vineland':
+      return computeVinelandScores(answers)
     case 'custom':
       return rule.compute(answers)
     default:
