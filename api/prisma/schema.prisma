@@ -133,6 +133,7 @@ model Patient {
   preEscolarResults Json    @default("{}") @map("pre_escolar_results")
   additionalMethodSelections Json @default("[]") @map("additional_method_selections")
   questionnaireSelections Json @default("[]") @map("questionnaire_selections")
+  deliveredFormIds Json @default("[]") @map("delivered_form_ids")
   assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")
   assessmentPipelineNotes String? @map("assessment_pipeline_notes") @db.Text
   assessmentPipelineStageOverrides Json @default("{}") @map("assessment_pipeline_stage_overrides")

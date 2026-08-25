@@ -36,6 +36,7 @@ import { PatientTimelinePanel } from '../../components/backoffice/PatientTimelin
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
 import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
+import { isFormDelivered } from '../../lib/deliveredForms'
 
 type PatientTab =
   | 'avaliacao'
@@ -103,6 +104,7 @@ type PatientDetail = {
   preEscolarResults?: PreEscolarResults
   additionalMethodSelections?: string[]
   questionnaireSelections?: string[]
+  deliveredFormIds?: string[]
   intakeSessions: SessionRow[]
   piccaSessions?: PiccaSessionRow[]
   piccaInteractiveSessions?: PiccaInteractiveSessionRow[]
@@ -151,6 +153,8 @@ export function PatientDetailPage() {
   const [savingPatient, setSavingPatient] = useState(false)
   const [togglingActive, setTogglingActive] = useState(false)
   const [activeToggleError, setActiveToggleError] = useState('')
+  const [deliveryToggleLoading, setDeliveryToggleLoading] = useState<string | null>(null)
+  const [deliveryToggleError, setDeliveryToggleError] = useState('')
 
   const patientIsActive = patient?.active !== false
 
@@ -205,6 +209,79 @@ export function PatientDetailPage() {
   function toggleQuestionnaire(formId: string) {
     setSelectedQuestionnaires((current) =>
       current.includes(formId) ? current.filter((f) => f !== formId) : [...current, formId],
+    )
+  }
+
+  async function handleToggleFormDelivery(formId: string, delivered: boolean) {
+    if (!token || !id || readOnly) return
+    setDeliveryToggleLoading(formId)
+    setDeliveryToggleError('')
+    try {
+      const result = await therapistApi.updatePatientFormDelivery(token, id, {
+        formId,
+        delivered,
+      })
+      setPatient((current) =>
+        current ? { ...current, deliveredFormIds: result.deliveredFormIds } : current,
+      )
+    } catch (err) {
+      setDeliveryToggleError(
+        err instanceof ApiError ? err.message : 'Não foi possível atualizar a entrega',
+      )
+    } finally {
+      setDeliveryToggleLoading(null)
+    }
+  }
+
+  function renderFormDeliveryControls(formId: string) {
+    if (readOnly) return null
+    const delivered = isFormDelivered(patient?.deliveredFormIds ?? [], formId)
+    const loading = deliveryToggleLoading === formId
+
+    return (
+      <button
+        type="button"
+        className={styles.deliveryToggleButton}
+        disabled={loading}
+        onClick={() => void handleToggleFormDelivery(formId, !delivered)}
+      >
+        {delivered ? 'Não entregue' : 'Marcar entregue'}
+      </button>
+    )
+  }
+
+  function renderFormSelectRow(
+    form: FormOption,
+    checked: boolean,
+    onToggle: () => void,
+  ) {
+    const delivered = isFormDelivered(patient?.deliveredFormIds ?? [], form.id)
+
+    return (
+      <div key={form.id} className={styles.formSelectRow}>
+        <label className={styles.formSelectCheckbox}>
+          <input type="checkbox" checked={checked} onChange={onToggle} />
+        </label>
+        <div className={styles.formSelectMain}>
+          <span className={styles.formSelectTitle}>{form.title}</span>
+          <span
+            className={
+              delivered ? styles.deliveryStatusDelivered : styles.deliveryStatusPending
+            }
+          >
+            {delivered ? 'Entregue' : 'Por entregar'}
+          </span>
+          {renderFormDeliveryControls(form.id)}
+          <a
+            className={styles.previewLink}
+            href={formPreviewHref(form.id)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Pré-visualizar
+          </a>
+        </div>
+      </div>
     )
   }
 
@@ -989,29 +1066,13 @@ export function PatientDetailPage() {
           <p className={styles.muted}>Ainda não existem formulários disponíveis para atribuir.</p>
         ) : (
           <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
-            {availableForms.map((form) => (
-              <div key={form.id} className={styles.formSelectRow}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedForms.includes(form.id)}
-                    onChange={() => toggleForm(form.id)}
-                  />
-                  {form.title}
-                </label>
-                <a
-                  className={styles.previewLink}
-                  href={formPreviewHref(form.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Pré-visualizar
-                </a>
-              </div>
-            ))}
+            {availableForms.map((form) =>
+              renderFormSelectRow(form, selectedForms.includes(form.id), () => toggleForm(form.id)),
+            )}
           </div>
         )}
         {error && <p className={styles.error}>{error}</p>}
+        {deliveryToggleError && <p className={styles.error}>{deliveryToggleError}</p>}
         <Button
           type="button"
           onClick={() => handleGenerateLink('intake')}
@@ -1099,29 +1160,17 @@ export function PatientDetailPage() {
           <p className={styles.muted}>Ainda não existem questionários disponíveis.</p>
         ) : (
           <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
-            {availableQuestionnaires.map((form) => (
-              <div key={form.id} className={styles.formSelectRow}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedQuestionnaires.includes(form.id)}
-                    onChange={() => toggleQuestionnaire(form.id)}
-                  />
-                  {form.title}
-                </label>
-                <a
-                  className={styles.previewLink}
-                  href={formPreviewHref(form.id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Pré-visualizar
-                </a>
-              </div>
-            ))}
+            {availableQuestionnaires.map((form) =>
+              renderFormSelectRow(
+                form,
+                selectedQuestionnaires.includes(form.id),
+                () => toggleQuestionnaire(form.id),
+              ),
+            )}
           </div>
         )}
         {error && <p className={styles.error}>{error}</p>}
+        {deliveryToggleError && <p className={styles.error}>{deliveryToggleError}</p>}
         <Button
           type="button"
           onClick={() => handleGenerateLink('questionnaire')}

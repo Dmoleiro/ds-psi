@@ -481,12 +481,65 @@
   gap: var(--space-sm);
 }
 
-.formSelectRow label {
+.formSelectCheckbox {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.formSelectMain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem var(--space-sm);
   min-width: 0;
+}
+
+.formSelectTitle {
+  min-width: 0;
+  font-weight: 500;
+}
+
+.deliveryStatusDelivered,
+.deliveryStatusPending {
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.deliveryStatusDelivered {
+  background: #d8f0df;
+  color: #1f6b3b;
+}
+
+.deliveryStatusPending {
+  background: #f3e8d8;
+  color: #8a5a12;
+}
+
+.deliveryToggleButton {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface, #fff);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.deliveryToggleButton:hover:not(:disabled) {
+  background: var(--color-surface-muted, #f7f7f7);
+}
+
+.deliveryToggleButton:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .previewLink {

@@ -7,6 +7,8 @@ import { shouldCompleteSession } from '../lib/formIds.js'
 import { formatTherapistPatientWithPicca } from './piccaSessions.js'
 import { formatTherapistPatientWithPiccaInteractive } from './piccaInteractiveSessions.js'
 import { formatPatientEvaluationSelections } from './patientEvaluations.js'
+import { sanitizeDeliveredFormIds } from '../lib/deliveredForms.js'
+import { markPatientFormsDelivered } from './patientFormDelivery.js'
 import { decimalToNumber } from './financialSettings.js'
 import { updatePatientAppointmentFees } from './appointments.js'
 
@@ -100,6 +102,7 @@ export function formatTherapistPatient(patient: TherapistPatient) {
     ...formatPatientSummary(patient),
     internalNotes: patient.internalNotes,
     appointmentNotes: patient.appointmentNotes,
+    deliveredFormIds: sanitizeDeliveredFormIds(patient.deliveredFormIds),
     ...formatPatientEvaluationSelections(patient),
     intakeSessions: patient.intakeSessions.map((session) => ({
       id: session.id,
@@ -178,6 +181,8 @@ export async function createPatientSession(
       },
     },
   })
+
+  await markPatientFormsDelivered(patientId, formIds)
 
   return {
     session,

@@ -595,6 +595,19 @@ export const therapistApi = {
       token,
       body: { formIds, sessionKind },
     }),
+  updatePatientFormDelivery: (
+    token: string,
+    patientId: string,
+    body: { formId: string; delivered: boolean },
+  ) =>
+    apiRequest<{ deliveredFormIds: string[] }>(
+      `/api/therapist/patients/${patientId}/form-delivery`,
+      {
+        method: 'PATCH',
+        token,
+        body,
+      },
+    ),
   getSessionSubmissions: (token: string, sessionId: string) =>
     apiRequest<{
       session: {

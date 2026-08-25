@@ -345,6 +345,11 @@ export const createSessionSchema = z.object({
   sessionKind: z.enum(['intake', 'questionnaire']).optional(),
 })
 
+export const updatePatientFormDeliverySchema = z.object({
+  formId: z.string().min(1).max(64),
+  delivered: z.boolean(),
+})
+
 export const createPiccaSessionSchema = z.object({
   moduleIds: z.array(z.string().min(1)).min(1),
 })

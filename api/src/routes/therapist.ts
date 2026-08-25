@@ -20,6 +20,7 @@ import {
   setTherapistPatientActive,
   updateTherapistPatient,
 } from '../services/sessions.js'
+import { updateTherapistPatientFormDelivery } from '../services/patientFormDelivery.js'
 import {
   listPatientAttendance,
   listTherapistAttendance,
@@ -37,7 +38,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -423,6 +424,36 @@ export async function therapistRoutes(app: FastifyInstance) {
       throw error
     }
   })
+
+  app.patch(
+    '/api/therapist/patients/:id/form-delivery',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = updatePatientFormDeliverySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const deliveredFormIds = await updateTherapistPatientFormDelivery(
+          request.user.sub,
+          id,
+          parsed.data.formId,
+          parsed.data.delivered,
+        )
+        return { deliveredFormIds }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Paciente não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'FORM_NOT_FOUND') {
+          return reply.status(400).send({ error: 'Formulário não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
 
   app.put(
     '/api/therapist/patients/:id/appointment-notes',
