@@ -244,6 +244,32 @@ export const griffithsResultsSchema = z
   })
   .default({})
 
+const preEscolarSubtestSchema = z
+  .object({
+    correct: z.string().max(8).optional(),
+    errors: z.string().max(8).optional(),
+    points: z.string().max(8).optional(),
+    percentile: z.string().max(8).optional(),
+    stanine: z.string().max(4).optional(),
+  })
+  .partial()
+  .default({})
+
+export const preEscolarResultsSchema = z
+  .object({
+    ageYears: z.string().max(8).optional(),
+    ageMonths: z.string().max(8).optional(),
+    ageInputMode: z.enum(['years_months', 'dates']).optional(),
+    birthDate: z.string().max(10).optional(),
+    evaluationDate: z.string().max(10).optional(),
+    normLevel: z.enum(['pre_escolar', 'primeiro_ano']).optional(),
+    subtests: z.record(z.string(), preEscolarSubtestSchema).default({}),
+    totalPoints: z.string().max(8).optional(),
+    totalPercentile: z.string().max(8).optional(),
+    totalStanine: z.string().max(4).optional(),
+  })
+  .default({})
+
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
@@ -252,6 +278,7 @@ export const patientEvaluationsSchema = z.object({
   wiscResults: wiscResultsSchema,
   bancResults: bancResultsSchema,
   griffithsResults: griffithsResultsSchema,
+  preEscolarResults: preEscolarResultsSchema,
 })
 
 export const patientAppointmentNotesSchema = z.object({

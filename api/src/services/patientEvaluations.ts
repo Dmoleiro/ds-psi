@@ -16,6 +16,11 @@ import {
   hasGriffithsResultsData,
   sanitizeGriffithsResults,
 } from '../lib/griffithsResults.js'
+import {
+  PRE_ESCOLAR_SELECTION_KEY,
+  hasPreEscolarResultsData,
+  sanitizePreEscolarResults,
+} from '../lib/preEscolarResults.js'
 
 export function formatPatientEvaluationSelections(patient: {
   wiscSelections: unknown
@@ -23,15 +28,23 @@ export function formatPatientEvaluationSelections(patient: {
   bancSelections: unknown
   bancResults?: unknown
   griffithsResults?: unknown
+  preEscolarResults?: unknown
   additionalMethodSelections?: unknown
   questionnaireSelections?: unknown
 }) {
   const griffithsResults = sanitizeGriffithsResults(patient.griffithsResults)
+  const preEscolarResults = sanitizePreEscolarResults(patient.preEscolarResults)
   let additionalMethodSelections = sanitizeAdditionalMethodSelections(patient.additionalMethodSelections)
 
   if (hasGriffithsResultsData(griffithsResults)) {
     if (!additionalMethodSelections.includes(GRIFFITHS_SELECTION_KEY)) {
       additionalMethodSelections = [...additionalMethodSelections, GRIFFITHS_SELECTION_KEY]
+    }
+  }
+
+  if (hasPreEscolarResultsData(preEscolarResults)) {
+    if (!additionalMethodSelections.includes(PRE_ESCOLAR_SELECTION_KEY)) {
+      additionalMethodSelections = [...additionalMethodSelections, PRE_ESCOLAR_SELECTION_KEY]
     }
   }
 
@@ -41,6 +54,7 @@ export function formatPatientEvaluationSelections(patient: {
     bancSelections: sanitizeBancSelections(patient.bancSelections),
     bancResults: sanitizeBancResults(patient.bancResults),
     griffithsResults,
+    preEscolarResults,
     additionalMethodSelections,
     questionnaireSelections: sanitizeQuestionnaireSelections(patient.questionnaireSelections),
   }
@@ -55,6 +69,7 @@ export async function updateTherapistPatientEvaluations(
     bancSelections: unknown
     bancResults: unknown
     griffithsResults: unknown
+    preEscolarResults: unknown
     additionalMethodSelections: unknown
     questionnaireSelections: unknown
   },
@@ -72,12 +87,19 @@ export async function updateTherapistPatientEvaluations(
   const bancSelections = sanitizeBancSelections(data.bancSelections)
   const bancResults = sanitizeBancResults(data.bancResults)
   const griffithsResults = sanitizeGriffithsResults(data.griffithsResults)
+  const preEscolarResults = sanitizePreEscolarResults(data.preEscolarResults)
   let additionalMethodSelections = sanitizeAdditionalMethodSelections(data.additionalMethodSelections)
   const questionnaireSelections = sanitizeQuestionnaireSelections(data.questionnaireSelections)
 
   if (hasGriffithsResultsData(griffithsResults)) {
     if (!additionalMethodSelections.includes(GRIFFITHS_SELECTION_KEY)) {
       additionalMethodSelections = [...additionalMethodSelections, GRIFFITHS_SELECTION_KEY]
+    }
+  }
+
+  if (hasPreEscolarResultsData(preEscolarResults)) {
+    if (!additionalMethodSelections.includes(PRE_ESCOLAR_SELECTION_KEY)) {
+      additionalMethodSelections = [...additionalMethodSelections, PRE_ESCOLAR_SELECTION_KEY]
     }
   }
 
@@ -89,6 +111,7 @@ export async function updateTherapistPatientEvaluations(
       bancSelections,
       bancResults,
       griffithsResults,
+      preEscolarResults,
       additionalMethodSelections,
       questionnaireSelections,
     },
@@ -98,6 +121,7 @@ export async function updateTherapistPatientEvaluations(
       bancSelections: true,
       bancResults: true,
       griffithsResults: true,
+      preEscolarResults: true,
       additionalMethodSelections: true,
       questionnaireSelections: true,
     },

@@ -30,6 +30,8 @@ import type { BancResults } from '../../lib/bancResults'
 import { emptyBancResults } from '../../lib/bancResults'
 import type { GriffithsResults } from '../../lib/griffithsResults'
 import { emptyGriffithsResults } from '../../lib/griffithsResults'
+import type { PreEscolarResults } from '../../lib/preEscolarResults'
+import { emptyPreEscolarResults } from '../../lib/preEscolarResults'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
@@ -98,6 +100,7 @@ type PatientDetail = {
   bancSelections: string[]
   bancResults?: BancResults
   griffithsResults?: GriffithsResults
+  preEscolarResults?: PreEscolarResults
   additionalMethodSelections?: string[]
   questionnaireSelections?: string[]
   intakeSessions: SessionRow[]
@@ -970,6 +973,7 @@ export function PatientDetailPage() {
             bancSelections: patient.bancSelections ?? [],
             bancResults: patient.bancResults ?? emptyBancResults(),
             griffithsResults: patient.griffithsResults ?? emptyGriffithsResults(),
+            preEscolarResults: patient.preEscolarResults ?? emptyPreEscolarResults(),
             additionalMethodSelections: patient.additionalMethodSelections ?? [],
           }}
         />

@@ -54,25 +54,17 @@ export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
     title: 'STROOP',
     options: [{ key: 'stroop', label: 'STROOP' }],
   },
-  {
-    title: 'Prova Avaliação Pré-Escolar',
-    options: [
-      { key: 'prova_pre_escolar_verbal', label: 'Verbal' },
-      { key: 'prova_pre_escolar_conceitos_quantitativos', label: 'Conceitos Quantitativos' },
-      { key: 'prova_pre_escolar_memoria_auditiva', label: 'Memória Auditiva' },
-      { key: 'prova_pre_escolar_constancia_de_forma', label: 'Constância de Forma' },
-      { key: 'prova_pre_escolar_posicoes_espaco', label: 'Posições Espaço' },
-      { key: 'prova_pre_escolar_orientacao_espacial', label: 'Orientação Espacial' },
-      { key: 'prova_pre_escolar_coordenacao_visiomotora', label: 'Coordenação Visiomotora' },
-      { key: 'prova_pre_escolar_figura_fundo', label: 'Figura Fundo' },
-    ],
-  },
 ]
 
 export const ADDITIONAL_METHOD_EVALUATION_OPTIONS: ReadonlyArray<EvaluationOption> =
   ADDITIONAL_EVALUATION_METHODS.flatMap((method) => method.options)
 
 export const GRIFFITHS_EVALUATION_KEY = 'escala_desenvolvimento_ruth_griffiths'
+
+import {
+  PRE_ESCOLAR_SELECTION_KEY,
+  PRE_ESCOLAR_SUBTEST_SELECTION_KEYS,
+} from './preEscolarResults.js'
 
 export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'sdq_por', label: 'SDQ-Por' },
@@ -102,6 +94,8 @@ export const BANC_EVALUATION_KEYS = BANC_EVALUATION_OPTIONS.map((option) => opti
 export const ADDITIONAL_METHOD_EVALUATION_KEYS = [
   GRIFFITHS_EVALUATION_KEY,
   ...ADDITIONAL_METHOD_EVALUATION_OPTIONS.map((option) => option.key),
+  PRE_ESCOLAR_SELECTION_KEY,
+  ...PRE_ESCOLAR_SUBTEST_SELECTION_KEYS,
 ]
 export const QUESTIONNAIRE_EVALUATION_KEYS = QUESTIONNAIRE_EVALUATION_OPTIONS.map(
   (option) => option.key,

@@ -32,6 +32,16 @@ export const BANC_EVALUATION_OPTIONS = [
   { key: 'tabuleiro_de_motricidade', label: 'Tabuleiro de Motricidade' },
 ] as const
 
+import {
+  PRE_ESCOLAR_SELECTION_KEY,
+  PRE_ESCOLAR_SUBTEST_SELECTION_KEYS,
+  PRE_ESCOLAR_SUBTESTS,
+} from './preEscolarResults'
+import type { BancResults } from './bancResults'
+import type { GriffithsResults } from './griffithsResults'
+import type { PreEscolarResults } from './preEscolarResults'
+import type { WiscResults } from './wiscResults'
+
 type EvaluationOption = { key: string; label: string }
 
 export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
@@ -54,25 +64,17 @@ export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
     title: 'STROOP',
     options: [{ key: 'stroop', label: 'STROOP' }],
   },
-  {
-    title: 'Prova Avaliação Pré-Escolar',
-    options: [
-      { key: 'prova_pre_escolar_verbal', label: 'Verbal' },
-      { key: 'prova_pre_escolar_conceitos_quantitativos', label: 'Conceitos Quantitativos' },
-      { key: 'prova_pre_escolar_memoria_auditiva', label: 'Memória Auditiva' },
-      { key: 'prova_pre_escolar_constancia_de_forma', label: 'Constância de Forma' },
-      { key: 'prova_pre_escolar_posicoes_espaco', label: 'Posições Espaço' },
-      { key: 'prova_pre_escolar_orientacao_espacial', label: 'Orientação Espacial' },
-      { key: 'prova_pre_escolar_coordenacao_visiomotora', label: 'Coordenação Visiomotora' },
-      { key: 'prova_pre_escolar_figura_fundo', label: 'Figura Fundo' },
-    ],
-  },
 ]
 
 export const ADDITIONAL_METHOD_EVALUATION_OPTIONS: ReadonlyArray<EvaluationOption> =
   ADDITIONAL_EVALUATION_METHODS.flatMap((method) => method.options)
 
 export const GRIFFITHS_EVALUATION_KEY = 'escala_desenvolvimento_ruth_griffiths'
+
+export const PRE_ESCOLAR_EVALUATION_OPTIONS = PRE_ESCOLAR_SUBTESTS.map((subtest) => ({
+  key: subtest.selectionKey,
+  label: subtest.label,
+}))
 
 export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'sdq_por', label: 'SDQ-Por' },
@@ -97,9 +99,18 @@ export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'cdi', label: 'CDI' },
 ] as const
 
-import type { BancResults } from './bancResults'
-import type { GriffithsResults } from './griffithsResults'
-import type { WiscResults } from './wiscResults'
+export const WISC_EVALUATION_KEYS = WISC_EVALUATION_OPTIONS.map((option) => option.key)
+export const BANC_EVALUATION_KEYS = BANC_EVALUATION_OPTIONS.map((option) => option.key)
+
+export const ADDITIONAL_METHOD_EVALUATION_KEYS = [
+  GRIFFITHS_EVALUATION_KEY,
+  ...ADDITIONAL_METHOD_EVALUATION_OPTIONS.map((option) => option.key),
+  PRE_ESCOLAR_SELECTION_KEY,
+  ...PRE_ESCOLAR_SUBTEST_SELECTION_KEYS,
+]
+export const QUESTIONNAIRE_EVALUATION_KEYS = QUESTIONNAIRE_EVALUATION_OPTIONS.map(
+  (option) => option.key,
+)
 
 export type PatientEvaluationSelections = {
   wiscSelections: string[]
@@ -108,4 +119,5 @@ export type PatientEvaluationSelections = {
   wiscResults: WiscResults
   bancResults: BancResults
   griffithsResults: GriffithsResults
+  preEscolarResults: PreEscolarResults
 }

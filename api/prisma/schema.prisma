@@ -130,6 +130,7 @@ model Patient {
   bancSelections Json     @default("[]") @map("banc_selections")
   bancResults Json         @default("{}") @map("banc_results")
   griffithsResults Json    @default("{}") @map("griffiths_results")
+  preEscolarResults Json    @default("{}") @map("pre_escolar_results")
   additionalMethodSelections Json @default("[]") @map("additional_method_selections")
   questionnaireSelections Json @default("[]") @map("questionnaire_selections")
   assessmentPipelineStage AssessmentPipelineStage @default(intake) @map("assessment_pipeline_stage")

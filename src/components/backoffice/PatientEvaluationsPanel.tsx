@@ -9,9 +9,11 @@ import {
 import { emptyWiscResults, hasWiscResultsData } from '../../lib/wiscResults'
 import { emptyBancResults, hasBancResultsData } from '../../lib/bancResults'
 import { emptyGriffithsResults, hasGriffithsResultsData } from '../../lib/griffithsResults'
+import { emptyPreEscolarResults, hasPreEscolarResultsData } from '../../lib/preEscolarResults'
 import { WiscResultsTables } from './WiscResultsTables'
 import { BancResultsTables } from './BancResultsTables'
 import { GriffithsResultsTables } from './GriffithsResultsTables'
+import { PreEscolarResultsTables } from './PreEscolarResultsTables'
 import { Card } from '../ui/Card'
 import styles from './PatientEvaluationsPanel.module.css'
 
@@ -31,12 +33,14 @@ type MethodTab =
   | { id: 'wisc'; label: 'WISC III' }
   | { id: 'banc'; label: 'BANC' }
   | { id: 'griffiths'; label: 'Ruth Griffiths' }
+  | { id: 'preescolar'; label: 'Pré-Escolar' }
   | { id: `additional-${number}`; label: string; methodIndex: number }
 
 const METHOD_TABS: MethodTab[] = [
   { id: 'wisc', label: 'WISC III' },
   { id: 'banc', label: 'BANC' },
   { id: 'griffiths', label: 'Ruth Griffiths' },
+  { id: 'preescolar', label: 'Pré-Escolar' },
   ...ADDITIONAL_EVALUATION_METHODS.map((method, methodIndex) => ({
     id: `additional-${methodIndex}` as const,
     label: method.title,
@@ -51,6 +55,7 @@ const EMPTY_SELECTIONS: PatientEvaluationSelections = {
   wiscResults: emptyWiscResults(),
   bancResults: emptyBancResults(),
   griffithsResults: emptyGriffithsResults(),
+  preEscolarResults: emptyPreEscolarResults(),
 }
 
 export function PatientEvaluationsPanel({
@@ -76,6 +81,7 @@ export function PatientEvaluationsPanel({
       wiscResults: initialSelections.wiscResults ?? emptyWiscResults(),
       bancResults: initialSelections.bancResults ?? emptyBancResults(),
       griffithsResults: initialSelections.griffithsResults ?? emptyGriffithsResults(),
+      preEscolarResults: initialSelections.preEscolarResults ?? emptyPreEscolarResults(),
     })
   }, [
     patientId,
@@ -85,6 +91,7 @@ export function PatientEvaluationsPanel({
     initialSelections.wiscResults,
     initialSelections.bancResults,
     initialSelections.griffithsResults,
+    initialSelections.preEscolarResults,
   ])
 
   function hasAdditionalMethodContent(methodIndex: number): boolean {
@@ -103,6 +110,9 @@ export function PatientEvaluationsPanel({
     }
     if (tab.id === 'griffiths') {
       return hasGriffithsResultsData(selections.griffithsResults)
+    }
+    if (tab.id === 'preescolar') {
+      return hasPreEscolarResultsData(selections.preEscolarResults)
     }
     if (tab.id.startsWith('additional-')) {
       return hasAdditionalMethodContent(tab.methodIndex)
@@ -276,6 +286,15 @@ export function PatientEvaluationsPanel({
     scheduleSave(next)
   }
 
+  function updatePreEscolarResults(
+    nextPreEscolarResults: PatientEvaluationSelections['preEscolarResults'],
+  ) {
+    if (readOnly) return
+    const next = { ...selections, preEscolarResults: nextPreEscolarResults }
+    setSelections(next)
+    scheduleSave(next)
+  }
+
   function renderGriffithsSection() {
     return (
       <section className={styles.methodSection} aria-labelledby="griffiths-method-heading">
@@ -292,6 +311,28 @@ export function PatientEvaluationsPanel({
           readOnly={readOnly}
           defaultBirthDate={patientBirthDate}
           onChange={updateGriffithsResults}
+        />
+      </section>
+    )
+  }
+
+  function renderPreEscolarSection() {
+    return (
+      <section className={styles.methodSection} aria-labelledby="preescolar-method-heading">
+        <h3 id="preescolar-method-heading" className={styles.srOnly}>
+          Pré-Escolar
+        </h3>
+        <p className={styles.muted}>
+          Provas de Diagnóstico Pré-Escolar (CEGOC) — Cadernos A e B. Introduza os acertos (C) e
+          erros (E) da grelha de correcção; percentis e eneatipos usam a Tabela 1 (pré-escolar) ou
+          Tabela 2 (1.º ano).
+        </p>
+        <PreEscolarResultsTables
+          key={`${patientId}-preescolar`}
+          value={selections.preEscolarResults}
+          readOnly={readOnly}
+          defaultBirthDate={patientBirthDate}
+          onChange={updatePreEscolarResults}
         />
       </section>
     )
@@ -462,6 +503,7 @@ export function PatientEvaluationsPanel({
                 {tab.id === 'wisc' && renderWiscSection()}
                 {tab.id === 'banc' && renderBancSection()}
                 {tab.id === 'griffiths' && renderGriffithsSection()}
+                {tab.id === 'preescolar' && renderPreEscolarSection()}
                 {'methodIndex' in tab &&
                   renderMethod(
                     ADDITIONAL_EVALUATION_METHODS[tab.methodIndex]!.title,
