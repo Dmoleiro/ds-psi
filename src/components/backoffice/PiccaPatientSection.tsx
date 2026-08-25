@@ -6,6 +6,8 @@ import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import { PiccaVolumeCheckboxGroups, PiccaVolumeStatusList } from '../picca/PiccaVolumeSections'
+import { hasPiccaModuleRenderer } from '../picca/moduleRegistry'
+import { piccaModulePreviewHref } from '../../lib/piccaPreview'
 import styles from './BackofficeLayout.module.css'
 import {
   formatFormStatus,
@@ -148,6 +150,10 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
   const patientLinkModules = availableModules.filter((m) => !m.therapistOnly)
   const therapistOnlyModules = availableModules.filter((m) => m.therapistOnly)
 
+  function modulePreviewHref(moduleId: string): string | null {
+    return hasPiccaModuleRenderer(moduleId) ? piccaModulePreviewHref(moduleId) : null
+  }
+
   return (
     <>
       <Card as="section" className={styles.sectionSpaced}>
@@ -167,6 +173,7 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
                   modules={patientLinkModules}
                   selectedIds={selectedModules}
                   onToggle={toggleModule}
+                  previewHref={modulePreviewHref}
                 />
               </div>
             )}
@@ -177,6 +184,7 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
                   modules={therapistOnlyModules}
                   selectedIds={selectedModules}
                   onToggle={toggleModule}
+                  previewHref={modulePreviewHref}
                 />
               </div>
             )}

@@ -204,6 +204,46 @@ export const bancResultsSchema = z
   })
   .default({})
 
+const griffithsSectionCellsSchema = z
+  .union([
+    z.tuple([z.string().max(16), z.string().max(16)]),
+    z.tuple([z.string().max(16), z.string().max(16), z.string().max(16)]),
+    z.string().max(16),
+  ])
+  .optional()
+
+export const griffithsResultsSchema = z
+  .object({
+    ageYears: z.string().max(8).optional(),
+    ageMonths: z.string().max(8).optional(),
+    ageInputMode: z.enum(['years_months', 'dates']).optional(),
+    birthDate: z.string().max(10).optional(),
+    evaluationDate: z.string().max(10).optional(),
+    subscales: z
+      .record(
+        z.string(),
+        z
+          .object({
+            sectionI: griffithsSectionCellsSchema,
+            sectionII: griffithsSectionCellsSchema,
+            sectionIII: griffithsSectionCellsSchema,
+            sectionIV: griffithsSectionCellsSchema,
+            developmentalAgeMonths: griffithsSectionCellsSchema,
+            mentalAgeGlobal: griffithsSectionCellsSchema,
+            percentile: griffithsSectionCellsSchema,
+            confidenceInterval: griffithsSectionCellsSchema,
+            zScore: griffithsSectionCellsSchema,
+          })
+          .partial()
+          .default({}),
+      )
+      .default({}),
+    qgQuotient: z.string().max(16).optional(),
+    qgPercentile: z.string().max(16).optional(),
+    qgConfidenceInterval: z.string().max(32).optional(),
+  })
+  .default({})
+
 export const patientEvaluationsSchema = z.object({
   wiscSelections: z.array(z.string()).default([]),
   bancSelections: z.array(z.string()).default([]),
@@ -211,6 +251,7 @@ export const patientEvaluationsSchema = z.object({
   questionnaireSelections: z.array(z.string()).default([]),
   wiscResults: wiscResultsSchema,
   bancResults: bancResultsSchema,
+  griffithsResults: griffithsResultsSchema,
 })
 
 export const patientAppointmentNotesSchema = z.object({

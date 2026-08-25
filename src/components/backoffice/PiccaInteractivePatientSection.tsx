@@ -7,6 +7,8 @@ import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import styles from './BackofficeLayout.module.css'
+import { hasPiccaInteractiveFormRenderer } from '../picca/interactive/interactiveFormRegistry'
+import { piccaInteractivePreviewHref } from '../../lib/piccaPreview'
 import { formatSessionStatus, sessionStatusBadgeVariant } from '../../lib/intakeStatus'
 
 export type PiccaInteractiveSessionRow = {
@@ -150,22 +152,39 @@ export function PiccaInteractivePatientSection({
         {availableForms.length === 0 ? (
           <p className={styles.muted}>Não existem formulários interativos disponíveis.</p>
         ) : (
-          <div style={{ margin: 'var(--space-md) 0', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-            {availableForms.map((form) => (
-              <label key={form.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedForms.includes(form.id)}
-                  onChange={() => toggleForm(form.id)}
-                />
-                <span>
-                  <strong>{form.title}</strong>
-                  {form.description && (
-                    <span className={styles.muted}> — {form.description}</span>
-                  )}
-                </span>
-              </label>
-            ))}
+          <div className={styles.checkboxGroup} style={{ margin: 'var(--space-md) 0' }}>
+            {availableForms.map((form) => {
+              const previewHref = hasPiccaInteractiveFormRenderer(form.id)
+                ? piccaInteractivePreviewHref(form.id)
+                : null
+              return (
+                <div key={form.id} className={styles.formSelectRow}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selectedForms.includes(form.id)}
+                      onChange={() => toggleForm(form.id)}
+                    />
+                    <span>
+                      <strong>{form.title}</strong>
+                      {form.description && (
+                        <span className={styles.muted}> — {form.description}</span>
+                      )}
+                    </span>
+                  </label>
+                  {previewHref ? (
+                    <a
+                      className={styles.previewLink}
+                      href={previewHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Pré-visualizar
+                    </a>
+                  ) : null}
+                </div>
+              )
+            })}
           </div>
         )}
         {error && <p className={styles.error}>{error}</p>}

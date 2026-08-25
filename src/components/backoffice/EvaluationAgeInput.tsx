@@ -15,6 +15,7 @@ type Props = {
   defaultBirthDate?: string
   yearsPlaceholder?: string
   monthsPlaceholder?: string
+  showEvaluationDate?: boolean
   extra?: ReactNode
   onChange: (next: EvaluationAgeFields) => void
 }
@@ -25,6 +26,7 @@ export function EvaluationAgeInput({
   defaultBirthDate = '',
   yearsPlaceholder = 'anos',
   monthsPlaceholder = '0–11',
+  showEvaluationDate = true,
   extra,
   onChange,
 }: Props) {
@@ -81,17 +83,19 @@ export function EvaluationAgeInput({
                 onChange={(event) => commit({ birthDate: event.target.value })}
               />
             </label>
-            <label className={styles.ageField}>
-              <span>Data da avaliação</span>
-              <input
-                className={`${styles.tableInput} ${styles.ageDateInput}`}
-                type="date"
-                value={age.evaluationDate}
-                disabled={readOnly}
-                aria-label="Data da avaliação"
-                onChange={(event) => commit({ evaluationDate: event.target.value })}
-              />
-            </label>
+            {showEvaluationDate ? (
+              <label className={styles.ageField}>
+                <span>Data da avaliação</span>
+                <input
+                  className={`${styles.tableInput} ${styles.ageDateInput}`}
+                  type="date"
+                  value={age.evaluationDate}
+                  disabled={readOnly}
+                  aria-label="Data da avaliação"
+                  onChange={(event) => commit({ evaluationDate: event.target.value })}
+                />
+              </label>
+            ) : null}
             {extra}
           </div>
           {dateOrderError ? (

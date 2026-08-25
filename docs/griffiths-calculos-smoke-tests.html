@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ruth Griffiths — Cálculo dos resultados (smoke tests)</title>
+    <style>
+      :root {
+        --text: #1a1a1a;
+        --muted: #555;
+        --border: #ccc;
+        --accent: #2c5282;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-size: 11pt;
+        line-height: 1.45;
+        color: var(--text);
+        max-width: 210mm;
+        margin: 0 auto;
+        padding: 14mm 16mm;
+      }
+
+      h1 {
+        font-size: 20pt;
+        margin: 0 0 4mm;
+        color: var(--accent);
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin: 0 0 8mm;
+        font-size: 10pt;
+      }
+
+      h2 {
+        font-size: 13pt;
+        margin: 7mm 0 3mm;
+        padding-bottom: 1.5mm;
+        border-bottom: 1px solid var(--border);
+        color: var(--accent);
+        page-break-after: avoid;
+      }
+
+      h3 {
+        font-size: 11pt;
+        margin: 4mm 0 2mm;
+        page-break-after: avoid;
+      }
+
+      p,
+      li {
+        margin: 0 0 2.5mm;
+      }
+
+      ul,
+      ol {
+        margin: 0 0 3mm;
+        padding-left: 5mm;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2mm 0 4mm;
+        font-size: 10pt;
+        page-break-inside: avoid;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 2mm 2.5mm;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f4f6f8;
+        font-weight: 600;
+      }
+
+      code,
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace;
+        font-size: 9.5pt;
+      }
+
+      pre {
+        background: #f8f9fa;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 3mm;
+        margin: 2mm 0 4mm;
+        white-space: pre-wrap;
+        page-break-inside: avoid;
+      }
+
+      .flow {
+        display: grid;
+        gap: 2mm;
+        margin: 3mm 0 5mm;
+        page-break-inside: avoid;
+      }
+
+      .flow-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2mm;
+      }
+
+      .box {
+        border: 1px solid var(--border);
+        background: #fafbfc;
+        padding: 2mm 3mm;
+        border-radius: 3px;
+        font-size: 9.5pt;
+      }
+
+      .arrow {
+        color: var(--muted);
+        font-weight: bold;
+      }
+
+      .note {
+        font-size: 9.5pt;
+        color: var(--muted);
+        border-left: 3px solid var(--accent);
+        padding-left: 3mm;
+        margin: 3mm 0;
+      }
+
+      .footer {
+        margin-top: 8mm;
+        padding-top: 3mm;
+        border-top: 1px solid var(--border);
+        font-size: 9pt;
+        color: var(--muted);
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          max-width: none;
+        }
+
+        h2 {
+          page-break-before: auto;
+        }
+
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ruth Griffiths — Cálculo dos resultados</h1>
+    <p class="subtitle">Guia para smoke tests · ds-psi · Agosto 2026 (lógica actualizada)</p>
+
+    <h2>Layout da tabela</h2>
+    <p>Cada subescala (A–F) tem <strong>duas colunas</strong>:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Coluna</th>
+          <th>Tabelas de normas</th>
+          <th>Subescalas usadas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>0–2 anos</strong> (slot 0)</td>
+          <td>Tabela 19 (subescala) + Tabela 20 (global)</td>
+          <td>A–E apenas (F é ignorada)</td>
+        </tr>
+        <tr>
+          <td><strong>2–8 anos</strong> (slot 1)</td>
+          <td>Anexo D CEGOC — coluna z = 0 (percentil 50)</td>
+          <td>A–F</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Introduz:</strong> Secções I–IV + idade cronológica.<br />
+      <strong>A app calcula:</strong> totais brutos, idade de desenvolvimento/mental, quociente parcial (QDA),
+      idade mental global e QG.
+    </p>
+    <p class="note">
+      As linhas derivadas são recalculadas a cada alteração; <strong>não são guardadas</strong> na base de dados.
+      Valores calculados usam <strong>2 casas decimais</strong> (ex.: 41,85; 60,14; 80,86).
+    </p>
+
+    <h2>1. Secções I–IV (manual)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Linha</th>
+          <th>Significado</th>
+          <th>Unidades</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Secção I</strong></td>
+          <td>Idade mental (folha de cotação)</td>
+          <td>meses</td>
+        </tr>
+        <tr>
+          <td><strong>Secção II</strong></td>
+          <td>Idade mental</td>
+          <td>meses</td>
+        </tr>
+        <tr>
+          <td><strong>Secção III</strong></td>
+          <td>Itens conseguidos</td>
+          <td>× 2 (introduzir o valor já multiplicado)</td>
+        </tr>
+        <tr>
+          <td><strong>Secção IV</strong></td>
+          <td>Itens conseguidos</td>
+          <td>× 2</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Células vazias numa coluna contam como <strong>0</strong>, desde que pelo menos uma das quatro secções tenha valor
+      nessa coluna.
+    </p>
+
+    <h2>2. Totais dos resultados brutos</h2>
+    <p>Por subescala, por coluna:</p>
+    <pre>Total bruto = Secção I + Secção II + Secção III + Secção IV</pre>
+    <p><strong>Exemplo (igual em todas as subescalas):</strong></p>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>0–2</th>
+          <th>2–8</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>I</td><td>4</td><td>3</td></tr>
+        <tr><td>II</td><td>2</td><td>3</td></tr>
+        <tr><td>III</td><td>1</td><td>2</td></tr>
+        <tr><td>IV</td><td>1</td><td>1</td></tr>
+        <tr><td><strong>Total</strong></td><td><strong>8,00</strong></td><td><strong>9,00</strong></td></tr>
+      </tbody>
+    </table>
+    <p>
+      Se alterar a subescala A, Secção I (0–2) de <code>4</code> → <code>20</code>, o total dessa coluna passa a
+      <strong>24,00</strong> e as idades derivadas de A devem atualizar de imediato.
+    </p>
+
+    <h2>3. Idade de Desenvolvimento / Mental (meses)</h2>
+    <p>Por subescala, por coluna. Usa o <strong>total bruto</strong> dessa subescala:</p>
+    <ul>
+      <li>
+        <strong>Coluna 0–2:</strong> Tabela 19 — lookup <code>[bruto → idade mental]</code> para A–E. Subescala
+        <strong>F</strong> → vazia (sem normas).
+      </li>
+      <li>
+        <strong>Coluna 2–8:</strong> Anexo D — na faixa etária da IC (24–47,5 / 48–71,5 / 72–96 meses), localizar na
+        coluna <strong>z = 0</strong> (percentil 50) a linha de idade cujo bruto médio corresponde ao total bruto da
+        subescala (interpolação). Requer <strong>idade cronológica</strong>. Subescalas com tabelas incompletas (D, E,
+        F) usam fallback a outras bandas ou escala geral.
+      </li>
+    </ul>
+    <p><strong>Regras de lookup (0–2):</strong> bruto arredondado ao inteiro; correspondência exacta ou bracket mais próximo.</p>
+    <p><strong>Regras de lookup (2–8):</strong> interpolação na coluna mediana; valores com 2 decimais.</p>
+    <p><strong>Exemplo (0–2, subescala A, bruto = 8):</strong> Tabela 19 → <strong>3,50 meses</strong>.</p>
+
+    <h2>4. Quociente parcial (QDA)</h2>
+    <p>
+      Por subescala, <strong>apenas na coluna 2–8</strong>. Na folha do terapeuta esta linha aparece por vezes como
+      “Idade Mental Global”, mas os valores são <strong>quocientes</strong>, não meses.
+    </p>
+    <pre>QDA = (idade desenvolvimento ÷ IC) × 100</pre>
+  <p><strong>Exemplo (IC = 69 meses, subescala A, desenvolvimento = 41,5):</strong></p>
+    <pre>(41,5 ÷ 69) × 100 = 60,14</pre>
+    <p>
+      <strong>Coluna 0–2:</strong> esta linha mostra idade mental global em <strong>meses</strong> (Tabela 20 sobre a
+      soma geral) — o mesmo valor em todas as subescalas.
+    </p>
+
+    <h2>5. Idade cronológica (meses)</h2>
+    <pre>IC = (anos × 12) + meses</pre>
+    <p>Valor único, só leitura. Necessária para idades derivadas 2–8 e para QG.</p>
+
+    <h2>6. Resultado global (fundo da página)</h2>
+    <h3>Idade mental global (meses)</h3>
+    <ul>
+      <li><strong>2–8 anos:</strong> média dos totais brutos das seis subescalas na coluna activa (como o <strong>IM</strong> na folha do terapeuta).</li>
+      <li><strong>0–2 anos:</strong> Tabela 20 sobre a <strong>soma geral</strong> dos totais brutos A–E (não a média).</li>
+    </ul>
+    <p><strong>Exemplo 2–8 (Salvador, IC = 69):</strong></p>
+    <pre>Totais: 48 + 64 + 48,5 + 72 + 60 + 42 = 334,5
+IM (idade mental global) = 334,5 ÷ 6 = 55,75 meses</pre>
+
+    <h3>Quociente geral (QG)</h3>
+    <p>Usa a coluna da faixa etária activa (≤24 meses → 0–2; &gt;24 meses → 2–8).</p>
+    <pre>QG = (valor usado no quociente ÷ IC) × 100</pre>
+    <p>
+      No <strong>2–8</strong>, o QG usa a <strong>média dos totais brutos</strong> (igual ao IM). No <strong>0–2</strong>,
+      o QG também usa a média dos totais brutos A–E, mesmo quando a idade mental global vem da Tabela 20.
+    </p>
+    <p>Regra especial quando <strong>IC &lt; 8 meses</strong>: somar <strong>+2</strong> à idade mental e à IC antes de dividir.</p>
+    <p><strong>Exemplo (Salvador):</strong></p>
+    <pre>(55,75 ÷ 69) × 100 = 80,86</pre>
+
+    <h3>Níveis (etiqueta junto ao QG)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>QG</th>
+          <th>Nível</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>&gt; 125</td><td>Superior</td></tr>
+        <tr><td>101–125</td><td>Médio alto</td></tr>
+        <tr><td>100</td><td>Médio</td></tr>
+        <tr><td>75–99</td><td>Médio baixo</td></tr>
+        <tr><td>&lt; 75</td><td>Deficitário</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. Quando fica vazio (—)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Situação</th>
+          <th>Efeito</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sem valores nas secções</td>
+          <td>Sem auto-scoring; linhas derivadas vazias</td>
+        </tr>
+        <tr>
+          <td>Coluna 2–8 sem idade cronológica</td>
+          <td>Idades derivadas 2–8 e QDA vazios; nota de rodapé</td>
+        </tr>
+        <tr>
+          <td>IC &gt; 96 meses</td>
+          <td>QG bloqueado; nota de rodapé</td>
+        </tr>
+        <tr>
+          <td>Subescala F, coluna 0–2</td>
+          <td>Idade de desenvolvimento vazia</td>
+        </tr>
+        <tr>
+          <td>Total bruto ≤ 0</td>
+          <td>Esse slot ignorado</td>
+        </tr>
+        <tr>
+          <td>Bruto fora das normas digitalizadas</td>
+          <td>Célula vazia (alguns intervalos D/F incompletos no PDF CEGOC)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Testes de fumo sugeridos</h2>
+
+    <h3>Teste 1 — Verificação rápida 0–2</h3>
+    <ol>
+      <li>Idade: <strong>1 ano, 0 meses</strong> (12 meses)</li>
+      <li>Em <strong>A–E</strong>, coluna <strong>0–2</strong>: I=4, II=2, III=1, IV=1</li>
+    </ol>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Valor esperado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Total bruto (cada A–E, 0–2)</td><td><strong>8,00</strong></td></tr>
+        <tr><td>Idade desenvolvimento A (0–2)</td><td><strong>3,50</strong></td></tr>
+        <tr><td>Idade mental global (todas, 0–2)</td><td><strong>2,00</strong></td></tr>
+        <tr><td>Idade mental global (bloco inferior)</td><td><strong>2,00</strong></td></tr>
+        <tr><td>QG</td><td><strong>66,67</strong></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Teste 2 — Actualização em tempo real</h3>
+    <p>No Teste 1, alterar <strong>A, Secção I (0–2)</strong> de <code>4</code> para <code>20</code>.</p>
+    <p>
+      <strong>Esperar:</strong> total bruto de A → <strong>24,00</strong>; idade de desenvolvimento de A muda; idade mental
+      global (0–2) muda (soma geral passa de 40 → 56).
+    </p>
+
+    <h3>Teste 3 — Caso real 2–8 (Salvador, IC = 69 meses)</h3>
+    <p>Subescala A: I=12, II=12, III=24, IV=0 → total <strong>48,00</strong>.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Campo</th>
+          <th>Valor esperado (aprox.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Idade desenvolvimento A</td><td><strong>41,85</strong> (folha: 41,5)</td></tr>
+        <tr><td>QDA A</td><td><strong>60,65</strong> (folha: 60,14)</td></tr>
+        <tr><td>Idade mental global (bloco inferior)</td><td><strong>55,75</strong> (folha: 55,80)</td></tr>
+        <tr><td>QG</td><td><strong>80,86</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="note">
+      Pequenas diferenças (±0,3–0,5) face à folha manual reflectem limitações do OCR nas tabelas CEGOC digitalizadas.
+      Confirmar Secção II da subescala C (16,5 vs 18,85) — altera o total e o QDA.
+    </p>
+
+    <h3>Teste 4 — Sem IC</h3>
+    <ol>
+      <li>Preencher apenas secções 0–2, <strong>deixar idade vazia</strong></li>
+      <li><strong>Esperar:</strong> idades derivadas 0–2 funcionam; QG vazio; nota sobre idade cronológica</li>
+    </ol>
+
+    <h3>Teste 5 — Mudança de faixa etária</h3>
+    <ul>
+      <li>IC <strong>18 meses</strong> → QG usa coluna <strong>0–2</strong> (A–E, divisor 5)</li>
+      <li>IC <strong>30 meses</strong> → QG usa coluna <strong>2–8</strong> (A–F, divisor 6); QDA e desenvolvimento 2–8 requerem IC</li>
+    </ul>
+
+    <h2>Fluxo de dados (resumo)</h2>
+    <div class="flow">
+      <div class="flow-row">
+        <span class="box">Secções I–IV (manual)</span><span class="arrow">→</span><span class="box">Total bruto por subescala</span>
+      </div>
+      <div class="flow-row">
+        <span class="box">Total bruto + IC</span><span class="arrow">→</span><span class="box">Idade desenvolvimento (Tabela 19 / Anexo D z=0)</span>
+      </div>
+      <div class="flow-row">
+        <span class="box">Idade desenvolvimento + IC</span><span class="arrow">→</span><span class="box">QDA (2–8 apenas)</span>
+      </div>
+      <div class="flow-row">
+        <span class="box">0–2: soma geral A–E</span><span class="arrow">→</span><span class="box">Idade mental global por subescala (Tabela 20)</span>
+      </div>
+      <div class="flow-row">
+        <span class="box">2–8: média dos totais</span><span class="arrow">→</span><span class="box">Idade mental global (bloco inferior)</span>
+      </div>
+      <div class="flow-row">
+        <span class="box">Média dos totais + IC</span><span class="arrow">→</span><span class="box">Quociente geral (QG)</span>
+      </div>
+    </div>
+
+    <h2>Referência rápida: QDA vs idade mental global</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Linha na app</th>
+          <th>Unidade</th>
+          <th>O que é</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Idade desenvolvimento / mental</td>
+          <td>meses</td>
+          <td>Norma da subescala para o total bruto</td>
+        </tr>
+        <tr>
+          <td>Quociente parcial (QDA)</td>
+          <td>% (quociente)</td>
+          <td>Desempenho da subescala face à IC</td>
+        </tr>
+        <tr>
+          <td>Idade mental global (bloco inferior)</td>
+          <td>meses</td>
+          <td>IM global (média dos brutos no 2–8; Tabela 20 no 0–2)</td>
+        </tr>
+        <tr>
+          <td>Quociente geral (QG)</td>
+          <td>% (quociente)</td>
+          <td>Desempenho global face à IC</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="footer">
+      Gerado a partir de <code>src/lib/griffithsResults.ts</code>, <code>src/lib/griffithsNorms.ts</code> e normas
+      CEGOC (<code>img-814173417.pdf</code>, <code>img-814172850.pdf</code>).
+    </p>
+  </body>
+</html>

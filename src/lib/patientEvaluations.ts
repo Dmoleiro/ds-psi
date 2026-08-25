@@ -39,15 +39,6 @@ export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
   options: ReadonlyArray<EvaluationOption>
 }> = [
   {
-    title: 'Escala de Desenvolvimento de Ruth Griffiths',
-    options: [
-      {
-        key: 'escala_desenvolvimento_ruth_griffiths',
-        label: 'Escala de Desenvolvimento de Ruth Griffiths',
-      },
-    ],
-  },
-  {
     title: 'Figura Complexa de Rey',
     options: [{ key: 'figura_complexa_de_rey', label: 'Figura Complexa de Rey' }],
   },
@@ -81,6 +72,8 @@ export const ADDITIONAL_EVALUATION_METHODS: ReadonlyArray<{
 export const ADDITIONAL_METHOD_EVALUATION_OPTIONS: ReadonlyArray<EvaluationOption> =
   ADDITIONAL_EVALUATION_METHODS.flatMap((method) => method.options)
 
+export const GRIFFITHS_EVALUATION_KEY = 'escala_desenvolvimento_ruth_griffiths'
+
 export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
   { key: 'sdq_por', label: 'SDQ-Por' },
   { key: 'aseba_cbcl', label: 'ASEBA-CBCL' },
@@ -105,6 +98,7 @@ export const QUESTIONNAIRE_EVALUATION_OPTIONS = [
 ] as const
 
 import type { BancResults } from './bancResults'
+import type { GriffithsResults } from './griffithsResults'
 import type { WiscResults } from './wiscResults'
 
 export type PatientEvaluationSelections = {
@@ -113,4 +107,5 @@ export type PatientEvaluationSelections = {
   additionalMethodSelections: string[]
   wiscResults: WiscResults
   bancResults: BancResults
+  griffithsResults: GriffithsResults
 }

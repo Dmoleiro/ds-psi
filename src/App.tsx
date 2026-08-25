@@ -16,6 +16,10 @@ import { BackofficeDashboardPage } from './pages/backoffice/BackofficeDashboardP
 import { FinancialOverviewPage } from './pages/backoffice/FinancialOverviewPage'
 import { FormPreviewPage } from './pages/backoffice/FormPreviewPage'
 import { PiccaLibraryPage } from './pages/backoffice/PiccaLibraryPage'
+import {
+  PiccaInteractivePreviewPage,
+  PiccaModulePreviewPage,
+} from './pages/backoffice/PiccaPreviewPage'
 import { BackofficeLoginPage } from './pages/backoffice/BackofficeLoginPage'
 import { PatientCreatePage } from './pages/backoffice/PatientCreatePage'
 import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
@@ -100,6 +104,14 @@ export function App() {
         <Route path="/backoffice/attendance" element={<AttendancePage />} />
         <Route path="/backoffice/financial" element={<RequireTherapist><FinancialOverviewPage /></RequireTherapist>} />
         <Route path="/backoffice/picca" element={<RequireTherapist><PiccaLibraryPage /></RequireTherapist>} />
+        <Route
+          path="/backoffice/picca/preview/module/:moduleId"
+          element={<RequireTherapist><PiccaModulePreviewPage /></RequireTherapist>}
+        />
+        <Route
+          path="/backoffice/picca/preview/interactive/:formId"
+          element={<RequireTherapist><PiccaInteractivePreviewPage /></RequireTherapist>}
+        />
         <Route path="/backoffice/forms/preview/:formId" element={<RequireTherapist><FormPreviewPage /></RequireTherapist>} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/workshops" element={<WorkshopsPage />} />

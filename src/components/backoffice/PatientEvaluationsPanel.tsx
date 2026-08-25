@@ -8,8 +8,10 @@ import {
 } from '../../lib/patientEvaluations'
 import { emptyWiscResults, hasWiscResultsData } from '../../lib/wiscResults'
 import { emptyBancResults, hasBancResultsData } from '../../lib/bancResults'
+import { emptyGriffithsResults, hasGriffithsResultsData } from '../../lib/griffithsResults'
 import { WiscResultsTables } from './WiscResultsTables'
 import { BancResultsTables } from './BancResultsTables'
+import { GriffithsResultsTables } from './GriffithsResultsTables'
 import { Card } from '../ui/Card'
 import styles from './PatientEvaluationsPanel.module.css'
 
@@ -28,11 +30,13 @@ type SelectionField = 'wiscSelections' | 'bancSelections' | 'additionalMethodSel
 type MethodTab =
   | { id: 'wisc'; label: 'WISC III' }
   | { id: 'banc'; label: 'BANC' }
+  | { id: 'griffiths'; label: 'Ruth Griffiths' }
   | { id: `additional-${number}`; label: string; methodIndex: number }
 
 const METHOD_TABS: MethodTab[] = [
   { id: 'wisc', label: 'WISC III' },
   { id: 'banc', label: 'BANC' },
+  { id: 'griffiths', label: 'Ruth Griffiths' },
   ...ADDITIONAL_EVALUATION_METHODS.map((method, methodIndex) => ({
     id: `additional-${methodIndex}` as const,
     label: method.title,
@@ -46,6 +50,7 @@ const EMPTY_SELECTIONS: PatientEvaluationSelections = {
   additionalMethodSelections: [],
   wiscResults: emptyWiscResults(),
   bancResults: emptyBancResults(),
+  griffithsResults: emptyGriffithsResults(),
 }
 
 export function PatientEvaluationsPanel({
@@ -70,6 +75,7 @@ export function PatientEvaluationsPanel({
       ...initialSelections,
       wiscResults: initialSelections.wiscResults ?? emptyWiscResults(),
       bancResults: initialSelections.bancResults ?? emptyBancResults(),
+      griffithsResults: initialSelections.griffithsResults ?? emptyGriffithsResults(),
     })
   }, [
     patientId,
@@ -78,6 +84,7 @@ export function PatientEvaluationsPanel({
     initialSelections.additionalMethodSelections,
     initialSelections.wiscResults,
     initialSelections.bancResults,
+    initialSelections.griffithsResults,
   ])
 
   function hasAdditionalMethodContent(methodIndex: number): boolean {
@@ -93,6 +100,9 @@ export function PatientEvaluationsPanel({
     }
     if (tab.id === 'banc') {
       return selections.bancSelections.length > 0 || hasBancResultsData(selections.bancResults)
+    }
+    if (tab.id === 'griffiths') {
+      return hasGriffithsResultsData(selections.griffithsResults)
     }
     if (tab.id.startsWith('additional-')) {
       return hasAdditionalMethodContent(tab.methodIndex)
@@ -255,6 +265,36 @@ export function PatientEvaluationsPanel({
     const next = { ...selections, bancResults: nextBancResults }
     setSelections(next)
     scheduleSave(next)
+  }
+
+  function updateGriffithsResults(
+    nextGriffithsResults: PatientEvaluationSelections['griffithsResults'],
+  ) {
+    if (readOnly) return
+    const next = { ...selections, griffithsResults: nextGriffithsResults }
+    setSelections(next)
+    scheduleSave(next)
+  }
+
+  function renderGriffithsSection() {
+    return (
+      <section className={styles.methodSection} aria-labelledby="griffiths-method-heading">
+        <h3 id="griffiths-method-heading" className={styles.srOnly}>
+          Ruth Griffiths
+        </h3>
+        <p className={styles.muted}>
+          Escala de Desenvolvimento de Ruth Griffiths — subescalas A (Locomotora) a F (Raciocínio
+          Prático). A subescala F aplica-se a partir dos 3 anos.
+        </p>
+        <GriffithsResultsTables
+          key={`${patientId}-griffiths`}
+          value={selections.griffithsResults}
+          readOnly={readOnly}
+          defaultBirthDate={patientBirthDate}
+          onChange={updateGriffithsResults}
+        />
+      </section>
+    )
   }
 
   function renderBancSection() {
@@ -421,6 +461,7 @@ export function PatientEvaluationsPanel({
               >
                 {tab.id === 'wisc' && renderWiscSection()}
                 {tab.id === 'banc' && renderBancSection()}
+                {tab.id === 'griffiths' && renderGriffithsSection()}
                 {'methodIndex' in tab &&
                   renderMethod(
                     ADDITIONAL_EVALUATION_METHODS[tab.methodIndex]!.title,

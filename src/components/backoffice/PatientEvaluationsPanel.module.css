@@ -967,3 +967,70 @@
 .resultsActions {
   margin-top: var(--space-md);
 }
+
+.griffithsTable {
+  min-width: 58rem;
+}
+
+.griffithsRowHeader {
+  min-width: 11rem;
+  vertical-align: top;
+}
+
+.griffithsSubscaleHeader {
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.griffithsSubscaleHeader span {
+  display: block;
+}
+
+.griffithsSubscaleTitle {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.griffithsSlotHeader {
+  min-width: 2.75rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}
+
+.griffithsSlotCell {
+  padding: 0.2rem;
+  vertical-align: middle;
+}
+
+.griffithsSlotInput {
+  min-width: 0;
+  width: 100%;
+  padding-inline: 0.35rem;
+  text-align: center;
+}
+
+.griffithsMergedCell {
+  text-align: center;
+}
+
+.griffithsRowHint {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.griffithsQgBlock {
+  margin-top: var(--space-lg);
+}
+
+.griffithsLevelTag {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}

@@ -16,11 +16,13 @@ export function PiccaVolumeCheckboxGroups({
   selectedIds,
   onToggle,
   getId = (mod) => mod.id ?? mod.moduleId ?? '',
+  previewHref,
 }: {
   modules: Array<ModuleWithVolume & { id: string; description?: string | null }>
   selectedIds: string[]
   onToggle: (id: string) => void
   getId?: (mod: ModuleWithVolume & { id: string }) => string
+  previewHref?: (id: string) => string | null
 }) {
   const groups = groupPiccaModulesByVolume(modules)
 
@@ -32,15 +34,28 @@ export function PiccaVolumeCheckboxGroups({
           <div className={styles.moduleList}>
             {group.modules.map((mod) => {
               const id = getId(mod as ModuleWithVolume & { id: string })
+              const href = previewHref?.(id)
               return (
-                <label key={id} className={styles.checkboxItem}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(id)}
-                    onChange={() => onToggle(id)}
-                  />
-                  {piccaModuleLabel(id, mod.title)}
-                </label>
+                <div key={id} className={href ? styles.selectRow : undefined}>
+                  <label className={styles.checkboxItem}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(id)}
+                      onChange={() => onToggle(id)}
+                    />
+                    {piccaModuleLabel(id, mod.title)}
+                  </label>
+                  {href ? (
+                    <a
+                      className={styles.previewLink}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Pré-visualizar
+                    </a>
+                  ) : null}
+                </div>
               )
             })}
           </div>

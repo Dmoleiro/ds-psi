@@ -28,6 +28,8 @@ import type { WiscResults } from '../../lib/wiscResults'
 import { emptyWiscResults } from '../../lib/wiscResults'
 import type { BancResults } from '../../lib/bancResults'
 import { emptyBancResults } from '../../lib/bancResults'
+import type { GriffithsResults } from '../../lib/griffithsResults'
+import { emptyGriffithsResults } from '../../lib/griffithsResults'
 import { PatientTimelinePanel } from '../../components/backoffice/PatientTimeline'
 import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEvaluationsPanel'
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
@@ -95,6 +97,7 @@ type PatientDetail = {
   wiscResults?: WiscResults
   bancSelections: string[]
   bancResults?: BancResults
+  griffithsResults?: GriffithsResults
   additionalMethodSelections?: string[]
   questionnaireSelections?: string[]
   intakeSessions: SessionRow[]
@@ -966,6 +969,7 @@ export function PatientDetailPage() {
             wiscResults: patient.wiscResults ?? emptyWiscResults(),
             bancSelections: patient.bancSelections ?? [],
             bancResults: patient.bancResults ?? emptyBancResults(),
+            griffithsResults: patient.griffithsResults ?? emptyGriffithsResults(),
             additionalMethodSelections: patient.additionalMethodSelections ?? [],
           }}
         />

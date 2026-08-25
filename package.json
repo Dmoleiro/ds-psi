@@ -11,6 +11,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:api": "npm --prefix api run test",
+    "build:griffiths-norms": "node scripts/build_griffiths_0to2_norms.mjs",
+    "build:griffiths-2to8-norms": "node scripts/build_griffiths_2to8_norms.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^26.0.0",
+    "pdf-parse": "^2.4.5",
     "typescript": "~5.7.2",
     "vite": "^5.4.11",
     "vitest": "^2.1.8"

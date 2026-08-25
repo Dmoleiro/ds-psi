@@ -24,6 +24,23 @@
   font-size: 0.95rem;
 }
 
+.selectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.selectRow .checkboxItem {
+  flex: 1;
+  min-width: 0;
+}
+
+.previewLink {
+  font-size: 0.875rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .statusItem {
   display: flex;
   align-items: center;

@@ -11,21 +11,37 @@ import {
 } from '../lib/patientEvaluations.js'
 import { sanitizeWiscResults } from '../lib/wiscResults.js'
 import { sanitizeBancResults } from '../lib/bancResults.js'
+import {
+  GRIFFITHS_SELECTION_KEY,
+  hasGriffithsResultsData,
+  sanitizeGriffithsResults,
+} from '../lib/griffithsResults.js'
 
 export function formatPatientEvaluationSelections(patient: {
   wiscSelections: unknown
   wiscResults?: unknown
   bancSelections: unknown
   bancResults?: unknown
+  griffithsResults?: unknown
   additionalMethodSelections?: unknown
   questionnaireSelections?: unknown
 }) {
+  const griffithsResults = sanitizeGriffithsResults(patient.griffithsResults)
+  let additionalMethodSelections = sanitizeAdditionalMethodSelections(patient.additionalMethodSelections)
+
+  if (hasGriffithsResultsData(griffithsResults)) {
+    if (!additionalMethodSelections.includes(GRIFFITHS_SELECTION_KEY)) {
+      additionalMethodSelections = [...additionalMethodSelections, GRIFFITHS_SELECTION_KEY]
+    }
+  }
+
   return {
     wiscSelections: sanitizeWiscSelections(patient.wiscSelections),
     wiscResults: sanitizeWiscResults(patient.wiscResults),
     bancSelections: sanitizeBancSelections(patient.bancSelections),
     bancResults: sanitizeBancResults(patient.bancResults),
-    additionalMethodSelections: sanitizeAdditionalMethodSelections(patient.additionalMethodSelections),
+    griffithsResults,
+    additionalMethodSelections,
     questionnaireSelections: sanitizeQuestionnaireSelections(patient.questionnaireSelections),
   }
 }
@@ -38,6 +54,7 @@ export async function updateTherapistPatientEvaluations(
     wiscResults: unknown
     bancSelections: unknown
     bancResults: unknown
+    griffithsResults: unknown
     additionalMethodSelections: unknown
     questionnaireSelections: unknown
   },
@@ -54,8 +71,15 @@ export async function updateTherapistPatientEvaluations(
   const wiscResults = sanitizeWiscResults(data.wiscResults)
   const bancSelections = sanitizeBancSelections(data.bancSelections)
   const bancResults = sanitizeBancResults(data.bancResults)
-  const additionalMethodSelections = sanitizeAdditionalMethodSelections(data.additionalMethodSelections)
+  const griffithsResults = sanitizeGriffithsResults(data.griffithsResults)
+  let additionalMethodSelections = sanitizeAdditionalMethodSelections(data.additionalMethodSelections)
   const questionnaireSelections = sanitizeQuestionnaireSelections(data.questionnaireSelections)
+
+  if (hasGriffithsResultsData(griffithsResults)) {
+    if (!additionalMethodSelections.includes(GRIFFITHS_SELECTION_KEY)) {
+      additionalMethodSelections = [...additionalMethodSelections, GRIFFITHS_SELECTION_KEY]
+    }
+  }
 
   const updated = await prisma.patient.update({
     where: { id: patientId },
@@ -64,6 +88,7 @@ export async function updateTherapistPatientEvaluations(
       wiscResults,
       bancSelections,
       bancResults,
+      griffithsResults,
       additionalMethodSelections,
       questionnaireSelections,
     },
@@ -72,6 +97,7 @@ export async function updateTherapistPatientEvaluations(
       wiscResults: true,
       bancSelections: true,
       bancResults: true,
+      griffithsResults: true,
       additionalMethodSelections: true,
       questionnaireSelections: true,
     },
