@@ -4,6 +4,11 @@ import { AttendanceMatrix } from '../../components/backoffice/AttendanceMatrix'
 import { ApiError, coordinatorApi, therapistApi, type LocationSummary } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { useEditLock } from '../../hooks/useEditLock'
+import {
+  isShadowTherapistViewer,
+  needsTherapistPicker,
+  usesCoordinatorApi,
+} from '../../lib/staffViewer'
 import styles from './AttendancePage.module.css'
 import layout from '../../components/backoffice/BackofficeLayout.module.css'
 
@@ -11,7 +16,9 @@ type TherapistOption = { id: string; name: string; email: string }
 
 export function AttendancePage() {
   const { user, token } = useAuth()
-  const isCoordinator = user?.role === 'coordinator'
+  const isCoordinator = usesCoordinatorApi(user)
+  const isShadowViewer = isShadowTherapistViewer(user)
+  const showTherapistPicker = needsTherapistPicker(user)
   const [therapists, setTherapists] = useState<TherapistOption[]>([])
   const [selectedTherapist, setSelectedTherapist] = useState<TherapistOption | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
@@ -25,10 +32,14 @@ export function AttendancePage() {
     setLoading(true)
     setError('')
 
-    const request = isCoordinator
-      ? coordinatorApi.listTherapists(token).then((data) => {
-          setTherapists(data.therapists)
-        })
+    const request = showTherapistPicker
+      ? isCoordinator
+        ? coordinatorApi.listTherapists(token).then((data) => {
+            setTherapists(data.therapists)
+          })
+        : therapistApi.listShadowTherapists(token).then((data) => {
+            setTherapists(data.therapists)
+          })
       : therapistApi.listLocations(token).then((data) => {
           setLocations(data.locations)
         })
@@ -38,7 +49,7 @@ export function AttendancePage() {
         setError(err instanceof ApiError ? err.message : 'Erro ao carregar dados'),
       )
       .finally(() => setLoading(false))
-  }, [token, isCoordinator])
+  }, [token, showTherapistPicker, isCoordinator])
 
   useEffect(() => {
     if (!token || !isCoordinator || !selectedTherapist) return
@@ -50,6 +61,17 @@ export function AttendancePage() {
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar locais'))
       .finally(() => setLoading(false))
   }, [token, isCoordinator, selectedTherapist])
+
+  useEffect(() => {
+    if (!token || !isShadowViewer || !selectedTherapist) return
+    setLoading(true)
+    setError('')
+    therapistApi
+      .listLocations(token, selectedTherapist.id)
+      .then((data) => setLocations(data.locations))
+      .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar locais'))
+      .finally(() => setLoading(false))
+  }, [token, isShadowViewer, selectedTherapist])
 
   function selectTherapist(therapist: TherapistOption) {
     setSelectedTherapist(therapist)
@@ -76,7 +98,7 @@ export function AttendancePage() {
     <BackofficeLayout>
       <h1 className={layout.pageTitle}>Presenças</h1>
 
-      {isCoordinator && !selectedTherapist ? (
+      {showTherapistPicker && !selectedTherapist ? (
         <>
           <p className={layout.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-lg)' }}>
             Selecione o terapeuta para consultar as presenças (apenas leitura).
@@ -107,9 +129,11 @@ export function AttendancePage() {
           <p className={layout.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-lg)' }}>
             {isCoordinator
               ? 'Selecione o local para ver as presenças do mês.'
-              : 'Selecione o local para ver e editar as presenças do mês.'}
+              : isShadowViewer
+                ? 'Selecione o local para ver as presenças do mês (apenas leitura).'
+                : 'Selecione o local para ver e editar as presenças do mês.'}
           </p>
-          {isCoordinator && selectedTherapist && (
+          {(isCoordinator || isShadowViewer) && selectedTherapist && (
             <p className={layout.muted} style={{ marginBottom: 'var(--space-md)' }}>
               Terapeuta: <strong>{selectedTherapist.name}</strong>
               {' · '}
@@ -142,7 +166,7 @@ export function AttendancePage() {
       ) : (
         <>
           <p className={layout.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-md)' }}>
-            {isCoordinator && selectedTherapist && (
+            {(isCoordinator || isShadowViewer) && selectedTherapist && (
               <>
                 Terapeuta: <strong>{selectedTherapist.name}</strong>
                 {' · '}
@@ -161,10 +185,10 @@ export function AttendancePage() {
               token={token}
               location={selectedLocation}
               therapistName={
-                isCoordinator ? (selectedTherapist?.name ?? '') : (user?.name ?? '')
+                showTherapistPicker ? (selectedTherapist?.name ?? '') : (user?.name ?? '')
               }
-              editLock={editLock}
-              mode={isCoordinator ? 'coordinator' : 'therapist'}
+              editLock={isShadowViewer ? undefined : editLock}
+              mode={isCoordinator ? 'coordinator' : isShadowViewer ? 'shadow' : 'therapist'}
               therapistId={selectedTherapist?.id}
             />
           )}

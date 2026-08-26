@@ -32,6 +32,7 @@ export const createCoordinatorSchema = createTherapistSchema
 export const updateTherapistSchema = z.object({
   name: z.string().min(2).optional(),
   active: z.boolean().optional(),
+  readOnly: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
   piccaEnabled: z.boolean().optional(),
   questionnairesEnabled: z.boolean().optional(),
@@ -327,12 +328,26 @@ export const setCoordinatorTherapistsSchema = z.object({
   therapistIds: z.array(z.string().uuid()),
 })
 
+export const setTherapistSupervisorsSchema = z.object({
+  supervisorIds: z.array(z.string().uuid()),
+})
+
+export const shadowTherapistQuerySchema = z.object({
+  therapistId: z.string().uuid().optional(),
+})
+
+export const therapistLocationsQuerySchema = shadowTherapistQuerySchema
+
 export const coordinatorPatientsQuerySchema = z.object({
   therapistId: z.string().uuid(),
 })
 
 export const gabineteListQuerySchema = z.object({
   locationId: z.string().uuid().optional(),
+})
+
+export const therapistGabinetesQuerySchema = gabineteListQuerySchema.extend({
+  therapistId: z.string().uuid().optional(),
 })
 
 export const coordinatorLocationsQuerySchema = z.object({
@@ -389,6 +404,14 @@ export const attendanceUpsertSchema = z.object({
 
 export const appointmentMonthQuerySchema = attendanceMonthQuerySchema.extend({
   locationId: z.string().uuid().optional(),
+})
+
+export const therapistAttendanceMatrixQuerySchema = attendanceMatrixQuerySchema.extend({
+  therapistId: z.string().uuid().optional(),
+})
+
+export const therapistAppointmentsQuerySchema = appointmentMonthQuerySchema.extend({
+  therapistId: z.string().uuid().optional(),
 })
 
 export const coordinatorReceiptToggleSchema = z.object({

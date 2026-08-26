@@ -12,10 +12,15 @@ import {
   updatePiccaModuleAnswers,
 } from '../services/piccaSessions.js'
 
-const piccaTherapist = { preHandler: [requireAuth, requireRole(UserRole.therapist), requirePiccaEnabled] }
+import { requireWriteTherapist } from '../middleware/requireWriteTherapist.js'
+
+const piccaTherapistRead = { preHandler: [requireAuth, requireRole(UserRole.therapist), requirePiccaEnabled] }
+const piccaTherapistWrite = {
+  preHandler: [requireAuth, requireRole(UserRole.therapist), requirePiccaEnabled, requireWriteTherapist],
+}
 
 export async function piccaTherapistRoutes(app: FastifyInstance) {
-  app.get('/api/therapist/picca/modules', piccaTherapist, async () => {
+  app.get('/api/therapist/picca/modules', piccaTherapistRead, async () => {
     const modules = await listPiccaModules()
     return {
       modules: modules.map((m) => ({
@@ -31,7 +36,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/patients/:patientId/picca-sessions',
-    piccaTherapist,
+    piccaTherapistWrite,
     async (request, reply) => {
       const { patientId } = request.params as { patientId: string }
       const parsed = createPiccaSessionSchema.safeParse(request.body)
@@ -63,7 +68,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/picca-sessions/:id/revoke',
-    piccaTherapist,
+    piccaTherapistWrite,
     async (request, reply) => {
       const { id } = request.params as { id: string }
       try {
@@ -83,7 +88,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
 
   app.delete(
     '/api/therapist/picca-sessions/:id',
-    piccaTherapist,
+    piccaTherapistWrite,
     async (request, reply) => {
       const { id } = request.params as { id: string }
       try {
@@ -100,7 +105,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
 
   app.get(
     '/api/therapist/picca-sessions/:id/submissions',
-    piccaTherapist,
+    piccaTherapistRead,
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const session = await getPiccaSubmissionsForTherapist(request.user.sub, id)
@@ -113,7 +118,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
 
   app.put(
     '/api/therapist/picca-sessions/:id/modules/:moduleId',
-    piccaTherapist,
+    piccaTherapistWrite,
     async (request, reply) => {
       const { id, moduleId } = request.params as { id: string; moduleId: string }
       const body = request.body as { answers?: Record<string, unknown> }

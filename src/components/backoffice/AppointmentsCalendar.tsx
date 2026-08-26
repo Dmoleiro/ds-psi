@@ -49,6 +49,7 @@ type Props = {
   token: string
   therapistName: string
   readOnly?: boolean
+  shadowTherapistApi?: boolean
   therapistId?: string
   prefill?: AppointmentPrefill | null
   onPrefillConsumed?: () => void
@@ -166,6 +167,7 @@ export function AppointmentsCalendar({
   token,
   therapistName,
   readOnly = false,
+  shadowTherapistApi = false,
   therapistId,
   prefill = null,
   onPrefillConsumed,
@@ -244,7 +246,9 @@ export function AppointmentsCalendar({
           ]
           const matrices = await Promise.all(
             locationIds.map((locationId) =>
-              coordinatorApi.listAttendanceMatrix(token, therapistId, year, month, locationId),
+              shadowTherapistApi
+                ? therapistApi.listAttendanceMatrix(token, year, month, locationId, therapistId)
+                : coordinatorApi.listAttendanceMatrix(token, therapistId, year, month, locationId),
             ),
           )
           const map = new Map<string, AttendanceStatus>()
@@ -279,7 +283,7 @@ export function AppointmentsCalendar({
         setAttendanceByKey(new Map())
       }
     },
-    [token, readOnly, therapistId],
+    [token, readOnly, therapistId, shadowTherapistApi],
   )
 
   const gabinetesForSelectedLocation = useMemo(
@@ -348,13 +352,21 @@ export function AppointmentsCalendar({
     try {
       const data =
         readOnly && therapistId
-          ? await coordinatorApi.listAppointments(
-              token,
-              therapistId,
-              viewYear,
-              viewMonth,
-              locationFilter || undefined,
-            )
+          ? shadowTherapistApi
+            ? await therapistApi.listAppointments(
+                token,
+                viewYear,
+                viewMonth,
+                locationFilter || undefined,
+                therapistId,
+              )
+            : await coordinatorApi.listAppointments(
+                token,
+                therapistId,
+                viewYear,
+                viewMonth,
+                locationFilter || undefined,
+              )
           : await therapistApi.listAppointments(
               token,
               viewYear,
@@ -367,7 +379,7 @@ export function AppointmentsCalendar({
     } finally {
       setLoading(false)
     }
-  }, [token, viewYear, viewMonth, locationFilter, readOnly, therapistId])
+  }, [token, viewYear, viewMonth, locationFilter, readOnly, therapistId, shadowTherapistApi])
 
   useEffect(() => {
     loadMonth()
@@ -415,11 +427,19 @@ export function AppointmentsCalendar({
       return
     }
 
+    if (shadowTherapistApi) {
+      therapistApi
+        .listLocations(token, therapistId)
+        .then((data) => setLocations(data.locations))
+        .catch(() => setLocations([]))
+      return
+    }
+
     coordinatorApi
       .listLocations(token, therapistId)
       .then((data) => setLocations(data.locations))
       .catch(() => setLocations([]))
-  }, [token, readOnly, therapistId])
+  }, [token, readOnly, therapistId, shadowTherapistApi])
 
   useEffect(() => {
     if (!prefill || !prefillKey || loading) return

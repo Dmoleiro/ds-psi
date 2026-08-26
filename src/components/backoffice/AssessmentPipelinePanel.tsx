@@ -20,6 +20,7 @@ type Props = {
   token: string
   patientId: string
   readOnly?: boolean
+  useCoordinatorApi?: boolean
   onOpenIntakeTab?: () => void
   onOpenPiccaTab?: () => void
   onOpenDocumentsTab?: () => void
@@ -89,6 +90,7 @@ export function AssessmentPipelinePanel({
   token,
   patientId,
   readOnly = false,
+  useCoordinatorApi = false,
   onOpenIntakeTab,
   onOpenPiccaTab,
   onOpenDocumentsTab,
@@ -102,7 +104,7 @@ export function AssessmentPipelinePanel({
     setLoading(true)
     setError('')
     try {
-      const result = readOnly
+      const result = useCoordinatorApi
         ? await coordinatorApi.getAssessmentPipeline(token, patientId)
         : await therapistApi.getAssessmentPipeline(token, patientId)
       setPipeline(result.pipeline)
@@ -111,7 +113,7 @@ export function AssessmentPipelinePanel({
     } finally {
       setLoading(false)
     }
-  }, [token, patientId, readOnly])
+  }, [token, patientId, useCoordinatorApi])
 
   useEffect(() => {
     void loadPipeline()

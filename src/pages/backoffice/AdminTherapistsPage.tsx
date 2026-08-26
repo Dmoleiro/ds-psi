@@ -13,6 +13,7 @@ type TherapistRow = {
   email: string
   name: string
   active: boolean
+  readOnly: boolean
   financialOverviewEnabled: boolean
   piccaEnabled: boolean
   questionnairesEnabled: boolean
@@ -42,6 +43,103 @@ const PERMISSION_OPTIONS: Array<{ key: PermissionKey; label: string }> = [
   { key: 'assessmentResultsEnabled', label: 'Resultados' },
   { key: 'appointmentInvitesAllowed', label: 'Convites' },
 ]
+
+type TherapistSupervisorRow = {
+  id: string
+  name: string
+  email: string
+  active: boolean
+  assigned: boolean
+}
+
+function TherapistSupervisorsPanel({
+  therapist,
+  token,
+  onClose,
+}: {
+  therapist: TherapistRow
+  token: string
+  onClose: () => void
+}) {
+  const [supervisors, setSupervisors] = useState<TherapistSupervisorRow[]>([])
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setLoading(true)
+    setError('')
+    adminApi
+      .getTherapistSupervisors(token, therapist.id)
+      .then((data) => {
+        setSupervisors(data.therapists)
+        setSelectedIds(data.therapists.filter((entry) => entry.assigned).map((entry) => entry.id))
+      })
+      .catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar supervisores')
+      })
+      .finally(() => setLoading(false))
+  }, [token, therapist.id])
+
+  function toggleSupervisor(id: string) {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id],
+    )
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setError('')
+    try {
+      const data = await adminApi.setTherapistSupervisors(token, therapist.id, selectedIds)
+      setSupervisors(data.therapists)
+      setSelectedIds(data.therapists.filter((entry) => entry.assigned).map((entry) => entry.id))
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível guardar supervisores')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Card as="section" className={layoutStyles.sectionSpaced}>
+      <h2>Supervisores — {therapist.name}</h2>
+      <p className={layoutStyles.muted}>
+        Selecione os terapeutas cujo trabalho este utilizador pode consultar (somente leitura).
+      </p>
+      {error && <p className={layoutStyles.error}>{error}</p>}
+      {loading ? (
+        <p className={layoutStyles.muted}>A carregar…</p>
+      ) : supervisors.length === 0 ? (
+        <p className={layoutStyles.muted}>Crie terapeutas antes de atribuir supervisores.</p>
+      ) : (
+        <div className={layoutStyles.form}>
+          {supervisors.map((supervisor) => (
+            <label key={supervisor.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={selectedIds.includes(supervisor.id)}
+                onChange={() => toggleSupervisor(supervisor.id)}
+                disabled={!supervisor.active || supervisor.id === therapist.id}
+              />
+              {supervisor.name}
+              {!supervisor.active ? ' (inativo)' : ''}
+            </label>
+          ))}
+        </div>
+      )}
+      <div className={layoutStyles.rowActions} style={{ marginTop: 'var(--space-md)' }}>
+        <Button type="button" onClick={handleSave} disabled={saving || loading}>
+          {saving ? 'A guardar…' : 'Guardar supervisores'}
+        </Button>
+        <button type="button" className={layoutStyles.linkButton} onClick={onClose}>
+          Fechar
+        </button>
+      </div>
+    </Card>
+  )
+}
 
 function TherapistLocationsPanel({
   therapist,
@@ -164,6 +262,7 @@ export function AdminTherapistsPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [managingLocationsFor, setManagingLocationsFor] = useState<TherapistRow | null>(null)
+  const [managingSupervisorsFor, setManagingSupervisorsFor] = useState<TherapistRow | null>(null)
   const [updatingKey, setUpdatingKey] = useState<string | null>(null)
 
   async function load() {
@@ -172,6 +271,7 @@ export function AdminTherapistsPage() {
     setTherapists(
       data.therapists.map((therapist) => ({
         ...therapist,
+        readOnly: therapist.readOnly ?? false,
         financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
         piccaEnabled: therapist.piccaEnabled ?? false,
         questionnairesEnabled: therapist.questionnairesEnabled ?? false,
@@ -202,7 +302,7 @@ export function AdminTherapistsPage() {
 
   async function updateTherapistField(
     therapist: TherapistRow,
-    field: PermissionKey | 'active',
+    field: PermissionKey | 'active' | 'readOnly',
     value: boolean,
   ) {
     if (!token) return
@@ -259,6 +359,14 @@ export function AdminTherapistsPage() {
           />
         )}
 
+        {managingSupervisorsFor && token && (
+          <TherapistSupervisorsPanel
+            therapist={managingSupervisorsFor}
+            token={token}
+            onClose={() => setManagingSupervisorsFor(null)}
+          />
+        )}
+
         <div className={styles.tableWrap}>
           <table className={styles.therapistsTable}>
             <thead>
@@ -280,6 +388,11 @@ export function AdminTherapistsPage() {
                     <span className={therapist.active ? styles.statusActive : styles.statusInactive}>
                       {therapist.active ? 'Ativo' : 'Inativo'}
                     </span>
+                    {therapist.readOnly && (
+                      <span className={styles.statusInactive} style={{ marginLeft: '0.5rem' }}>
+                        Somente leitura
+                      </span>
+                    )}
                   </td>
                   <td>
                     <div className={styles.permissionGroup}>
@@ -304,6 +417,23 @@ export function AdminTherapistsPage() {
                         onClick={() => setManagingLocationsFor(therapist)}
                       >
                         Gerir locais
+                      </button>
+                      {therapist.readOnly && (
+                        <button
+                          type="button"
+                          className={layoutStyles.linkButton}
+                          onClick={() => setManagingSupervisorsFor(therapist)}
+                        >
+                          Gerir supervisores
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={layoutStyles.linkButton}
+                        disabled={isUpdating(therapist.id, 'readOnly')}
+                        onClick={() => updateTherapistField(therapist, 'readOnly', !therapist.readOnly)}
+                      >
+                        {therapist.readOnly ? 'Remover leitura' : 'Somente leitura'}
                       </button>
                       <AdminPasswordReset
                         onSubmit={async (nextPassword) => {

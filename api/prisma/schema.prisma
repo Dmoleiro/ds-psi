@@ -84,6 +84,7 @@ model User {
   role         UserRole
   passwordHash String    @map("password_hash")
   active       Boolean   @default(true)
+  readOnly     Boolean   @default(false) @map("read_only")
   financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   piccaEnabled             Boolean @default(false) @map("picca_enabled")
   questionnairesEnabled    Boolean @default(false) @map("questionnaires_enabled")
@@ -108,6 +109,8 @@ model User {
   therapistLocations TherapistLocation[]
   coordinatorTherapists CoordinatorTherapist[] @relation("CoordinatorTherapistAssignments")
   therapistCoordinators CoordinatorTherapist[] @relation("TherapistCoordinatorAssignments")
+  internSupervisors TherapistSupervisor[] @relation("InternSupervisorAssignments")
+  supervisedInterns TherapistSupervisor[] @relation("SupervisedInternAssignments")
 
   @@map("users")
 }
@@ -198,6 +201,20 @@ model CoordinatorTherapist {
   @@index([coordinatorId])
   @@index([therapistId])
   @@map("coordinator_therapists")
+}
+
+model TherapistSupervisor {
+  id           String   @id @default(uuid())
+  internId     String   @map("intern_id")
+  supervisorId String   @map("supervisor_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  intern     User @relation("InternSupervisorAssignments", fields: [internId], references: [id], onDelete: Cascade)
+  supervisor User @relation("SupervisedInternAssignments", fields: [supervisorId], references: [id], onDelete: Cascade)
+
+  @@unique([internId, supervisorId])
+  @@index([supervisorId])
+  @@map("therapist_supervisors")
 }
 
 model Gabinete {

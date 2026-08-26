@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { createReadStream } from 'node:fs'
 import { FormCategory, SessionKind, UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
@@ -38,7 +38,7 @@ import {
 } from '../services/appointments.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, therapistAppointmentsQuerySchema, therapistAttendanceMatrixQuerySchema, therapistGabinetesQuerySchema, therapistLocationsQuerySchema, shadowTherapistQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -72,9 +72,58 @@ import {
   retryAppointmentCalendarInvite,
   updateAppointmentInviteSettings,
 } from '../services/appointmentCalendarInvites.js'
+import { requireWriteTherapist } from '../middleware/requireWriteTherapist.js'
+import {
+  assertTherapistCanAccessPatient,
+  assertTherapistCanAccessSession,
+  resolveListTherapistId,
+} from '../services/therapistAccess.js'
+import { listAssignedSupervisors } from '../services/therapistSupervisors.js'
+
+async function resolvePatientTherapistId(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  patientId: string,
+): Promise<string | null> {
+  try {
+    const access = await assertTherapistCanAccessPatient(request.user.sub, patientId)
+    return access.therapistId
+  } catch (error) {
+    if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+      reply.status(404).send({ error: 'Paciente não encontrado' })
+      return null
+    }
+    if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+      reply.status(403).send({ error: 'Sem acesso a este paciente' })
+      return null
+    }
+    throw error
+  }
+}
+
+async function resolveScopedTherapistId(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  therapistId?: string,
+): Promise<string | null> {
+  try {
+    return await resolveListTherapistId(request.user.sub, therapistId)
+  } catch (error) {
+    if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+      reply.status(403).send({ error: 'Sem acesso a este terapeuta' })
+      return null
+    }
+    if (error instanceof Error && error.message === 'THERAPIST_ID_REQUIRED') {
+      reply.status(400).send({ error: 'Terapeuta obrigatório' })
+      return null
+    }
+    throw error
+  }
+}
 
 export async function therapistRoutes(app: FastifyInstance) {
   const therapistOnly = [requireAuth, requireRole(UserRole.therapist)]
+  const therapistWriteOnly = [...therapistOnly, requireWriteTherapist]
   const therapistFinancialOnly = [...therapistOnly, requireFinancialOverview]
 
   app.get('/api/therapist/dashboard', { preHandler: therapistOnly }, async (request) => {
@@ -92,7 +141,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.put('/api/therapist/notepad', { preHandler: therapistOnly }, async (request, reply) => {
+  app.put('/api/therapist/notepad', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const parsed = therapistNotepadSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
@@ -112,7 +161,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     return getAppointmentInviteSettings(request.user.sub)
   })
 
-  app.patch('/api/therapist/appointment-invites/settings', { preHandler: therapistOnly }, async (request, reply) => {
+  app.patch('/api/therapist/appointment-invites/settings', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const parsed = appointmentInviteSettingsSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
@@ -131,7 +180,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/appointments/:id/calendar-invite/retry',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       try {
@@ -222,7 +271,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { profile, token, user: profile }
   })
 
-  app.post('/api/therapist/profile/test-email', { preHandler: therapistOnly }, async (request, reply) => {
+  app.post('/api/therapist/profile/test-email', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const profile = await prisma.user.findUnique({
       where: { id: request.user.sub },
       select: { email: true, name: true, role: true },
@@ -247,9 +296,22 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.get('/api/therapist/patients', { preHandler: therapistOnly }, async (request) => {
+  app.get('/api/therapist/shadow-therapists', { preHandler: therapistOnly }, async (request) => {
+    const therapists = await listAssignedSupervisors(request.user.sub)
+    return { therapists }
+  })
+
+  app.get('/api/therapist/patients', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = shadowTherapistQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    const therapistId = await resolveScopedTherapistId(request, reply, parsed.data.therapistId)
+    if (!therapistId) return
+
     const patients = await prisma.patient.findMany({
-      where: { therapistId: request.user.sub },
+      where: { therapistId },
       orderBy: { fullName: 'asc' },
       include: {
         location: { select: { id: true, name: true } },
@@ -263,8 +325,16 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { patients: patients.map(formatPatientSummary) }
   })
 
-  app.get('/api/therapist/locations', { preHandler: therapistOnly }, async (request) => {
-    const locations = await listTherapistLocations(request.user.sub)
+  app.get('/api/therapist/locations', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = therapistLocationsQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    const therapistId = await resolveScopedTherapistId(request, reply, parsed.data.therapistId)
+    if (!therapistId) return
+
+    const locations = await listTherapistLocations(therapistId)
     return { locations }
   })
 
@@ -318,14 +388,17 @@ export async function therapistRoutes(app: FastifyInstance) {
   })
 
   app.get('/api/therapist/attendance', { preHandler: therapistOnly }, async (request, reply) => {
-    const parsed = attendanceMatrixQuerySchema.safeParse(request.query)
+    const parsed = therapistAttendanceMatrixQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolveScopedTherapistId(request, reply, parsed.data.therapistId)
+    if (!therapistId) return
+
     try {
       const data = await listTherapistAttendance(
-        request.user.sub,
+        therapistId,
         parsed.data.year,
         parsed.data.month,
         parsed.data.locationId,
@@ -345,7 +418,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/therapist/patients', { preHandler: therapistOnly }, async (request, reply) => {
+  app.post('/api/therapist/patients', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const parsed = parseCreatePatientInput(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
@@ -387,19 +460,25 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.get('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
-    const patient = await getTherapistPatient(request.user.sub, id)
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
+    const patient = await getTherapistPatient(therapistId, id)
     if (!patient) {
       return reply.status(404).send({ error: 'Paciente não encontrado' })
     }
-    const flags = await getTherapistFeatureFlags(request.user.sub)
+    const flags = await getTherapistFeatureFlags(therapistId)
     const formatted = formatTherapistPatient(patient)
     return { patient: applyTherapistPatientFeatureAccess(formatted, flags) }
   })
 
   app.get('/api/therapist/patients/:id/timeline', { preHandler: therapistOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      return await getPatientTimeline(id, request.user.sub)
+      return await getPatientTimeline(id, therapistId)
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })
@@ -408,15 +487,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.put('/api/therapist/patients/:id/evaluations', { preHandler: [...therapistOnly, requireAssessmentResultsEnabled] }, async (request, reply) => {
+  app.put('/api/therapist/patients/:id/evaluations', { preHandler: [...therapistWriteOnly, requireAssessmentResultsEnabled] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = patientEvaluationsSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      return await updateTherapistPatientEvaluations(request.user.sub, id, parsed.data)
+      return await updateTherapistPatientEvaluations(therapistId, id, parsed.data)
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
         return reply.status(404).send({ error: 'Paciente não encontrado' })
@@ -427,7 +509,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.patch(
     '/api/therapist/patients/:id/form-delivery',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = updatePatientFormDeliverySchema.safeParse(request.body)
@@ -435,9 +517,12 @@ export async function therapistRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
       }
 
+      const therapistId = await resolvePatientTherapistId(request, reply, id)
+      if (!therapistId) return
+
       try {
         const deliveredFormIds = await updateTherapistPatientFormDelivery(
-          request.user.sub,
+          therapistId,
           id,
           parsed.data.formId,
           parsed.data.delivered,
@@ -457,7 +542,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.put(
     '/api/therapist/patients/:id/appointment-notes',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = patientAppointmentNotesSchema.safeParse(request.body)
@@ -465,9 +550,12 @@ export async function therapistRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
       }
 
+      const therapistId = await resolvePatientTherapistId(request, reply, id)
+      if (!therapistId) return
+
       try {
         return await updateTherapistPatientAppointmentNotes(
-          request.user.sub,
+          therapistId,
           id,
           parsed.data.appointmentNotes,
         )
@@ -482,8 +570,11 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.get('/api/therapist/patients/:id/assessment-pipeline', { preHandler: therapistOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      const pipeline = await getTherapistAssessmentPipeline(request.user.sub, id)
+      const pipeline = await getTherapistAssessmentPipeline(therapistId, id)
       return { pipeline }
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -493,15 +584,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.patch('/api/therapist/patients/:id/assessment-pipeline', { preHandler: therapistOnly }, async (request, reply) => {
+  app.patch('/api/therapist/patients/:id/assessment-pipeline', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = updateAssessmentPipelineSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      const pipeline = await updateTherapistAssessmentPipeline(request.user.sub, id, parsed.data)
+      const pipeline = await updateTherapistAssessmentPipeline(therapistId, id, parsed.data)
       return { pipeline }
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -523,15 +617,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.patch('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
+  app.patch('/api/therapist/patients/:id', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = parseUpdatePatientInput(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      const patient = await updateTherapistPatient(request.user.sub, id, parsed.data)
+      const patient = await updateTherapistPatient(therapistId, id, parsed.data)
       return { patient }
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -547,15 +644,18 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.patch('/api/therapist/patients/:id/active', { preHandler: therapistOnly }, async (request, reply) => {
+  app.patch('/api/therapist/patients/:id/active', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const parsed = parseSetPatientActiveInput(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      const patient = await setTherapistPatientActive(request.user.sub, id, parsed.data.active)
+      const patient = await setTherapistPatientActive(therapistId, id, parsed.data.active)
       return { patient }
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -565,10 +665,13 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.delete('/api/therapist/patients/:id', { preHandler: therapistOnly }, async (request, reply) => {
+  app.delete('/api/therapist/patients/:id', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    const therapistId = await resolvePatientTherapistId(request, reply, id)
+    if (!therapistId) return
+
     try {
-      await deleteTherapistPatient(request.user.sub, id)
+      await deleteTherapistPatient(therapistId, id)
       return reply.status(204).send()
     } catch (error) {
       if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -588,9 +691,12 @@ export async function therapistRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
       }
 
+      const therapistId = await resolvePatientTherapistId(request, reply, id)
+      if (!therapistId) return
+
       try {
         const records = await listPatientAttendance(
-          request.user.sub,
+          therapistId,
           id,
           parsed.data.year,
           parsed.data.month,
@@ -607,7 +713,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.put(
     '/api/therapist/patients/:id/attendance',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = attendanceUpsertSchema.safeParse(request.body)
@@ -615,9 +721,12 @@ export async function therapistRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
       }
 
+      const therapistId = await resolvePatientTherapistId(request, reply, id)
+      if (!therapistId) return
+
       try {
         const record = await upsertPatientAttendance(
-          request.user.sub,
+          therapistId,
           id,
           parsed.data.date,
           parsed.data.status,
@@ -638,7 +747,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/patients/:id/sessions',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = parseCreateSessionInput(request.body)
@@ -651,17 +760,13 @@ export async function therapistRoutes(app: FastifyInstance) {
         if (denied) return denied
       }
 
-      const patient = await prisma.patient.findFirst({
-        where: { id, therapistId: request.user.sub },
-      })
-      if (!patient) {
-        return reply.status(404).send({ error: 'Paciente não encontrado' })
-      }
+      const therapistId = await resolvePatientTherapistId(request, reply, id)
+      if (!therapistId) return
 
       try {
         const expiresAt = parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined
         const result = await createPatientSession(
-          request.user.sub,
+          therapistId,
           id,
           parsed.data.formIds,
           expiresAt,
@@ -692,8 +797,25 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.get('/api/therapist/sessions/:id', { preHandler: therapistOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    let therapistId: string
+    try {
+      const access = await assertTherapistCanAccessSession(request.user.sub, id)
+      therapistId = access.therapistId
+    } catch (error) {
+      if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Sessão não encontrada' })
+      }
+      if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Sessão não encontrada' })
+      }
+      if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+        return reply.status(403).send({ error: 'Sem acesso a esta sessão' })
+      }
+      throw error
+    }
+
     const session = await prisma.intakeSession.findFirst({
-      where: { id, therapistId: request.user.sub },
+      where: { id, therapistId },
       include: {
         patient: true,
         forms: {
@@ -710,11 +832,28 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/sessions/:id/revoke',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
+      let therapistId: string
+      try {
+        const access = await assertTherapistCanAccessSession(request.user.sub, id)
+        therapistId = access.therapistId
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a esta sessão' })
+        }
+        throw error
+      }
+
       const session = await prisma.intakeSession.findFirst({
-        where: { id, therapistId: request.user.sub },
+        where: { id, therapistId },
       })
       if (!session) {
         return reply.status(404).send({ error: 'Sessão não encontrada' })
@@ -733,11 +872,28 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.delete(
     '/api/therapist/sessions/:id',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
+      let therapistId: string
       try {
-        await deleteTherapistSession(request.user.sub, id)
+        const access = await assertTherapistCanAccessSession(request.user.sub, id)
+        therapistId = access.therapistId
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a esta sessão' })
+        }
+        throw error
+      }
+
+      try {
+        await deleteTherapistSession(therapistId, id)
         return reply.status(204).send()
       } catch (error) {
         if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
@@ -753,8 +909,25 @@ export async function therapistRoutes(app: FastifyInstance) {
     { preHandler: therapistOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
+      let therapistId: string
+      try {
+        const access = await assertTherapistCanAccessSession(request.user.sub, id)
+        therapistId = access.therapistId
+      } catch (error) {
+        if (error instanceof Error && error.message === 'SESSION_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Sessão não encontrada' })
+        }
+        if (error instanceof Error && error.message === 'THERAPIST_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a esta sessão' })
+        }
+        throw error
+      }
+
       const session = await prisma.intakeSession.findFirst({
-        where: { id, therapistId: request.user.sub },
+        where: { id, therapistId },
         include: {
           patient: {
             select: {
@@ -853,14 +1026,17 @@ export async function therapistRoutes(app: FastifyInstance) {
   )
 
   app.get('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
-    const parsed = appointmentMonthQuerySchema.safeParse(request.query)
+    const parsed = therapistAppointmentsQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolveScopedTherapistId(request, reply, parsed.data.therapistId)
+    if (!therapistId) return
+
     try {
       const appointments = await listTherapistAppointments(
-        request.user.sub,
+        therapistId,
         parsed.data.year,
         parsed.data.month,
         parsed.data.locationId,
@@ -885,7 +1061,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post('/api/therapist/appointments', { preHandler: therapistOnly }, async (request, reply) => {
+  app.post('/api/therapist/appointments', { preHandler: therapistWriteOnly }, async (request, reply) => {
     const parsed = createAppointmentBodySchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
@@ -929,14 +1105,17 @@ export async function therapistRoutes(app: FastifyInstance) {
   })
 
   app.get('/api/therapist/gabinetes', { preHandler: therapistOnly }, async (request, reply) => {
-    const parsed = gabineteListQuerySchema.safeParse(request.query)
+    const parsed = therapistGabinetesQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
     }
 
+    const therapistId = await resolveScopedTherapistId(request, reply, parsed.data.therapistId)
+    if (!therapistId) return
+
     try {
       const gabinetes = await listActiveGabinetesForTherapist(
-        request.user.sub,
+        therapistId,
         parsed.data.locationId,
       )
       return { gabinetes }
@@ -950,7 +1129,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.patch(
     '/api/therapist/appointments/:id',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = updateAppointmentBodySchema.safeParse(request.body)
@@ -993,7 +1172,7 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.delete(
     '/api/therapist/appointments/:id',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { id } = request.params as { id: string }
       const parsed = deleteAppointmentQuerySchema.safeParse(request.query)
@@ -1018,7 +1197,7 @@ export async function therapistRoutes(app: FastifyInstance) {
     return { settings }
   })
 
-  app.put('/api/therapist/financial/settings', { preHandler: therapistFinancialOnly }, async (request, reply) => {
+  app.put('/api/therapist/financial/settings', { preHandler: [...therapistFinancialOnly, requireWriteTherapist] }, async (request, reply) => {
     const parsed = financialSettingsSchema.safeParse(request.body)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
@@ -1066,8 +1245,11 @@ export async function therapistRoutes(app: FastifyInstance) {
     { preHandler: therapistOnly },
     async (request, reply) => {
       const { patientId } = request.params as { patientId: string }
+      const therapistId = await resolvePatientTherapistId(request, reply, patientId)
+      if (!therapistId) return
+
       try {
-        const documents = await listTherapistPatientDocuments(request.user.sub, patientId)
+        const documents = await listTherapistPatientDocuments(therapistId, patientId)
         return { documents }
       } catch (error) {
         if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -1080,12 +1262,15 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.post(
     '/api/therapist/patients/:patientId/documents',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { patientId } = request.params as { patientId: string }
+      const therapistId = await resolvePatientTherapistId(request, reply, patientId)
+      if (!therapistId) return
+
       try {
         const file = await parseDocumentUpload(request.parts())
-        const document = await uploadTherapistPatientDocument(request.user.sub, patientId, file)
+        const document = await uploadTherapistPatientDocument(therapistId, patientId, file)
         return reply.status(201).send({ document })
       } catch (error) {
         if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {
@@ -1118,9 +1303,12 @@ export async function therapistRoutes(app: FastifyInstance) {
           ? 'attachment'
           : 'inline'
 
+      const therapistId = await resolvePatientTherapistId(request, reply, patientId)
+      if (!therapistId) return
+
       try {
         const document = await getTherapistPatientDocument(
-          request.user.sub,
+          therapistId,
           patientId,
           documentId,
         )
@@ -1146,14 +1334,17 @@ export async function therapistRoutes(app: FastifyInstance) {
 
   app.delete(
     '/api/therapist/patients/:patientId/documents/:documentId',
-    { preHandler: therapistOnly },
+    { preHandler: therapistWriteOnly },
     async (request, reply) => {
       const { patientId, documentId } = request.params as {
         patientId: string
         documentId: string
       }
+      const therapistId = await resolvePatientTherapistId(request, reply, patientId)
+      if (!therapistId) return
+
       try {
-        await deleteTherapistPatientDocument(request.user.sub, patientId, documentId)
+        await deleteTherapistPatientDocument(therapistId, patientId, documentId)
         return reply.status(204).send()
       } catch (error) {
         if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {

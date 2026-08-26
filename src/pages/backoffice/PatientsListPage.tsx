@@ -11,6 +11,10 @@ import { matchesPatientSearch } from '../../lib/patientSearch'
 import { exportPatientsListPdf, type PatientListExportColumnId } from '../../lib/exportPatientsListPdf'
 import { PatientsListExportDialog } from '../../components/backoffice/PatientsListExportDialog'
 import { useAuth } from '../../hooks/useAuth'
+import {
+  isStaffReadOnlyViewer,
+  usesCoordinatorApi,
+} from '../../lib/staffViewer'
 import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
@@ -27,7 +31,8 @@ function isPatientActive(patient: PatientSummary): boolean {
 
 export function PatientsListPage() {
   const { token, user } = useAuth()
-  const readOnly = user?.role === 'coordinator'
+  const readOnly = isStaffReadOnlyViewer(user)
+  const useCoordinatorApi = usesCoordinatorApi(user)
   const [therapists, setTherapists] = useState<TherapistOption[]>([])
   const [selectedTherapist, setSelectedTherapist] = useState<TherapistOption | null>(null)
   const [patients, setPatients] = useState<PatientSummary[]>([])
@@ -95,12 +100,15 @@ export function PatientsListPage() {
 
     setLoading(true)
     setError('')
-    coordinatorApi
-      .listTherapists(token)
+    const request = useCoordinatorApi
+      ? coordinatorApi.listTherapists(token)
+      : therapistApi.listShadowTherapists(token)
+
+    request
       .then((data) => setTherapists(data.therapists))
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar terapeutas'))
       .finally(() => setLoading(false))
-  }, [token, readOnly])
+  }, [token, readOnly, useCoordinatorApi])
 
   useEffect(() => {
     if (!token || !readOnly || !selectedTherapist) return
@@ -110,8 +118,12 @@ export function PatientsListPage() {
     setLocationFilter('')
     setShowInactive(false)
     Promise.all([
-      coordinatorApi.listPatients(token, selectedTherapist.id),
-      coordinatorApi.listLocations(token, selectedTherapist.id),
+      useCoordinatorApi
+        ? coordinatorApi.listPatients(token, selectedTherapist.id)
+        : therapistApi.listPatients(token, { therapistId: selectedTherapist.id }),
+      useCoordinatorApi
+        ? coordinatorApi.listLocations(token, selectedTherapist.id)
+        : therapistApi.listLocations(token, selectedTherapist.id),
     ])
       .then(([patientsData, locationsData]) => {
         setPatients(patientsData.patients)
@@ -119,7 +131,7 @@ export function PatientsListPage() {
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar pacientes'))
       .finally(() => setLoading(false))
-  }, [token, readOnly, selectedTherapist])
+  }, [token, readOnly, selectedTherapist, useCoordinatorApi])
 
   return (
     <BackofficeLayout>

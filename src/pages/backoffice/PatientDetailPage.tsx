@@ -37,6 +37,7 @@ import { PatientEvaluationsPanel } from '../../components/backoffice/PatientEval
 import { AssessmentPipelinePanel } from '../../components/backoffice/AssessmentPipelinePanel'
 import { PatientAppointmentNotesPanel } from '../../components/backoffice/PatientAppointmentNotesPanel'
 import { isFormDelivered } from '../../lib/deliveredForms'
+import { isStaffReadOnlyViewer, usesCoordinatorApi } from '../../lib/staffViewer'
 
 type PatientTab =
   | 'avaliacao'
@@ -115,7 +116,8 @@ export function PatientDetailPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { token, user } = useAuth()
-  const readOnly = user?.role === 'coordinator'
+  const readOnly = isStaffReadOnlyViewer(user)
+  const useCoordinatorApi = usesCoordinatorApi(user)
   const [activeTab, setActiveTab] = useState<PatientTab>('avaliacao')
   const [patient, setPatient] = useState<PatientDetail | null>(null)
   const [locations, setLocations] = useState<LocationSummary[]>([])
@@ -160,18 +162,18 @@ export function PatientDetailPage() {
 
   useEffect(() => {
     if (!token || !id) return
-    const request = readOnly
+    const request = useCoordinatorApi
       ? coordinatorApi.getPatient(token, id)
       : therapistApi.getPatient(token, id)
     request
       .then((data) => setPatient(data.patient as unknown as PatientDetail))
       .finally(() => setLoading(false))
-  }, [token, id, readOnly])
+  }, [token, id, useCoordinatorApi])
 
   useEffect(() => {
     const tab = parsePatientTab(searchParams.get('tab'))
     if (!tab) return
-    if (tab === 'picca' && (readOnly || !user?.piccaEnabled)) return
+    if (tab === 'picca' && (!user?.piccaEnabled || user.role !== 'therapist')) return
     if (tab === 'questionarios' && !readOnly && !user?.questionnairesEnabled) return
     if (tab === 'metodos' && !readOnly && !user?.assessmentResultsEnabled) return
     setActiveTab(tab)
@@ -313,7 +315,7 @@ export function PatientDetailPage() {
   async function handleViewSubmissions(sessionId: string) {
     if (!token) return
     try {
-      const result = readOnly
+      const result = useCoordinatorApi
         ? await coordinatorApi.getSessionSubmissions(token, sessionId)
         : await therapistApi.getSessionSubmissions(token, sessionId)
       setSubmissions(result.session)
@@ -364,7 +366,7 @@ export function PatientDetailPage() {
 
   async function refreshPatient() {
     if (!token || !id) return
-    const refreshed = readOnly
+    const refreshed = useCoordinatorApi
       ? await coordinatorApi.getPatient(token, id)
       : await therapistApi.getPatient(token, id)
     setPatient(refreshed.patient as unknown as PatientDetail)
@@ -872,7 +874,7 @@ export function PatientDetailPage() {
             ['notas', 'Notas'],
             ['intake', 'Formulários'],
             ...(readOnly || user?.questionnairesEnabled ? [['questionarios', 'Questionários'] as const] : []),
-            ...(!readOnly && user?.piccaEnabled ? [['picca', 'PICCA'] as const] : []),
+            ...(user?.piccaEnabled && user.role === 'therapist' ? [['picca', 'PICCA'] as const] : []),
             ['documentos', 'Documentos'],
             ['historico', 'Histórico recente'],
           ] as const
@@ -896,6 +898,7 @@ export function PatientDetailPage() {
           token={token}
           patientId={id}
           readOnly={readOnly}
+          useCoordinatorApi={useCoordinatorApi}
           onOpenIntakeTab={() => setActiveTab('intake')}
           onOpenPiccaTab={() => setActiveTab('picca')}
           onOpenDocumentsTab={() => setActiveTab('documentos')}
@@ -907,6 +910,7 @@ export function PatientDetailPage() {
           token={token}
           patientId={id}
           readOnly={readOnly}
+          useCoordinatorApi={useCoordinatorApi}
           onOpenIntakeTab={() => setActiveTab('intake')}
         />
       )}
@@ -1283,7 +1287,11 @@ export function PatientDetailPage() {
       )}
 
       {activeTab === 'documentos' && (
-        <PatientDocumentsPanel patientId={patient.id} readOnly={readOnly} />
+        <PatientDocumentsPanel
+          patientId={patient.id}
+          readOnly={readOnly}
+          useCoordinatorApi={useCoordinatorApi}
+        />
       )}
       </div>
     </BackofficeLayout>

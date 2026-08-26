@@ -36,7 +36,7 @@ type Props = {
   location: LocationSummary
   therapistName: string
   editLock?: EditLock
-  mode?: 'therapist' | 'coordinator'
+  mode?: 'therapist' | 'coordinator' | 'shadow'
   therapistId?: string
 }
 
@@ -49,6 +49,7 @@ export function AttendanceMatrix({
   therapistId,
 }: Props) {
   const isCoordinator = mode === 'coordinator'
+  const isShadow = mode === 'shadow'
   const todayIso = getTodayInLisbon()
   const todayColRef = useRef<HTMLTableCellElement>(null)
   const [viewYear, setViewYear] = useState(() => Number(todayIso.slice(0, 4)))
@@ -82,14 +83,20 @@ export function AttendanceMatrix({
   }, [scheduledAppointments])
 
   const loadMonth = useCallback(async () => {
-    if (isCoordinator && !therapistId) return
+    if ((isCoordinator || isShadow) && !therapistId) return
 
     setLoading(true)
     setError('')
     try {
       const data = isCoordinator
         ? await coordinatorApi.listAttendanceMatrix(token, therapistId!, viewYear, viewMonth, location.id)
-        : await therapistApi.listAttendanceMatrix(token, viewYear, viewMonth, location.id)
+        : await therapistApi.listAttendanceMatrix(
+            token,
+            viewYear,
+            viewMonth,
+            location.id,
+            isShadow ? therapistId : undefined,
+          )
       setPatients(data.patients)
       setRecords(data.records)
       setScheduledAppointments(data.scheduledAppointments ?? [])

@@ -5,9 +5,15 @@ import {
   AppointmentsCalendar,
   type AppointmentPrefill,
 } from '../../components/backoffice/AppointmentsCalendar'
-import { ApiError, coordinatorApi } from '../../lib/api'
+import { ApiError, coordinatorApi, therapistApi } from '../../lib/api'
 import { isIsoDateString } from '../../lib/dashboard'
 import { useAuth } from '../../hooks/useAuth'
+import {
+  isShadowTherapistViewer,
+  isStaffReadOnlyViewer,
+  needsTherapistPicker,
+  usesCoordinatorApi,
+} from '../../lib/staffViewer'
 import attendanceStyles from './AttendancePage.module.css'
 import styles from '../../components/backoffice/BackofficeLayout.module.css'
 
@@ -16,22 +22,28 @@ type TherapistOption = { id: string; name: string; email: string }
 export function AppointmentsPage() {
   const { user, token } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
-  const isCoordinator = user?.role === 'coordinator'
+  const isCoordinator = usesCoordinatorApi(user)
+  const isShadowViewer = isShadowTherapistViewer(user)
+  const readOnly = isStaffReadOnlyViewer(user)
+  const showTherapistPicker = needsTherapistPicker(user)
   const [therapists, setTherapists] = useState<TherapistOption[]>([])
   const [selectedTherapist, setSelectedTherapist] = useState<TherapistOption | null>(null)
-  const [loading, setLoading] = useState(isCoordinator)
+  const [loading, setLoading] = useState(showTherapistPicker)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!token || !isCoordinator) return
+    if (!token || !showTherapistPicker) return
     setLoading(true)
     setError('')
-    coordinatorApi
-      .listTherapists(token)
+    const request = isCoordinator
+      ? coordinatorApi.listTherapists(token)
+      : therapistApi.listShadowTherapists(token)
+
+    request
       .then((data) => setTherapists(data.therapists))
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Erro ao carregar terapeutas'))
       .finally(() => setLoading(false))
-  }, [token, isCoordinator])
+  }, [token, showTherapistPicker, isCoordinator])
 
   const appointmentPrefill = useMemo((): AppointmentPrefill | null => {
     const appointmentId = searchParams.get('appointmentId')
@@ -76,7 +88,7 @@ export function AppointmentsPage() {
     <BackofficeLayout>
       <h1 className={styles.pageTitle}>Consultas</h1>
 
-      {isCoordinator && !selectedTherapist ? (
+      {showTherapistPicker && !selectedTherapist ? (
         <>
           <p className={styles.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-lg)' }}>
             Selecione o terapeuta para consultar as marcações (apenas leitura).
@@ -104,7 +116,7 @@ export function AppointmentsPage() {
         </>
       ) : (
         <>
-          {isCoordinator && selectedTherapist && (
+          {readOnly && selectedTherapist && (
             <p className={styles.muted} style={{ marginTop: '-0.75rem', marginBottom: 'var(--space-md)' }}>
               Terapeuta: <strong>{selectedTherapist.name}</strong>
               {' · '}
@@ -114,14 +126,15 @@ export function AppointmentsPage() {
             </p>
           )}
           <p className={styles.muted} style={{ marginBottom: 'var(--space-lg)' }}>
-            {isCoordinator
+            {readOnly
               ? 'Visualização das consultas agendadas. Pode filtrar por local e exportar o mês em PDF.'
               : 'Agende consultas no calendário mensal. Clique num dia para adicionar ou gerir marcações.'}
           </p>
           <AppointmentsCalendar
             token={token}
-            therapistName={isCoordinator ? selectedTherapist!.name : user.name}
-            readOnly={isCoordinator}
+            therapistName={readOnly ? selectedTherapist!.name : user.name}
+            readOnly={readOnly}
+            shadowTherapistApi={isShadowViewer}
             therapistId={selectedTherapist?.id}
             prefill={appointmentPrefill}
             onPrefillConsumed={clearAppointmentPrefill}

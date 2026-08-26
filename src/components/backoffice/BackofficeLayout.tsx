@@ -201,7 +201,7 @@ export function BackofficeLayout({ children }: { children: ReactNode }) {
         <Container>{children}</Container>
       </main>
 
-      {user.role === 'therapist' && token && <TherapistNotepadDrawer token={token} />}
+      {user.role === 'therapist' && !user.readOnly && token && <TherapistNotepadDrawer token={token} />}
     </div>
   )
 }

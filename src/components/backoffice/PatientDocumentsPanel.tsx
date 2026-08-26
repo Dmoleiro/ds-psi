@@ -10,6 +10,7 @@ import styles from './PatientDocumentsPanel.module.css'
 type PatientDocumentsPanelProps = {
   patientId: string
   readOnly?: boolean
+  useCoordinatorApi?: boolean
 }
 
 function formatFileSize(bytes: number): string {
@@ -22,7 +23,11 @@ function formatUploadedBy(uploadedBy: PatientDocumentSummary['uploadedBy']): str
   return uploadedBy === 'patient' ? 'Paciente' : 'Terapeuta'
 }
 
-export function PatientDocumentsPanel({ patientId, readOnly = false }: PatientDocumentsPanelProps) {
+export function PatientDocumentsPanel({
+  patientId,
+  readOnly = false,
+  useCoordinatorApi = false,
+}: PatientDocumentsPanelProps) {
   const { token } = useAuth()
   const [documents, setDocuments] = useState<PatientDocumentSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +45,7 @@ export function PatientDocumentsPanel({ patientId, readOnly = false }: PatientDo
     setLoading(true)
     setError('')
     try {
-      const result = readOnly
+      const result = useCoordinatorApi
         ? await coordinatorApi.listPatientDocuments(token, patientId)
         : await therapistApi.listPatientDocuments(token, patientId)
       setDocuments(result.documents)
@@ -83,7 +88,7 @@ export function PatientDocumentsPanel({ patientId, readOnly = false }: PatientDo
     setActionLoading(document.id)
     setError('')
     try {
-      const blob = readOnly
+      const blob = useCoordinatorApi
         ? await coordinatorApi.getPatientDocumentContent(token, patientId, document.id, 'inline')
         : await therapistApi.getPatientDocumentContent(token, patientId, document.id, 'inline')
       if (previewUrl) {
@@ -104,7 +109,7 @@ export function PatientDocumentsPanel({ patientId, readOnly = false }: PatientDo
     setActionLoading(document.id)
     setError('')
     try {
-      const blob = readOnly
+      const blob = useCoordinatorApi
         ? await coordinatorApi.getPatientDocumentContent(token, patientId, document.id, 'attachment')
         : await therapistApi.getPatientDocumentContent(
             token,

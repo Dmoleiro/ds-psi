@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { UserRole } from '@prisma/client'
 import { prisma } from '../lib/prisma.js'
 import { hashPassword } from '../lib/password.js'
-import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createGabineteSchema, updateGabineteSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema, setTherapistLocationsSchema, setCoordinatorTherapistsSchema } from '../lib/schemas.js'
+import { createTherapistSchema, updateTherapistSchema, createLocationSchema, updateLocationSchema, createGabineteSchema, updateGabineteSchema, createCoordinatorSchema, updateCoordinatorSchema, financialSettingsSchema, setTherapistLocationsSchema, setCoordinatorTherapistsSchema, setTherapistSupervisorsSchema } from '../lib/schemas.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { getOrCreateFinancialSettings, updateFinancialSettings } from '../services/financialSettings.js'
 import { createGabinete, listGabinetes, updateGabinete } from '../services/gabinetes.js'
@@ -11,6 +11,10 @@ import {
   listCoordinatorTherapistsForAdmin,
   setCoordinatorTherapists,
 } from '../services/coordinatorTherapists.js'
+import {
+  listTherapistSupervisorsForAdmin,
+  setTherapistSupervisors,
+} from '../services/therapistSupervisors.js'
 import { getAdminDashboard } from '../services/adminDashboard.js'
 
 export async function adminRoutes(app: FastifyInstance) {
@@ -28,6 +32,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -64,6 +69,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -93,6 +99,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const data: {
       name?: string
       active?: boolean
+      readOnly?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
       questionnairesEnabled?: boolean
@@ -103,6 +110,7 @@ export async function adminRoutes(app: FastifyInstance) {
     } = {}
     if (parsed.data.name !== undefined) data.name = parsed.data.name
     if (parsed.data.active !== undefined) data.active = parsed.data.active
+    if (parsed.data.readOnly !== undefined) data.readOnly = parsed.data.readOnly
     if (parsed.data.financialOverviewEnabled !== undefined) {
       data.financialOverviewEnabled = parsed.data.financialOverviewEnabled
     }
@@ -131,6 +139,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -178,6 +187,38 @@ export async function adminRoutes(app: FastifyInstance) {
     }
   })
 
+  app.get('/api/admin/therapists/:id/supervisors', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    try {
+      return await listTherapistSupervisorsForAdmin(id)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      throw error
+    }
+  })
+
+  app.put('/api/admin/therapists/:id/supervisors', { preHandler: adminOnly }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parsed = setTherapistSupervisorsSchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await setTherapistSupervisors(id, parsed.data.supervisorIds)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'THERAPIST_NOT_FOUND') {
+        return reply.status(404).send({ error: 'Terapeuta não encontrado' })
+      }
+      if (error instanceof Error && error.message === 'INVALID_SUPERVISOR') {
+        return reply.status(400).send({ error: 'Supervisor inválido' })
+      }
+      throw error
+    }
+  })
+
   app.get('/api/admin/therapists/:id/financial-settings', { preHandler: adminOnly }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const therapist = await prisma.user.findFirst({
@@ -219,6 +260,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         appointmentInvitesAllowed: true,
@@ -253,6 +295,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -292,6 +335,7 @@ export async function adminRoutes(app: FastifyInstance) {
         email: true,
         name: true,
         active: true,
+        readOnly: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,

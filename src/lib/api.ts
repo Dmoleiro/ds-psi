@@ -183,6 +183,7 @@ export type StaffUser = {
   name: string
   phone?: string | null
   role: 'admin' | 'therapist' | 'coordinator'
+  readOnly?: boolean
   financialOverviewEnabled?: boolean
   piccaEnabled?: boolean
   questionnairesEnabled?: boolean
@@ -476,8 +477,16 @@ export const therapistApi = {
       token,
       body: { content },
     }),
-  listPatients: (token: string) =>
-    apiRequest<{ patients: PatientSummary[] }>('/api/therapist/patients', { token }),
+  listPatients: (token: string, options?: { therapistId?: string }) =>
+    apiRequest<{ patients: PatientSummary[] }>(
+      `/api/therapist/patients${options?.therapistId ? `?therapistId=${encodeURIComponent(options.therapistId)}` : ''}`,
+      { token },
+    ),
+  listShadowTherapists: (token: string) =>
+    apiRequest<{ therapists: Array<{ id: string; name: string; email: string }> }>(
+      '/api/therapist/shadow-therapists',
+      { token },
+    ),
   createPatient: (token: string, body: Record<string, unknown>) =>
     apiRequest<{ patient: PatientSummary }>('/api/therapist/patients', {
       method: 'POST',
@@ -773,10 +782,17 @@ export const therapistApi = {
       `/api/therapist/patients/${patientId}/attendance?year=${year}&month=${month}`,
       { token },
     ),
-  listLocations: (token: string) =>
-    apiRequest<{ locations: LocationSummary[] }>('/api/therapist/locations', { token }),
-  listGabinetes: (token: string, locationId?: string) =>
-    apiRequest<{
+  listLocations: (token: string, therapistId?: string) =>
+    apiRequest<{ locations: LocationSummary[] }>(
+      `/api/therapist/locations${therapistId ? `?therapistId=${encodeURIComponent(therapistId)}` : ''}`,
+      { token },
+    ),
+  listGabinetes: (token: string, options?: { locationId?: string; therapistId?: string }) => {
+    const params = new URLSearchParams()
+    if (options?.locationId) params.set('locationId', options.locationId)
+    if (options?.therapistId) params.set('therapistId', options.therapistId)
+    const query = params.toString()
+    return apiRequest<{
       gabinetes: Array<{
         id: string
         locationId: string
@@ -785,11 +801,15 @@ export const therapistApi = {
         active: boolean
         sortOrder: number
       }>
-    }>(
-      `/api/therapist/gabinetes${locationId ? `?locationId=${locationId}` : ''}`,
-      { token },
-    ),
-  listAttendanceMatrix: (token: string, year: number, month: number, locationId: string) =>
+    }>(`/api/therapist/gabinetes${query ? `?${query}` : ''}`, { token })
+  },
+  listAttendanceMatrix: (
+    token: string,
+    year: number,
+    month: number,
+    locationId: string,
+    therapistId?: string,
+  ) =>
     apiRequest<{
       year: number
       month: number
@@ -804,7 +824,12 @@ export const therapistApi = {
         sessionFee: number
       }>
       scheduledAppointments: Array<{ patientId: string; date: string }>
-    }>(`/api/therapist/attendance?year=${year}&month=${month}&locationId=${locationId}`, { token }),
+    }>(
+      `/api/therapist/attendance?year=${year}&month=${month}&locationId=${locationId}${
+        therapistId ? `&therapistId=${encodeURIComponent(therapistId)}` : ''
+      }`,
+      { token },
+    ),
   upsertAttendance: (
     token: string,
     patientId: string,
@@ -814,9 +839,17 @@ export const therapistApi = {
       `/api/therapist/patients/${patientId}/attendance`,
       { method: 'PUT', token, body },
     ),
-  listAppointments: (token: string, year: number, month: number, locationId?: string) =>
+  listAppointments: (
+    token: string,
+    year: number,
+    month: number,
+    locationId?: string,
+    therapistId?: string,
+  ) =>
     apiRequest<{ year: number; month: number; appointments: AppointmentSummary[] }>(
-      `/api/therapist/appointments?year=${year}&month=${month}${locationId ? `&locationId=${locationId}` : ''}`,
+      `/api/therapist/appointments?year=${year}&month=${month}${
+        locationId ? `&locationId=${locationId}` : ''
+      }${therapistId ? `&therapistId=${encodeURIComponent(therapistId)}` : ''}`,
       { token },
     ),
   getAppointmentDefaults: (token: string) =>
@@ -1057,6 +1090,7 @@ export const adminApi = {
     body: {
       name?: string
       active?: boolean
+      readOnly?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
       questionnairesEnabled?: boolean
@@ -1069,6 +1103,30 @@ export const adminApi = {
       method: 'PATCH',
       token,
       body,
+    }),
+  getTherapistSupervisors: (token: string, therapistId: string) =>
+    apiRequest<{
+      therapists: Array<{
+        id: string
+        name: string
+        email: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/therapists/${therapistId}/supervisors`, { token }),
+  setTherapistSupervisors: (token: string, therapistId: string, supervisorIds: string[]) =>
+    apiRequest<{
+      therapists: Array<{
+        id: string
+        name: string
+        email: string
+        active: boolean
+        assigned: boolean
+      }>
+    }>(`/api/admin/therapists/${therapistId}/supervisors`, {
+      method: 'PUT',
+      token,
+      body: { supervisorIds },
     }),
   getTherapistLocations: (token: string, therapistId: string) =>
     apiRequest<{

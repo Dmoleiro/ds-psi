@@ -10,6 +10,7 @@ type Props = {
   token: string
   patientId: string
   readOnly: boolean
+  useCoordinatorApi?: boolean
   onOpenIntakeTab?: () => void
 }
 
@@ -132,7 +133,12 @@ function TimelineEventRow({
   )
 }
 
-export function PatientTimelinePanel({ token, patientId, readOnly, onOpenIntakeTab }: Props) {
+export function PatientTimelinePanel({
+  token,
+  patientId,
+  useCoordinatorApi = false,
+  onOpenIntakeTab,
+}: Props) {
   const [timeline, setTimeline] = useState<PatientTimeline | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -141,7 +147,7 @@ export function PatientTimelinePanel({ token, patientId, readOnly, onOpenIntakeT
   useEffect(() => {
     setLoading(true)
     setError('')
-    const request = readOnly
+    const request = useCoordinatorApi
       ? coordinatorApi.getPatientTimeline(token, patientId)
       : therapistApi.getPatientTimeline(token, patientId)
 
@@ -149,7 +155,7 @@ export function PatientTimelinePanel({ token, patientId, readOnly, onOpenIntakeT
       .then((data) => setTimeline(data))
       .catch((err) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar o histórico'))
       .finally(() => setLoading(false))
-  }, [token, patientId, readOnly])
+  }, [token, patientId, useCoordinatorApi])
 
   const collapsedSummary = getCollapsedSummary(timeline, loading, error)
   const hasContent = timeline != null && (timeline.nextAppointment || timeline.events.length > 0)
