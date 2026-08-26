@@ -51,4 +51,35 @@ describe('formatQuestionnaireAnswers', () => {
       value: 'Preenchido em consulta.',
     })
   })
+
+  it('includes Conners cotação table for therapist view', () => {
+    const answers: Record<string, unknown> = {
+      conners_sexo: 0,
+      conners_idade: 8,
+      q4: 3,
+      q9: 3,
+      q14: 3,
+      q18: 3,
+      q22: 3,
+      q26: 3,
+    }
+    const fields = formatQuestionnaireAnswers('conners_pais', answers)
+    const cotation = fields.find((f) => f.key === 'conners_cotation_table')
+
+    expect(cotation?.value).toContain('6-10')
+    expect(cotation?.table?.columns).toEqual([
+      'Subescala',
+      'Soma bruta',
+      'Score padrão',
+      'Percentil',
+      'Resultado qualitativo',
+    ])
+    const hyperRow = cotation?.table?.rows.find((row) =>
+      row.cells[0]?.includes('Excesso de actividade motora'),
+    )
+    expect(hyperRow?.cells[1]).toBe('18')
+    expect(hyperRow?.cells[2]).not.toBe('—')
+    expect(hyperRow?.cells[4]).not.toBe('—')
+    expect(fields.find((f) => f.key === '_score_hyperactivity_raw')).toBeUndefined()
+  })
 })

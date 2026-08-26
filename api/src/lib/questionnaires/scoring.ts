@@ -1,3 +1,4 @@
+import { computeConnersScores } from '../connersScoring.js'
 import type { QuestionnaireDefinition, QuestionnaireScores, ScoringRule } from './types.js'
 import { computeVinelandScores } from './vinelandScoring.js'
 
@@ -182,6 +183,8 @@ function computeRuleScores(rule: ScoringRule, answers: Record<string, unknown>):
     }
     case 'vineland':
       return computeVinelandScores(answers)
+    case 'conners':
+      return computeConnersScores(rule.variant, answers)
     case 'custom':
       return rule.compute(answers)
     default:
@@ -202,6 +205,13 @@ export function computeQuestionnaireScores(
   }
   if (definition.scoring.type === 'scared') {
     return computeRuleScores({ type: 'scared' }, answers)
+  }
+  if (definition.scoring.type === 'conners') {
+    return computeConnersScores(
+      definition.scoring.variant,
+      answers,
+      definition.items.length,
+    )
   }
   return computeRuleScores(definition.scoring, answers)
 }

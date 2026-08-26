@@ -147,10 +147,19 @@ const FIELD_ORDER: Record<string, string[]> = {
   ],
 }
 
+export type FormattedTableRow = {
+  cells: string[]
+  emphasis?: boolean
+}
+
 export type FormattedField = {
   key: string
   label: string
   value: string
+  table?: {
+    columns: string[]
+    rows: FormattedTableRow[]
+  }
 }
 
 function formatValue(key: string, value: unknown): string | null {

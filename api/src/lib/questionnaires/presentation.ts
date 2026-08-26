@@ -1,4 +1,4 @@
-import type { FormattedField } from '../formPresentation.js'
+import type { FormattedField, FormattedTableRow } from '../formPresentation.js'
 import { QUESTIONNAIRE_NOTES_FIELD, RESPONSE_LABELS, isOneBasedResponseType } from './types.js'
 import type { ResponseType } from './types.js'
 import { getQuestionnaireDefinition } from './registry.js'
@@ -12,6 +12,16 @@ import {
   adirFieldId,
 } from './definitions/adir.js'
 import { VINELAND_SCORE_LABELS } from './vinelandScoring.js'
+import {
+  CONNERS_AGE_BAND,
+  CONNERS_PAIS_SUBSCALES,
+  CONNERS_PROF_SUBSCALES,
+  CONNERS_QUALITATIVE_COLUMN,
+  CONNERS_SCORE_LABELS,
+  computeConnersSummary,
+  type ConnersVariant,
+} from '../connersScoring.js'
+import { CONNERS_FORM_IDS } from './definitions/conners.js'
 
 function labelForStoredValue(
   responseType: ResponseType,
@@ -209,6 +219,74 @@ function formatAdirAnswers(answers: Record<string, unknown>): FormattedField[] {
   return fields
 }
 
+function connersVariantFromFormId(formId: string): ConnersVariant {
+  return formId === 'conners_professores' ? 'professores' : 'pais'
+}
+
+function formatConnersCell(value: number | string | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  return String(value)
+}
+
+function formatConnersCotationFields(
+  formId: string,
+  answers: Record<string, unknown>,
+  itemCount: number,
+): FormattedField[] {
+  const variant = connersVariantFromFormId(formId)
+  const summary = computeConnersSummary(variant, answers, itemCount)
+  const subscaleDefs =
+    variant === 'pais' ? CONNERS_PAIS_SUBSCALES : CONNERS_PROF_SUBSCALES
+
+  const noteParts = [
+    summary.sex && summary.age !== null && summary.ageInNormBand
+      ? `Tabelas normativas para idades ${CONNERS_AGE_BAND} anos`
+      : summary.age !== null && !summary.ageInNormBand
+        ? `Idade fora da faixa normativa (${CONNERS_AGE_BAND} anos) — apenas somas brutas`
+        : 'Scores normativos requerem sexo e idade (6–10 anos)',
+  ]
+  if (variant === 'pais') {
+    noteParts.push('Problemas de oposição: tabelas normativas da versão professores (sem tabela pais).')
+  }
+  const note = noteParts.join(' ')
+
+  const rows: FormattedTableRow[] = Object.entries(subscaleDefs).map(([key, def]) => {
+    const row = summary.subscales[key]
+    return {
+      cells: [
+        def.label,
+        formatConnersCell(row?.raw),
+        formatConnersCell(row?.standardScore),
+        formatConnersCell(row?.percentile),
+        formatConnersCell(row?.qualitative),
+      ],
+    }
+  })
+
+  rows.push({
+    cells: [
+      'Total (todos os itens)',
+      formatConnersCell(summary.total.raw),
+      '—',
+      '—',
+      '—',
+    ],
+    emphasis: true,
+  })
+
+  return [
+    {
+      key: 'conners_cotation_table',
+      label: 'Cotação',
+      value: note,
+      table: {
+        columns: ['Subescala', 'Soma bruta', 'Score padrão', 'Percentil', CONNERS_QUALITATIVE_COLUMN],
+        rows,
+      },
+    },
+  ]
+}
+
 export function formatQuestionnaireAnswers(
   formId: string,
   answers: Record<string, unknown>,
@@ -226,6 +304,27 @@ export function formatQuestionnaireAnswers(
   }
 
   const fields: FormattedField[] = []
+
+  if ((CONNERS_FORM_IDS as readonly string[]).includes(formId)) {
+    const sex = answers.conners_sexo
+    if (sex === 0 || sex === 1) {
+      fields.push({
+        key: 'conners_sexo',
+        label: 'Sexo (para cotação)',
+        value: sex === 0 ? 'Masculino' : 'Feminino',
+      })
+    }
+    const age = answers.conners_idade
+    if (age !== undefined && age !== null && String(age).trim() !== '') {
+      fields.push({
+        key: 'conners_idade',
+        label: 'Idade (anos, para cotação)',
+        value: String(age),
+      })
+    }
+    fields.push(...formatConnersCotationFields(formId, answers, definition.items.length))
+  }
+
   for (const item of definition.items) {
     const value = answers[item.id]
     if (value === undefined || value === null || value === '') continue
@@ -254,13 +353,22 @@ export function formatQuestionnaireAnswers(
   }
 
   const scores = answers._scores
-  if (scores && typeof scores === 'object' && !Array.isArray(scores)) {
+  const isConnersForm = (CONNERS_FORM_IDS as readonly string[]).includes(formId)
+  if (
+    !isConnersForm &&
+    scores &&
+    typeof scores === 'object' &&
+    !Array.isArray(scores)
+  ) {
     const scoreEntries = scores as Record<string, unknown>
     for (const [key, score] of Object.entries(scoreEntries)) {
       if (typeof score === 'number') {
         let label = `Pontuação — ${key}`
         if (formId === 'vineland') {
           label = VINELAND_SCORE_LABELS[key] ?? label
+        }
+        if (isConnersForm) {
+          label = CONNERS_SCORE_LABELS[key] ?? label
         }
         fields.push({
           key: `_score_${key}`,

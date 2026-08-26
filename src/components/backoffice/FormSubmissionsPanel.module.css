@@ -2,6 +2,10 @@
   margin-top: var(--space-xl);
 }
 
+.scrollAnchor {
+  scroll-margin-top: var(--space-lg);
+}
+
 .header {
   display: flex;
   align-items: flex-start;
@@ -91,6 +95,36 @@
   margin: 0;
   color: var(--color-ink);
   white-space: pre-wrap;
+}
+
+.tableNote {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+  white-space: normal;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  white-space: normal;
+}
+
+.dataTable th,
+.dataTable td {
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+
+.dataTable th {
+  background: var(--color-surface-muted, #f0f0f0);
+  font-weight: 600;
+}
+
+.tableTotalRow td {
+  font-weight: 700;
 }
 
 .empty {

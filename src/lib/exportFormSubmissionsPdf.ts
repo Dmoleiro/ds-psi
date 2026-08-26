@@ -1,7 +1,16 @@
+export type FormSubmissionTableRow = {
+  cells: string[]
+  emphasis?: boolean
+}
+
 export type FormSubmissionField = {
   key: string
   label: string
   value: string
+  table?: {
+    columns: string[]
+    rows: FormSubmissionTableRow[]
+  }
 }
 
 export type FormSubmissionView = {
@@ -31,21 +40,49 @@ function nl2br(value: string): string {
   return value.replace(/\n/g, '<br>')
 }
 
+function buildFieldHtml(field: FormSubmissionField): string {
+  if (field.table) {
+    const head = field.table.columns
+      .map((column) => `<th>${escapeHtml(column)}</th>`)
+      .join('')
+    const body = field.table.rows
+      .map((row) => {
+        const cells = row.cells.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')
+        const rowClass = row.emphasis ? ' class="total-row"' : ''
+        return `<tr${rowClass}>${cells}</tr>`
+      })
+      .join('')
+    const note = field.value.trim()
+      ? `<p class="table-note">${nl2br(escapeHtml(field.value))}</p>`
+      : ''
+    return `
+      <div class="field">
+        <dt>${escapeHtml(field.label)}</dt>
+        <dd>
+          ${note}
+          <table class="data-table">
+            <thead><tr>${head}</tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </dd>
+      </div>
+    `
+  }
+
+  return `
+    <div class="field">
+      <dt>${escapeHtml(field.label)}</dt>
+      <dd>${nl2br(escapeHtml(field.value))}</dd>
+    </div>
+  `
+}
+
 function buildPrintHtml(session: SessionSubmissionsView): string {
   const generatedAt = new Date().toLocaleString('pt-PT')
   const formsHtml = session.submissions
     .map((submission) => {
       const submittedAt = new Date(submission.submittedAt).toLocaleString('pt-PT')
-      const fieldsHtml = submission.fields
-        .map(
-          (field) => `
-            <div class="field">
-              <dt>${escapeHtml(field.label)}</dt>
-              <dd>${nl2br(escapeHtml(field.value))}</dd>
-            </div>
-          `,
-        )
-        .join('')
+      const fieldsHtml = submission.fields.map((field) => buildFieldHtml(field)).join('')
 
       return `
         <section class="form-block">
@@ -105,6 +142,30 @@ function buildPrintHtml(session: SessionSubmissionsView): string {
       dd {
         margin: 0;
         white-space: pre-wrap;
+      }
+      .table-note {
+        margin: 0 0 8px;
+        color: #6b6b6b;
+        font-size: 0.875rem;
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+        white-space: normal;
+      }
+      .data-table th,
+      .data-table td {
+        border: 1px solid #e8ddd2;
+        padding: 6px 8px;
+        text-align: left;
+      }
+      .data-table th {
+        background: #f5f0ea;
+        font-weight: 700;
+      }
+      .data-table tr.total-row td {
+        font-weight: 700;
       }
       .footer {
         margin-top: 32px;

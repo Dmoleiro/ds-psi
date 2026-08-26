@@ -109,6 +109,38 @@ async function sendMail(config: MailConfig, message: nodemailer.SendMailOptions)
   await transporter.sendMail(message)
 }
 
+function formatFieldText(field: FormattedField): string {
+  if (field.table) {
+    const header = field.table.columns.join(' | ')
+    const lines = field.table.rows.map((row) => row.cells.join(' | '))
+    const tableText = [header, ...lines].join('\n')
+    return field.value.trim() ? `${field.value}\n${tableText}` : tableText
+  }
+  return field.value
+}
+
+function formatFieldHtml(field: FormattedField): string {
+  if (field.table) {
+    const head = field.table.columns
+      .map((column) => `<th style="padding:6px 8px;border:1px solid #e8ddd2;">${escapeHtml(column)}</th>`)
+      .join('')
+    const body = field.table.rows
+      .map((row) => {
+        const cells = row.cells
+          .map((cell) => `<td style="padding:6px 8px;border:1px solid #e8ddd2;">${escapeHtml(cell)}</td>`)
+          .join('')
+        const weight = row.emphasis ? 'font-weight:700;' : ''
+        return `<tr style="${weight}">${cells}</tr>`
+      })
+      .join('')
+    const note = field.value.trim()
+      ? `<p style="margin:0 0 8px;color:#6b6b6b;">${nl2br(escapeHtml(field.value))}</p>`
+      : ''
+    return `${note}<table style="border-collapse:collapse;font-size:14px;"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`
+  }
+  return nl2br(escapeHtml(field.value))
+}
+
 export async function sendFormSubmittedEmail(params: FormSubmittedEmailParams): Promise<void> {
   const config = getMailConfig()
   if (!config) {
@@ -116,11 +148,11 @@ export async function sendFormSubmittedEmail(params: FormSubmittedEmailParams): 
     return
   }
 
-  const fieldsText = params.fields.map((field) => `${field.label}: ${field.value}`).join('\n')
+  const fieldsText = params.fields.map((field) => `${field.label}: ${formatFieldText(field)}`).join('\n')
   const fieldsHtml = params.fields
     .map(
       (field) =>
-        `<tr><th style="text-align:left;padding:8px 12px 8px 0;vertical-align:top;">${escapeHtml(field.label)}</th><td style="padding:8px 0;vertical-align:top;">${nl2br(escapeHtml(field.value))}</td></tr>`,
+        `<tr><th style="text-align:left;padding:8px 12px 8px 0;vertical-align:top;">${escapeHtml(field.label)}</th><td style="padding:8px 0;vertical-align:top;">${formatFieldHtml(field)}</td></tr>`,
     )
     .join('')
 

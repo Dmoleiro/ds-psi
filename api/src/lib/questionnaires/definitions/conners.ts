@@ -1,6 +1,15 @@
+import { z } from 'zod'
+import { buildQuestionnaireSchema } from '../schema.js'
 import { defineQuestionnaire } from '../helpers.js'
+import type { QuestionnaireDefinition } from '../types.js'
 
 const CONNERS_0_3 = ['Nunca', 'Um pouco', 'Frequentemente', 'Muito frequente']
+
+export const CONNERS_FORM_IDS = [
+  'conners_pais',
+  'conners_professores',
+  'conners_idade_escolar_pais',
+] as const
 
 const CONNERS_PAIS_ITEMS = [
   'Desatento, distrai-se facilmente',
@@ -60,11 +69,11 @@ const CONNERS_PROF_ITEMS = [
   'Inquieto(a), sempre a levantar-se e a movimentar-se pelo espaço',
 ]
 
-function connersScoring(count: number) {
-  return {
-    type: 'sum_subscales' as const,
-    subscales: [{ id: 'total', label: 'Total Conners', itemIds: Array.from({ length: count }, (_, i) => `q${i + 1}`) }],
-  }
+export function buildConnersSchema(definition: QuestionnaireDefinition) {
+  return buildQuestionnaireSchema(definition).extend({
+    conners_sexo: z.union([z.literal(0), z.literal(1)]).optional(),
+    conners_idade: z.union([z.number(), z.string()]).optional(),
+  })
 }
 
 export const connersQuestionnaires = [
@@ -73,35 +82,35 @@ export const connersQuestionnaires = [
     title: 'Conners — Pais',
     description: 'Escala de Conners para pais (versão reduzida).',
     instructions:
-      'Avalie o comportamento da criança durante o último mês. 0 = Nunca, 3 = Muito frequente.',
+      'Avalie o comportamento da criança durante o último mês. 0 = Nunca, 3 = Muito frequente. Para cotação normativa, indique sexo e idade (6–10 anos).',
     respondent: 'Pais',
     responseType: 'frequency0_3',
     responseLabels: CONNERS_0_3,
     items: CONNERS_PAIS_ITEMS,
-    scoring: connersScoring(CONNERS_PAIS_ITEMS.length),
+    scoring: { type: 'conners', variant: 'pais' },
   }),
   defineQuestionnaire({
     id: 'conners_professores',
     title: 'Conners — Professores',
     description: 'Escala de Conners para professores (versão reduzida).',
     instructions:
-      'Avalie o comportamento da criança durante o último mês. 0 = Nunca, 3 = Muito frequente.',
+      'Avalie o comportamento da criança durante o último mês. 0 = Nunca, 3 = Muito frequente. Para cotação normativa, indique sexo e idade (6–10 anos).',
     respondent: 'Professores',
     responseType: 'frequency0_3',
     responseLabels: CONNERS_0_3,
     items: CONNERS_PROF_ITEMS,
-    scoring: connersScoring(CONNERS_PROF_ITEMS.length),
+    scoring: { type: 'conners', variant: 'professores' },
   }),
   defineQuestionnaire({
     id: 'conners_idade_escolar_pais',
     title: 'Conners — Idade Escolar (Pais)',
     description: 'Conners para idade escolar — versão pais.',
     instructions:
-      'Avalie o comportamento durante o último mês. 0 = Nunca, 3 = Muito frequente.',
+      'Avalie o comportamento durante o último mês. 0 = Nunca, 3 = Muito frequente. Para cotação normativa, indique sexo e idade (6–10 anos).',
     respondent: 'Pais',
     responseType: 'frequency0_3',
     responseLabels: CONNERS_0_3,
     items: CONNERS_PAIS_ITEMS,
-    scoring: connersScoring(CONNERS_PAIS_ITEMS.length),
+    scoring: { type: 'conners', variant: 'pais' },
   }),
 ]

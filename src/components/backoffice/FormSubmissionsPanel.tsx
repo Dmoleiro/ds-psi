@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { exportSessionSubmissionsPdf, type SessionSubmissionsView } from '../../lib/exportFormSubmissionsPdf'
@@ -9,6 +10,12 @@ type Props = {
 }
 
 export function FormSubmissionsPanel({ session, onClose }: Props) {
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [session.id])
+
   function handleExportPdf() {
     try {
       exportSessionSubmissionsPdf(session)
@@ -18,7 +25,8 @@ export function FormSubmissionsPanel({ session, onClose }: Props) {
   }
 
   return (
-    <Card as="section" className={styles.panel}>
+    <div ref={panelRef} className={styles.scrollAnchor}>
+      <Card as="section" className={styles.panel}>
       <div className={styles.header}>
         <div>
           <h2>Respostas submetidas</h2>
@@ -54,7 +62,38 @@ export function FormSubmissionsPanel({ session, onClose }: Props) {
                 {submission.fields.map((field) => (
                   <div key={field.key} className={styles.field}>
                     <dt>{field.label}</dt>
-                    <dd>{field.value}</dd>
+                    <dd>
+                      {field.table ? (
+                        <>
+                          {field.value.trim() ? (
+                            <p className={styles.tableNote}>{field.value}</p>
+                          ) : null}
+                          <table className={styles.dataTable}>
+                            <thead>
+                              <tr>
+                                {field.table.columns.map((column) => (
+                                  <th key={column}>{column}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {field.table.rows.map((row, rowIndex) => (
+                                <tr
+                                  key={rowIndex}
+                                  className={row.emphasis ? styles.tableTotalRow : undefined}
+                                >
+                                  {row.cells.map((cell, cellIndex) => (
+                                    <td key={cellIndex}>{cell}</td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </>
+                      ) : (
+                        field.value
+                      )}
+                    </dd>
                   </div>
                 ))}
               </dl>
@@ -63,5 +102,6 @@ export function FormSubmissionsPanel({ session, onClose }: Props) {
         </div>
       )}
     </Card>
+    </div>
   )
 }

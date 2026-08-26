@@ -39,6 +39,7 @@ export type ScoringRule =
   | { type: 'scared' }
   | { type: 'adir' }
   | { type: 'vineland' }
+  | { type: 'conners'; variant: 'pais' | 'professores' }
   | { type: 'custom'; compute: (answers: Record<string, unknown>) => Record<string, number> }
 
 export type QuestionnaireDefinition = {
