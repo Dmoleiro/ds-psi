@@ -134,6 +134,59 @@ export const teamPage = {
         'Cuidar de si é o primeiro passo para uma vida com mais equilíbrio e bem-estar.',
     },
     {
+      id: 'bianca-ferreira',
+      name: 'Bianca Ferreira',
+      role: 'Psicóloga Clínica',
+      tagline: 'Um lugar para ser, sentir e crescer.',
+      intro:
+        'Um espaço seguro onde cada criança e jovem pode ser ouvido, compreendido e acompanhado ao seu ritmo.',
+      portrait: {
+        src: publicAsset('images/team/bianca-ferreira.png'),
+        alt: 'Bianca Ferreira — Psicóloga Clínica',
+        align: { scale: 1.15, x: 0, y: 0 },
+      },
+      credentials: [
+        'Mestre em Psicologia pelo ISPA – Instituto Universitário',
+        'Especial interesse pela intervenção psicológica junto de crianças e adolescentes',
+        'Estágio curricular na Unidade de Pedopsiquiatria da Segunda Infância do Hospital Dona Estefânia',
+        'Especialização Avançada Pós-Universitária em Intervenção Psicológica: Da Criança ao Adulto',
+        'Formação em Ludoterapia, intervenção no luto e primeiros socorros psicológicos',
+      ],
+      audiences: [
+        {
+          title: 'Crianças',
+          items: [
+            'Dificuldades de regulação emocional',
+            'Ansiedade',
+            'Alterações comportamentais',
+            'Dificuldades relacionais',
+            'Desafios de desenvolvimento e adaptação escolar e familiar',
+            'Promoção do bem-estar e do desenvolvimento',
+          ],
+        },
+        {
+          title: 'Adolescentes',
+          items: [
+            'Dificuldades de regulação emocional',
+            'Ansiedade',
+            'Alterações comportamentais',
+            'Dificuldades relacionais',
+            'Desafios de adaptação escolar e familiar',
+            'Apoio em fases de mudança e desenvolvimento identitário',
+          ],
+        },
+      ],
+      approach: [
+        'Acolhimento e empatia',
+        'Compreensão individualizada de cada caso',
+        'Acompanhamento ao ritmo de cada criança e jovem',
+        'Confidencialidade e ética profissional',
+        'Escuta ativa e sem julgamentos',
+      ],
+      closing:
+        'O meu interesse profissional centra-se na compreensão de cada caso de forma individualizada, promovendo o bem-estar e o desenvolvimento.',
+    },
+    {
       id: 'vera-cordeiro',
       name: 'Vera Cordeiro',
       role: 'Terapeuta da Fala',
