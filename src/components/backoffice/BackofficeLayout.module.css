@@ -592,3 +592,12 @@
 .formStatusItem span {
   color: var(--color-ink-muted);
 }
+
+.thumbnail {
+  display: block;
+  width: 4.5rem;
+  height: auto;
+  max-height: 3.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}

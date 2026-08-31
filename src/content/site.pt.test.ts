@@ -7,9 +7,10 @@ describe('site content', () => {
     expect(site.address.city).toBe('Azambuja')
   })
 
-  it('lists all five services', () => {
-    expect(services).toHaveLength(5)
+  it('lists all six services', () => {
+    expect(services).toHaveLength(6)
     expect(services.map((s) => s.title)).toContain('Orientação Vocacional')
+    expect(services.map((s) => s.title)).toContain('Cheque Cuida-te')
   })
 
   it('includes therapist timeline entries', () => {

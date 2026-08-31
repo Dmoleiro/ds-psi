@@ -7,6 +7,7 @@ import { WorkshopsPublicPage } from './pages/WorkshopsPublicPage'
 import { WorkshopsPastPage } from './pages/WorkshopsPastPage'
 import { HomePage } from './pages/HomePage'
 import { AdminCoordinatorsPage } from './pages/backoffice/AdminCoordinatorsPage'
+import { AdminAnnouncementsPage } from './pages/backoffice/AdminAnnouncementsPage'
 import { AdminGabinetesPage } from './pages/backoffice/AdminGabinetesPage'
 import { AdminLocationsPage } from './pages/backoffice/AdminLocationsPage'
 import { AdminTherapistsPage } from './pages/backoffice/AdminTherapistsPage'
@@ -119,6 +120,7 @@ export function App() {
         <Route path="/backoffice/admin/coordinators" element={<AdminCoordinatorsPage />} />
         <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />
         <Route path="/backoffice/admin/gabinetes" element={<AdminGabinetesPage />} />
+        <Route path="/backoffice/admin/announcements" element={<AdminAnnouncementsPage />} />
         <Route path="/backoffice/*" element={<Navigate to="/backoffice" replace />} />
       </Routes>
     </BrowserRouter>

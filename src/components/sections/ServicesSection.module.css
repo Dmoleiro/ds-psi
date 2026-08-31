@@ -9,6 +9,32 @@
   height: 100%;
 }
 
+.cardButton {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.cardButton:hover .seeMore,
+.cardButton:focus-visible .seeMore {
+  text-decoration: underline;
+}
+
+.cardButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
 .icon {
   font-size: 2rem;
   line-height: 1;
@@ -29,6 +55,156 @@
   flex: 1;
 }
 
+.seeMore {
+  margin-top: var(--space-md);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: rgb(26 26 26 / 0.82);
+}
+
+.modalDialog {
+  position: relative;
+  width: min(100%, 42rem);
+  max-height: min(100%, calc(100vh - 2 * var(--space-lg)));
+  overflow: auto;
+  padding: var(--space-xl);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.modalClose {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-bg-warm);
+  color: var(--color-ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modalClose:hover,
+.modalClose:focus-visible {
+  background: var(--color-border-soft);
+}
+
+.modalHeader {
+  margin-bottom: var(--space-lg);
+  padding-right: var(--space-xl);
+}
+
+.modalBadge {
+  display: inline-block;
+  margin: 0 0 var(--space-sm);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-bg-warm);
+  border-radius: 999px;
+}
+
+.modalTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: 1.5rem;
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.modalIntro {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+
+.modalImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: var(--space-lg);
+  border-radius: var(--radius-sm);
+}
+
+.modalSections {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.modalSectionTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.modalList {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+
+.modalList li + li {
+  margin-top: var(--space-xs);
+}
+
+.modalCta {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.modalCtaTitle {
+  margin: 0 0 var(--space-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.modalCtaDescription {
+  margin: 0 0 var(--space-md);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+
+.modalCtaLink {
+  display: inline-block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.modalCtaLink:hover,
+.modalCtaLink:focus-visible {
+  text-decoration: underline;
+}
+
 @media (min-width: 640px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
@@ -38,27 +214,5 @@
 @media (min-width: 1024px) {
   .grid {
     grid-template-columns: repeat(3, 1fr);
-  }
-
-  .card:last-child:nth-child(odd) {
-    grid-column: span 1;
-  }
-}
-
-/* Last item (5 services) spans full width on tablet */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .card:last-child {
-    grid-column: 1 / -1;
-    max-width: 50%;
-    justify-self: center;
-    width: 100%;
-  }
-}
-
-@media (min-width: 1024px) {
-  .card:last-child {
-    grid-column: 2 / 3;
-    justify-self: center;
-    max-width: 100%;
   }
 }

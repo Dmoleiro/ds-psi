@@ -104,6 +104,7 @@ model User {
   attendanceRecords AttendanceRecord[]
   appointments   Appointment[]
   workshops      Workshop[]
+  announcements  Announcement[]
   patientDocuments PatientDocument[]
   financialSettings TherapistFinancialSettings?
   therapistLocations TherapistLocation[]
@@ -568,4 +569,20 @@ model Workshop {
 
   @@index([eventDate])
   @@map("workshops")
+}
+
+model Announcement {
+  id           String   @id @default(uuid())
+  title        String?
+  imagePath    String   @map("image_path")
+  visibleUntil DateTime @map("visible_until") @db.Date
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([visibleUntil])
+  @@index([createdAt])
+  @@map("announcements")
 }

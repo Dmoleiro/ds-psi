@@ -6,6 +6,7 @@ import { ServicesSection } from '../components/sections/ServicesSection'
 import { TherapistSection } from '../components/sections/TherapistSection'
 import { EquipaSection } from '../components/sections/EquipaSection'
 import { ContactSection } from '../components/sections/ContactSection'
+import { AnnouncementsPopup } from '../components/announcements/AnnouncementsPopup'
 
 function ScrollToHash() {
   const { hash } = useLocation()
@@ -27,6 +28,7 @@ export function HomePage() {
   return (
     <>
       <ScrollToHash />
+      <AnnouncementsPopup />
       <HeroSection />
       <ClinicSection />
       <ServicesSection />

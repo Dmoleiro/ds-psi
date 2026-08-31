@@ -6,11 +6,30 @@ export interface NavItem {
   path?: string
 }
 
+export interface ServiceDetailSection {
+  title: string
+  items: string[]
+}
+
+export interface ServiceDetail {
+  badge?: string
+  intro?: string
+  sections: ServiceDetailSection[]
+  image?: { src: string; alt: string }
+  cta?: {
+    title: string
+    description: string
+    href: string
+    label: string
+  }
+}
+
 export interface Service {
   id: string
   title: string
   description: string
   icon: string
+  detail?: ServiceDetail
 }
 
 export interface Qualification {
@@ -189,6 +208,56 @@ export const services: Service[] = [
     description:
       'Apoio na exploração de interesses, competências e projectos de futuro — para jovens e adultos em momentos de escolha e transição.',
     icon: '🎯',
+  },
+  {
+    id: 'cheque-cuida-te',
+    title: 'Cheque Cuida-te',
+    description:
+      'Apoio psicológico acessível através da medida Cheque Cuida-te (Cheque Psicólogo) — prestadora aderente à 2.ª edição.',
+    icon: '🫶',
+    detail: {
+      badge: 'Sou prestadora aderente',
+      intro:
+        'Apoio psicológico acessível, para o seu bem-estar e equilíbrio emocional.',
+      image: {
+        src: publicAsset('images/services/cheque-cuida-te.png'),
+        alt: 'Cheque Cuida-te — 2.ª edição Cheque Psicólogo, Daniela Santos prestadora aderente',
+      },
+      sections: [
+        {
+          title: 'Para quem?',
+          items: [
+            'Jovens dos 12 aos 35 anos (inclusive) que pretendam apoio psicológico.',
+            'Nos menores de idade é necessária autorização dos representantes legais.',
+          ],
+        },
+        {
+          title: 'O que cobre?',
+          items: [
+            'Acesso gratuito a sessões de psicologia, com profissionais aderentes à medida Cheque Cuida-te (Cheque Psicólogo).',
+          ],
+        },
+        {
+          title: 'Como funciona?',
+          items: [
+            'O apoio é atribuído através de um cheque que permite aceder a um número de sessões de psicologia, junto de prestadores aderentes.',
+          ],
+        },
+        {
+          title: 'Objetivo',
+          items: [
+            'Promover o bem-estar psicológico e prevenir o agravamento de dificuldades emocionais.',
+          ],
+        },
+      ],
+      cta: {
+        title: 'Quer saber mais ou pedir o seu cheque?',
+        description:
+          'Consulte toda a informação oficial, condições de acesso e faça o pedido através do portal gov.pt.',
+        href: 'https://www.gov.pt/servicos/pedir-cheque-cuida-te-psicologia',
+        label: 'Pedir no gov.pt',
+      },
+    },
   },
   {
     id: 'salas',

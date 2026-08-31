@@ -202,6 +202,7 @@ export function AdminDashboard({ token, adminName }: AdminDashboardProps) {
             <Link to="/backoffice/admin/coordinators">Administrativos</Link>
             <Link to="/backoffice/admin/locations">Locais</Link>
             <Link to="/backoffice/admin/gabinetes">Gabinetes</Link>
+            <Link to="/backoffice/admin/announcements">Anúncios</Link>
             <Link to="/backoffice/workshops">Workshops</Link>
           </nav>
         </Card>

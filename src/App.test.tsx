@@ -28,6 +28,7 @@ describe('App', () => {
     expect(screen.getByText('Apoio Psicológico')).toBeInTheDocument()
     expect(screen.getByText('Avaliação do Neurodesenvolvimento')).toBeInTheDocument()
     expect(screen.getByText('Aluguer de Salas')).toBeInTheDocument()
+    expect(screen.getByText('Cheque Cuida-te')).toBeInTheDocument()
   })
 
   it('shows contact details', () => {

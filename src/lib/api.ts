@@ -22,6 +22,10 @@ export function workshopImageUrl(imagePath: string): string {
   return `${API_URL}${imagePath}`
 }
 
+export function announcementImageUrl(imagePath: string): string {
+  return `${API_URL}${imagePath}`
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -1304,6 +1308,34 @@ export const workshopApi = {
     }),
   delete: (token: string, id: string) =>
     apiRequest<void>(`/api/workshops/${id}`, { method: 'DELETE', token }),
+}
+
+export type AnnouncementSummary = {
+  id: string
+  title: string | null
+  imagePath: string
+  visibleUntil: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type AnnouncementAdminSummary = AnnouncementSummary & {
+  active: boolean
+}
+
+export const announcementApi = {
+  listPublic: () => apiRequest<{ announcements: AnnouncementSummary[] }>('/api/announcements/public'),
+  list: (token: string) =>
+    apiRequest<{ announcements: AnnouncementAdminSummary[] }>('/api/admin/announcements', { token }),
+  create: (token: string, formData: FormData) =>
+    apiFormRequest<{ announcement: AnnouncementSummary }>('/api/admin/announcements', formData, { token }),
+  update: (token: string, id: string, formData: FormData) =>
+    apiFormRequest<{ announcement: AnnouncementSummary }>(`/api/admin/announcements/${id}`, formData, {
+      method: 'PATCH',
+      token,
+    }),
+  delete: (token: string, id: string) =>
+    apiRequest<void>(`/api/admin/announcements/${id}`, { method: 'DELETE', token }),
 }
 
 export type PatientSessionForm = {

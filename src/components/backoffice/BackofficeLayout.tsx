@@ -65,6 +65,7 @@ function BackofficeNavLinks({
           {link('/backoffice/admin/coordinators', 'Administrativos')}
           {link('/backoffice/admin/locations', 'Locais')}
           {link('/backoffice/admin/gabinetes', 'Gabinetes')}
+          {link('/backoffice/admin/announcements', 'Anúncios')}
           {link('/backoffice/workshops', 'Workshops')}
         </>
       )}

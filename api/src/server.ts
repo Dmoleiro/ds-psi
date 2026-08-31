@@ -19,6 +19,7 @@ import { piccaInteractiveTherapistRoutes } from './routes/piccaInteractiveTherap
 import { piccaPatientRoutes } from './routes/piccaPatient.js'
 import { piccaTherapistRoutes } from './routes/piccaTherapist.js'
 import { workshopRoutes } from './routes/workshops.js'
+import { announcementRoutes } from './routes/announcements.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -77,6 +78,7 @@ export async function buildApp() {
   await app.register(piccaTherapistRoutes)
   await app.register(piccaInteractiveTherapistRoutes)
   await app.register(workshopRoutes)
+  await app.register(announcementRoutes)
 
   await app.register(
     async (patientApp) => {
