@@ -146,6 +146,7 @@ describe('Equipa section', () => {
     expect(screen.getByRole('heading', { level: 3, name: /Carolina Carmo/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: /Tânia Sanches/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: /Bianca Ferreira/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: /Cristiana Fernandes/i })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: /Vera Cordeiro/i })).toBeInTheDocument()
   })
 })

@@ -18,10 +18,16 @@ export interface TeamMember {
   tagline?: string
   intro: string
   portrait: PortraitImage
+  availabilityNote?: string
+  interventionFocus?: {
+    title: string
+    description: string
+  }
   audiences?: TeamAudience[]
   credentials?: string[]
   practiceAreas?: TeamPracticeArea[]
   approach: string[]
+  approachTitle?: string
   closing?: string
 }
 
@@ -185,6 +191,70 @@ export const teamPage = {
       ],
       closing:
         'O meu interesse profissional centra-se na compreensão de cada caso de forma individualizada, promovendo o bem-estar e o desenvolvimento.',
+    },
+    {
+      id: 'cristiana-fernandes',
+      name: 'Dra. Cristiana Fernandes',
+      role: 'Psicóloga Clínica',
+      tagline: 'Cuidar hoje, transformar amanhã.',
+      intro:
+        'Acolher, compreender e promover o bem-estar emocional e o desenvolvimento em cada etapa da vida.',
+      interventionFocus: {
+        title: 'Intervenção com adolescentes, adultos e pais',
+        description:
+          'Acompanhamento psicológico especializado para todas as fases da vida, promovendo equilíbrio, confiança e bem-estar emocional.',
+      },
+      availabilityNote: 'Exclusivo online',
+      portrait: {
+        src: publicAsset('images/team/cristiana-fernandes.png'),
+        alt: 'Dra. Cristiana Fernandes — Psicóloga Clínica',
+        align: { scale: 1.12, x: 0, y: 4 },
+      },
+      practiceAreas: [
+        {
+          title: 'Dificuldades emocionais e comportamentais',
+          description:
+            'Avaliação e intervenção em problemas comportamentais, regulação emocional, irritabilidade e gestão das emoções',
+        },
+        {
+          title: 'Ansiedade e regulação emocional',
+          description:
+            'Ansiedade, medos, ataques de pânico, stress e baixa autoestima',
+        },
+        {
+          title: 'Dificuldades de aprendizagem',
+          description: 'Avaliação e intervenção em dificuldades escolares e de aprendizagem',
+        },
+        {
+          title: 'Dislexia e outras dificuldades específicas',
+          description:
+            'Intervenção especializada em dislexia e outras dificuldades específicas de aprendizagem',
+        },
+        {
+          title: 'PHDA e dificuldades de atenção e hiperatividade',
+          description:
+            'Avaliação e intervenção em PHDA e dificuldades de atenção, concentração e impulsividade',
+        },
+        {
+          title: 'Aconselhamento parental — dirigido aos pais',
+          description:
+            'Apoio e orientação aos pais para lidar com desafios parentais e fortalecer a relação com os filhos',
+        },
+        {
+          title: 'Orientação escolar e vocacional',
+          description:
+            'Avaliação e apoio na descoberta de interesses, competências e tomada de decisões escolares e profissionais',
+        },
+      ],
+      approach: [
+        'Acolhimento e empatia',
+        'Confidencialidade e ética profissional',
+        'Escuta ativa e sem julgamentos',
+        'Estratégias práticas e personalizadas',
+        'Envolvimento da família',
+      ],
+      approachTitle: 'A minha abordagem',
+      closing: 'Cada pessoa é única. Cada história importa.',
     },
     {
       id: 'vera-cordeiro',

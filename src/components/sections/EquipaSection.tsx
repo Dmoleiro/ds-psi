@@ -21,10 +21,20 @@ function TeamMemberProfile({ member }: { member: TeamMember }) {
         <div className={styles.memberIntro}>
           <h3 className={styles.memberName}>{member.name}</h3>
           <p className={styles.memberRole}>{member.role}</p>
+          {member.availabilityNote && (
+            <p className={styles.availabilityNote}>{member.availabilityNote}</p>
+          )}
           {member.tagline && <p className={styles.tagline}>{member.tagline}</p>}
           <p className={styles.intro}>{member.intro}</p>
         </div>
       </div>
+
+      {member.interventionFocus && (
+        <Card className={styles.block}>
+          <h4 className={styles.blockTitle}>{member.interventionFocus.title}</h4>
+          <p className={styles.interventionFocus}>{member.interventionFocus.description}</p>
+        </Card>
+      )}
 
       {member.credentials && (
         <Card className={styles.block}>
@@ -71,7 +81,8 @@ function TeamMemberProfile({ member }: { member: TeamMember }) {
 
       <Card className={styles.block}>
         <h4 className={styles.blockTitle}>
-          {member.practiceAreas ? 'A nossa abordagem' : 'A minha abordagem'}
+          {member.approachTitle ??
+            (member.practiceAreas ? 'A nossa abordagem' : 'A minha abordagem')}
         </h4>
         <ul className={styles.approachList}>
           {member.approach.map((item) => (

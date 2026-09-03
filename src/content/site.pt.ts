@@ -36,10 +36,18 @@ export interface Qualification {
   label: string
 }
 
-export interface TimelineEntry {
-  year: string
+export interface TimelineSection {
   title: string
   items: string[]
+}
+
+export interface TimelineEntry {
+  year?: string
+  title: string
+  items: string[]
+  sections?: TimelineSection[]
+  /** Higher values appear first when start/end dates match. */
+  priority?: number
 }
 
 export interface FormStub {
@@ -290,16 +298,68 @@ export const therapist = {
   ] satisfies Qualification[],
   timeline: [
     {
-      year: '2013',
-      title: 'Formações',
+      title: 'Formações e Congressos',
       items: [
         'Terapia cognitiva-comportamental — CRIAP',
         'Especialização avançada em psicopatologia da criança e do adolescente — CRIAP',
         'Avaliação psicológica da criança — ISPA-IU',
+        'Terapias cognitivas e comportamentais — ISPA-IU',
+        'Intervenção psicológica em situações de divórcio — CRIAP',
+        'Dislexia — CRIAP',
+        'Orientação vocacional / avaliação e intervenção — CRIAP',
+        'Perturbação bipolar pediátrica — CRIAP',
+        'Perturbação de hiperatividade e défice de atenção — CRIAP',
+        'Teste do desenho da figura humana / Goodenough — CRIAP',
+        'Especialização avançada em neuropsicologia pediátrica (2025/2026) — CRIAP',
+        'Avaliação da criança, 1.ª e 2.ª edição — Dialógicos',
+        'Ludoterapia — Dialógicos',
+        'Relação, Brincar, Sentir — CADIN',
+        'Perturbações do comportamento alimentar — CADIN',
+        'Dispraxia — CADIN',
+        'Curso de orientação vocacional — Academia Octávio Moura',
+        'Discalculia e baixo desempenho em matemática — Academia Octávio Moura',
+        'Disgrafia e disortografia — Academia Octávio Moura',
+        'Funções executivas e memória — Academia Octávio Moura',
+        'WISC-III em contexto de avaliação neuropsicológica — Academia Octávio Moura',
+        'Mentoria CAPS 2025 — Sandra Costa',
+        'Congresso 2025, Lisboa — PIN',
+        'Congresso 2026, Porto — PIN',
+        'Sociedade Portuguesa do Neurodesenvolvimento — Apresentação de casos clínicos (2025/2026)',
+      ],
+      sections: [
+        {
+          title: 'Recursos de avaliação utilizados para prática clínica',
+          items: ['WISC-III', 'Griffiths', 'BANC', 'WPPSI-R', 'ADI-R'],
+        },
       ],
     },
     {
-      year: '2020 — Presente',
+      year: '2026 — Presente',
+      title: 'Diretora Clínica — Clínica Psicologia Daniela Santos',
+      priority: 1,
+      items: [
+        'Avaliação do neurodesenvolvimento em crianças e adolescentes',
+        'Elaboração de relatórios de avaliação e intervenção',
+        'Intervenção direta com a criança',
+        'Orientação vocacional',
+        'Realização de workshops direcionados ao 1.º, 2.º e 3.º ciclos',
+        'Supervisão clínica',
+        'Orientação de estágios da OPP',
+      ],
+    },
+    {
+      year: '2026 — Presente',
+      title: 'Psicóloga Educacional — HUB Terapêutico, Póvoa de S. Iria',
+      items: [
+        'Avaliação do neurodesenvolvimento em crianças e adolescentes',
+        'Elaboração de relatórios de avaliação e intervenção',
+        'Intervenção direta com a criança',
+        'Orientação vocacional',
+        'Realização de workshops direcionados ao 1.º, 2.º e 3.º ciclos',
+      ],
+    },
+    {
+      year: '2020 — 2026',
       title: 'Psicóloga Educacional — CPD, Póvoa de S. Iria',
       items: [
         'Avaliação das diferentes áreas do neurodesenvolvimento da criança',
@@ -309,10 +369,19 @@ export const therapist = {
       ],
     },
     {
-      year: '2020 — Presente',
+      year: '2020 — 2024',
       title: 'Psicóloga Educacional — CRI (CERCI Flor da Vida)',
       items: [
         "Intervenção em contexto escolar nos AE's de Azambuja, Damião de Goes e Visconde de Chanceleiros",
+      ],
+    },
+    {
+      year: '2023 — 2025',
+      title: 'Projeto CPIAA',
+      items: [
+        'Apoio psicológico e intervenção em contexto clínico e escolar',
+        'Avaliação das diferentes áreas do neurodesenvolvimento da criança',
+        'Realização de relatórios de avaliação e intervenção',
       ],
     },
     {
@@ -326,7 +395,7 @@ export const therapist = {
       ],
     },
     {
-      year: '2018 — Presente',
+      year: '2018 — 2024',
       title: 'Psicóloga — Fisiomedical',
       items: [
         'Avaliação global do desenvolvimento, psicológica e psicopedagógica',
