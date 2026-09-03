@@ -4,6 +4,14 @@
   border-radius: 50%;
 }
 
+.frameAligned {
+  position: relative;
+}
+
+.photoLayer {
+  display: block;
+}
+
 .photo {
   display: block;
   width: 100%;

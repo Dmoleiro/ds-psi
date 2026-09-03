@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import type { TeamMember } from '../../content/team.pt'
 import { teamPage } from '../../content/team.pt'
+import { hiddenTeamMember } from '../../content/teamEasterEgg.pt'
+import { useEasterEggUnlocked } from '../../lib/easterEgg'
 import { Card } from '../ui/Card'
 import { PortraitPhoto } from '../ui/PortraitPhoto'
 import { Section } from '../layout/Section'
@@ -7,7 +10,10 @@ import styles from './EquipaSection.module.css'
 
 function TeamMemberProfile({ member }: { member: TeamMember }) {
   return (
-    <article id={member.id} className={styles.member}>
+    <article
+      id={member.id}
+      className={`${styles.member} ${member.easterEgg ? styles.memberEasterEgg : ''}`}
+    >
       <div className={styles.memberHeader}>
         <PortraitPhoto
           src={member.portrait.src}
@@ -96,10 +102,26 @@ function TeamMemberProfile({ member }: { member: TeamMember }) {
 }
 
 export function EquipaSection() {
+  const easterEggUnlocked = useEasterEggUnlocked()
+  const members = easterEggUnlocked ? [...teamPage.members, hiddenTeamMember] : teamPage.members
+
+  useEffect(() => {
+    if (!easterEggUnlocked) return
+
+    const timer = window.setTimeout(() => {
+      document.getElementById(hiddenTeamMember.id)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [easterEggUnlocked])
+
   return (
     <Section id="equipa" title={teamPage.title} subtitle={teamPage.intro}>
       <div className={styles.members}>
-        {teamPage.members.map((member) => (
+        {members.map((member) => (
           <TeamMemberProfile key={member.id} member={member} />
         ))}
       </div>

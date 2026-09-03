@@ -29,6 +29,7 @@ export interface TeamMember {
   approach: string[]
   approachTitle?: string
   closing?: string
+  easterEgg?: boolean
 }
 
 export const teamPage = {

@@ -1,4 +1,5 @@
 import { images, therapist, type TimelineEntry } from '../../content/site.pt'
+import { useDirectorPortraitEasterEgg } from '../../lib/easterEgg'
 import { Badge } from '../ui/Badge'
 import { Card } from '../ui/Card'
 import { PortraitPhoto } from '../ui/PortraitPhoto'
@@ -32,6 +33,8 @@ function sortTimeline(entries: TimelineEntry[]): TimelineEntry[] {
 const timeline = sortTimeline(therapist.timeline)
 
 export function TherapistSection() {
+  const handlePortraitClick = useDirectorPortraitEasterEgg()
+
   return (
     <Section
       id="diretora-clinica"
@@ -40,14 +43,21 @@ export function TherapistSection() {
       subtitle="Conheça a formação e experiência de Daniela Santos."
     >
       <div className={styles.profile}>
-        <PortraitPhoto
-          src={images.therapistPortrait.src}
-          alt={images.therapistPortrait.alt}
-          align={images.therapistPortrait.align}
-          frameClassName={styles.photoFrame}
-          width={478}
-          height={478}
-        />
+        <button
+          type="button"
+          className={styles.portraitButton}
+          onClick={handlePortraitClick}
+          aria-label={images.therapistPortrait.alt}
+        >
+          <PortraitPhoto
+            src={images.therapistPortrait.src}
+            alt=""
+            align={images.therapistPortrait.align}
+            frameClassName={styles.photoFrame}
+            width={478}
+            height={478}
+          />
+        </button>
 
         <div className={styles.profileInfo}>
           <h3 className={styles.name}>{therapist.name}</h3>
