@@ -1046,6 +1046,7 @@ export function PatientDetailPage() {
         <PatientEvaluationsPanel
           token={token}
           patientId={id}
+          patientName={patient.fullName}
           readOnly={readOnly}
           patientBirthDate={patient.birthDate ? patient.birthDate.slice(0, 10) : ''}
           initialSelections={{

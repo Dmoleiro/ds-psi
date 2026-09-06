@@ -27,6 +27,14 @@
   color: var(--color-ink-muted);
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
 .error {
   margin: 0 0 var(--space-md);
   color: var(--color-primary);

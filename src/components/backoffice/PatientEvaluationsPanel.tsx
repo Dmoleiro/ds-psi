@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, therapistApi } from '../../lib/api'
 import {
+  exportEvaluationResultsPdf,
+  resolveEvaluationExportMethodIds,
+  type EvaluationExportMethodId,
+} from '../../lib/exportEvaluationResultsPdf'
+import {
   ADDITIONAL_EVALUATION_METHODS,
   BANC_EVALUATION_OPTIONS,
   WISC_EVALUATION_OPTIONS,
@@ -14,6 +19,7 @@ import { WiscResultsTables } from './WiscResultsTables'
 import { BancResultsTables } from './BancResultsTables'
 import { GriffithsResultsTables } from './GriffithsResultsTables'
 import { PreEscolarResultsTables } from './PreEscolarResultsTables'
+import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import styles from './PatientEvaluationsPanel.module.css'
 
@@ -22,6 +28,7 @@ const SAVE_DEBOUNCE_MS = 500
 type Props = {
   token: string
   patientId: string
+  patientName: string
   initialSelections: PatientEvaluationSelections
   readOnly?: boolean
   patientBirthDate?: string
@@ -61,6 +68,7 @@ const EMPTY_SELECTIONS: PatientEvaluationSelections = {
 export function PatientEvaluationsPanel({
   token,
   patientId,
+  patientName,
   initialSelections,
   readOnly = false,
   patientBirthDate = '',
@@ -457,6 +465,38 @@ export function PatientEvaluationsPanel({
           ? 'Erro ao guardar'
           : null
 
+  const canExportPdf = resolveEvaluationExportMethodIds(selections).length > 0
+
+  function handleExportPdf() {
+    const methodIds = resolveEvaluationExportMethodIds(selections)
+    if (!methodIds.includes(activeMethodTab as EvaluationExportMethodId)) {
+      window.alert('Não existem resultados neste método para exportar.')
+      return
+    }
+    try {
+      exportEvaluationResultsPdf({
+        patientName,
+        patientBirthDate,
+        selections,
+        methodIds: [activeMethodTab as EvaluationExportMethodId],
+      })
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
+    }
+  }
+
+  function handleExportAllPdf() {
+    try {
+      exportEvaluationResultsPdf({
+        patientName,
+        patientBirthDate,
+        selections,
+      })
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Não foi possível exportar o PDF')
+    }
+  }
+
   return (
     <Card as="section" className={styles.card}>
       <div className={styles.header}>
@@ -464,7 +504,21 @@ export function PatientEvaluationsPanel({
           <h2>Métodos de avaliação</h2>
           <p className={styles.muted}>Registe as subescalas e métodos aplicados a este utente.</p>
         </div>
-        {!readOnly && statusLabel && <p className={styles.status}>{statusLabel}</p>}
+        <div className={styles.headerActions}>
+          {canExportPdf && (
+            <>
+              <Button type="button" variant="outline" onClick={handleExportPdf}>
+                Imprimir / PDF
+              </Button>
+              {visibleMethodTabs.length > 1 && (
+                <Button type="button" variant="outline" onClick={handleExportAllPdf}>
+                  Exportar tudo
+                </Button>
+              )}
+            </>
+          )}
+          {!readOnly && statusLabel && <p className={styles.status}>{statusLabel}</p>}
+        </div>
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
