@@ -69,6 +69,7 @@ import {
 } from '../services/assessmentPipeline.js'
 import {
   getAppointmentInviteSettings,
+  resendTherapistCalendarInvites,
   retryAppointmentCalendarInvite,
   updateAppointmentInviteSettings,
 } from '../services/appointmentCalendarInvites.js'
@@ -177,6 +178,31 @@ export async function therapistRoutes(app: FastifyInstance) {
       throw error
     }
   })
+
+  app.post(
+    '/api/therapist/appointment-invites/resend-therapist-copies',
+    { preHandler: therapistWriteOnly },
+    async (request, reply) => {
+      try {
+        const result = await resendTherapistCalendarInvites(request.user.sub)
+        return { ok: true, ...result }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'APPOINTMENT_INVITES_NOT_ALLOWED') {
+          return reply.status(403).send({ error: 'Convites de calendário não autorizados para este terapeuta' })
+        }
+        if (error instanceof Error && error.message === 'SMTP_NOT_CONFIGURED') {
+          return reply.status(503).send({ error: 'O envio de emails ainda não está configurado no servidor' })
+        }
+        if (error instanceof Error && error.message === 'NO_INVITES_TO_RESEND') {
+          return reply.status(400).send({ error: 'Não existem convites enviados para reenviar' })
+        }
+        if (error instanceof Error) {
+          return reply.status(400).send({ error: error.message })
+        }
+        throw error
+      }
+    },
+  )
 
   app.post(
     '/api/therapist/appointments/:id/calendar-invite/retry',

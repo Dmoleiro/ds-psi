@@ -91,7 +91,7 @@ describe('icalendar', () => {
     expect(ics).toContain('EXDATE;TZID=Europe/Lisbon:20260810T100000')
   })
 
-  it('builds an import copy for the organizer without attendees', () => {
+  it('builds a plain import copy for the organizer without scheduling roles', () => {
     const ics = buildIcsEvent({
       uid: buildCalendarUid('appt-1'),
       sequence: 0,
@@ -101,12 +101,16 @@ describe('icalendar', () => {
       scheduledAt: new Date(Date.UTC(2026, 7, 3, 10, 0, 0)),
       durationMinutes: 60,
       organizer: { name: 'Daniela Santos', email: 'daniela@example.com' },
-      attendees: [],
+      attendees: [{ name: 'Daniela Santos', email: 'daniela@example.com' }],
+      recurrence: { cadence: 'weekly', until: '2026-08-21' },
     })
 
-    expect(ics).toContain('METHOD:PUBLISH')
+    expect(ics).not.toContain('METHOD:REQUEST')
+    expect(ics).not.toContain('METHOD:PUBLISH')
+    expect(ics).not.toContain('ORGANIZER')
     expect(ics).not.toContain('ATTENDEE')
-    expect(ics).toContain('ORGANIZER;CN=Daniela Santos:mailto:daniela@example.com')
+    expect(ics).toContain('STATUS:CONFIRMED')
+    expect(ics).toContain('RRULE:FREQ=WEEKLY;INTERVAL=1;UNTIL=20260821T100000')
   })
 
   it('resolves patient invite emails', () => {

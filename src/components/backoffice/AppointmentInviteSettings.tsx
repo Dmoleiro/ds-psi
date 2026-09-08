@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ApiError, therapistApi, type AppointmentInviteSettings, type InviteRecipients } from '../../lib/api'
+import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import styles from './AppointmentInviteSettings.module.css'
 import layout from './BackofficeLayout.module.css'
@@ -8,8 +9,10 @@ export function AppointmentInviteSettings({ token }: { token: string }) {
   const [settings, setSettings] = useState<AppointmentInviteSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [resendMessage, setResendMessage] = useState('')
 
   const loadSettings = useCallback(async () => {
     setLoading(true)
@@ -57,6 +60,23 @@ export function AppointmentInviteSettings({ token }: { token: string }) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível guardar as definições')
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function handleResendTherapistCopies() {
+    setResending(true)
+    setResendMessage('')
+    setError('')
+    try {
+      const result = await therapistApi.resendTherapistCalendarCopies(token)
+      const failedPart = result.failed > 0 ? ` (${result.failed} falharam)` : ''
+      setResendMessage(
+        `Reenviados ${result.sent} convite${result.sent === 1 ? '' : 's'} para o seu email${failedPart}. Os pacientes não foram contactados.`,
+      )
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível reenviar os convites')
+    } finally {
+      setResending(false)
     }
   }
 
@@ -114,6 +134,23 @@ export function AppointmentInviteSettings({ token }: { token: string }) {
               <option value="email2">Email secundário</option>
               <option value="both">Ambos os emails</option>
             </select>
+          </div>
+
+          <div className={styles.resendBlock}>
+            <p className={layout.muted}>
+              Se precisar de voltar a adicionar consultas ao seu calendário (por exemplo, após uma
+              correcção nos ficheiros .ics), pode reenviar as cópias para o seu email. Os pacientes
+              não recebem novo email.
+            </p>
+            {resendMessage && <p className={layout.successBox}>{resendMessage}</p>}
+            <Button
+              type="button"
+              variant="outline"
+              disabled={resending || saving}
+              onClick={() => void handleResendTherapistCopies()}
+            >
+              {resending ? 'A reenviar…' : 'Reenviar convites para o meu calendário'}
+            </Button>
           </div>
         </>
       )}

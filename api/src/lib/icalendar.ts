@@ -126,11 +126,67 @@ function formatExdate(scheduledAt: Date): string {
   return `EXDATE;TZID=${ICALENDAR_TIMEZONE}:${formatIcsDateTime(scheduledAt)}`
 }
 
+function appendEventTail(lines: string[], input: IcsEventInput, recurrenceIdInsertIndex: number) {
+  if (input.recurrenceId) {
+    lines.splice(
+      recurrenceIdInsertIndex,
+      0,
+      `RECURRENCE-ID;TZID=${ICALENDAR_TIMEZONE}:${formatIcsDateTime(input.recurrenceId)}`,
+    )
+  } else if (input.recurrence) {
+    lines.push(buildRRuleLine(input.recurrence, input.scheduledAt))
+  }
+
+  if (input.exdates?.length) {
+    for (const exdate of input.exdates) {
+      lines.push(formatExdate(exdate))
+    }
+  }
+
+  if (input.location?.trim()) {
+    lines.push(foldLine(`LOCATION:${escapeIcsText(input.location.trim())}`))
+  }
+  if (input.description?.trim()) {
+    lines.push(foldLine(`DESCRIPTION:${escapeIcsText(input.description.trim())}`))
+  }
+}
+
+function buildImportIcsEvent(input: IcsEventInput): string {
+  const dtStamp = new Date()
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}Z$/, 'Z')
+  const dtStart = formatIcsDateTime(input.scheduledAt)
+  const dtEnd = addMinutesToLocalTime(input.scheduledAt, input.durationMinutes)
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Daniela Santos Psicologia//Consultas//PT',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:${input.uid}`,
+    `SEQUENCE:${input.sequence}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART;TZID=${ICALENDAR_TIMEZONE}:${dtStart}`,
+    `DTEND;TZID=${ICALENDAR_TIMEZONE}:${dtEnd}`,
+    foldLine(`SUMMARY:${escapeIcsText(input.summary)}`),
+    'STATUS:CONFIRMED',
+  ]
+
+  appendEventTail(lines, input, 10)
+  lines.push('END:VEVENT', 'END:VCALENDAR')
+  return `${lines.join('\r\n')}\r\n`
+}
+
 export function buildIcsEvent(input: IcsEventInput): string {
   const delivery = input.delivery ?? 'invite'
-  const calendarMethod: IcsEmailMethod =
-    delivery === 'import' && input.method === 'REQUEST' ? 'PUBLISH' : input.method
-  const attendees = delivery === 'import' ? [] : input.attendees
+  if (delivery === 'import' && input.method === 'REQUEST') {
+    return buildImportIcsEvent(input)
+  }
+
+  const calendarMethod: IcsEmailMethod = input.method
+  const attendees = input.attendees
 
   const dtStamp = new Date()
     .toISOString()
@@ -160,29 +216,7 @@ export function buildIcsEvent(input: IcsEventInput): string {
     status,
   ]
 
-  if (input.recurrenceId) {
-    lines.splice(
-      10,
-      0,
-      `RECURRENCE-ID;TZID=${ICALENDAR_TIMEZONE}:${formatIcsDateTime(input.recurrenceId)}`,
-    )
-  } else if (input.recurrence) {
-    lines.push(buildRRuleLine(input.recurrence, input.scheduledAt))
-  }
-
-  if (input.exdates?.length) {
-    for (const exdate of input.exdates) {
-      lines.push(formatExdate(exdate))
-    }
-  }
-
-  if (input.location?.trim()) {
-    lines.push(foldLine(`LOCATION:${escapeIcsText(input.location.trim())}`))
-  }
-  if (input.description?.trim()) {
-    lines.push(foldLine(`DESCRIPTION:${escapeIcsText(input.description.trim())}`))
-  }
-
+  appendEventTail(lines, input, 10)
   lines.push('END:VEVENT', 'END:VCALENDAR')
   return `${lines.join('\r\n')}\r\n`
 }

@@ -466,6 +466,11 @@ export const therapistApi = {
       token,
       body,
     }),
+  resendTherapistCalendarCopies: (token: string) =>
+    apiRequest<{ ok: true; sent: number; failed: number }>(
+      '/api/therapist/appointment-invites/resend-therapist-copies',
+      { method: 'POST', token },
+    ),
   retryAppointmentCalendarInvite: (token: string, appointmentId: string) =>
     apiRequest<{ ok: true; calendarInviteStatus?: CalendarInviteStatus; calendarInviteError?: string | null }>(
       `/api/therapist/appointments/${appointmentId}/calendar-invite/retry`,

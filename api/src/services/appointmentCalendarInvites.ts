@@ -838,6 +838,131 @@ export async function sendCancellationInvitesBeforeDelete(
   queueDeletionCancellationInvites(jobs)
 }
 
+function therapistRecipient(appointment: AppointmentInviteRecord) {
+  return {
+    name: appointment.therapist.name,
+    email: appointment.therapist.email,
+  }
+}
+
+async function sendTherapistCalendarCopy(
+  appointment: AppointmentInviteRecord,
+  eventInput: Omit<IcsEventInput, 'attendees' | 'method' | 'delivery'>,
+  recurring: boolean,
+) {
+  await deliverInviteEmail(
+    appointment,
+    'REQUEST',
+    [therapistRecipient(appointment)],
+    eventInput,
+    recurring,
+  )
+}
+
+async function sendTherapistCalendarCopyForAppointment(appointment: AppointmentInviteRecord) {
+  const calendarUid = await ensureCalendarUid(appointment.id, appointment.calendarUid)
+  await sendTherapistCalendarCopy(
+    appointment,
+    {
+      uid: calendarUid,
+      sequence: appointment.calendarSequence,
+      summary: buildInviteSummary(appointment.patient.fullName),
+      description: buildInviteDescription(appointment, appointment.patient.fullName),
+      location: buildLocationLabel(appointment.location, appointment.gabinete),
+      scheduledAt: appointment.scheduledAt,
+      durationMinutes: appointment.durationMinutes,
+      organizer: {
+        name: appointment.therapist.name,
+        email: appointment.therapist.email,
+      },
+    },
+    false,
+  )
+}
+
+async function sendTherapistCalendarCopyForSeries(recurrenceGroupId: string) {
+  const anchor = await getSeriesAnchor(recurrenceGroupId)
+  if (!anchor) return
+
+  const recurrence = resolveSeriesRecurrence(anchor)
+  if (!recurrence) {
+    await sendTherapistCalendarCopyForAppointment(anchor)
+    return
+  }
+
+  const calendarUid = await ensureSeriesCalendarUid(recurrenceGroupId, anchor.id)
+  await sendTherapistCalendarCopy(
+    anchor,
+    {
+      uid: calendarUid,
+      sequence: anchor.calendarSequence,
+      summary: buildInviteSummary(anchor.patient.fullName, true),
+      description: buildInviteDescription(anchor, anchor.patient.fullName, recurrence),
+      location: buildLocationLabel(anchor.location, anchor.gabinete),
+      scheduledAt: anchor.scheduledAt,
+      durationMinutes: anchor.durationMinutes,
+      organizer: {
+        name: anchor.therapist.name,
+        email: anchor.therapist.email,
+      },
+      recurrence,
+    },
+    true,
+  )
+}
+
+export async function resendTherapistCalendarInvites(therapistId: string) {
+  const context = await getInviteContext(therapistId)
+  if (!context?.allowed) {
+    throw new Error('APPOINTMENT_INVITES_NOT_ALLOWED')
+  }
+  if (!context.mailConfigured) {
+    throw new Error('SMTP_NOT_CONFIGURED')
+  }
+
+  const therapist = await prisma.user.findFirst({
+    where: { id: therapistId, role: 'therapist' },
+    select: { id: true },
+  })
+  if (!therapist) {
+    throw new Error('THERAPIST_NOT_FOUND')
+  }
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      therapistId,
+      calendarInviteStatus: CalendarInviteStatus.sent,
+    },
+    select: appointmentInviteSelect,
+    orderBy: { scheduledAt: 'asc' },
+  })
+
+  let sent = 0
+  let failed = 0
+  const processedSeries = new Set<string>()
+
+  for (const appointment of appointments) {
+    try {
+      if (appointment.recurrenceGroupId) {
+        if (processedSeries.has(appointment.recurrenceGroupId)) continue
+        processedSeries.add(appointment.recurrenceGroupId)
+        await sendTherapistCalendarCopyForSeries(appointment.recurrenceGroupId)
+      } else {
+        await sendTherapistCalendarCopyForAppointment(appointment)
+      }
+      sent += 1
+    } catch {
+      failed += 1
+    }
+  }
+
+  if (sent === 0 && failed === 0) {
+    throw new Error('NO_INVITES_TO_RESEND')
+  }
+
+  return { sent, failed }
+}
+
 export async function retryAppointmentCalendarInvite(therapistId: string, appointmentId: string) {
   const appointment = await prisma.appointment.findFirst({
     where: { id: appointmentId, therapistId },
