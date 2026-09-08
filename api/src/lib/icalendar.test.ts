@@ -67,6 +67,13 @@ describe('icalendar', () => {
     )
   })
 
+  it('builds monthly RRULE on the same weekday occurrence', () => {
+    const start = new Date(Date.UTC(2026, 0, 5, 10, 0, 0))
+    expect(buildRRuleLine({ cadence: 'monthly', until: '2026-03-15' }, start)).toBe(
+      'RRULE:FREQ=MONTHLY;BYDAY=1MO;UNTIL=20260315T100000',
+    )
+  })
+
   it('builds EXDATE lines for cancelled occurrences', () => {
     const ics = buildIcsEvent({
       uid: buildCalendarUid('series-1'),

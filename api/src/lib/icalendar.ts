@@ -1,4 +1,5 @@
 import { formatDateOnly, parseDateOnly } from '../services/attendance.js'
+import { formatMonthlyIcsByDay } from './recurrence.js'
 
 export const ICALENDAR_DOMAIN = 'danielasantos.work'
 export const ICALENDAR_TIMEZONE = 'Europe/Lisbon'
@@ -113,7 +114,8 @@ export function buildRRuleLine(recurrence: IcsRecurrence, startScheduledAt: Date
   const until = formatIcsDateTime(untilAt)
 
   if (recurrence.cadence === 'monthly') {
-    return `RRULE:FREQ=MONTHLY;UNTIL=${until}`
+    const byDay = formatMonthlyIcsByDay(startScheduledAt)
+    return `RRULE:FREQ=MONTHLY;BYDAY=${byDay};UNTIL=${until}`
   }
 
   const interval = recurrence.cadence === 'biweekly' ? 2 : 1

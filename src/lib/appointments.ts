@@ -163,7 +163,7 @@ export function findRoomConflict(
 export const RECURRENCE_CADENCE_OPTIONS = [
   { value: 'weekly', label: 'Semanal' },
   { value: 'biweekly', label: 'Quinzenal' },
-  { value: 'monthly', label: 'Mensal' },
+  { value: 'monthly', label: 'Mensal (mesmo dia da semana)' },
 ] as const
 
 export type RecurrenceCadence = (typeof RECURRENCE_CADENCE_OPTIONS)[number]['value']

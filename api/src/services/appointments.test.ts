@@ -27,11 +27,19 @@ describe('generateRecurrenceDates', () => {
     ])
   })
 
-  it('generates monthly dates', () => {
-    expect(generateRecurrenceDates('2026-01-15', '2026-03-15', 'monthly')).toEqual([
+  it('generates monthly dates on the same weekday occurrence each month', () => {
+    expect(generateRecurrenceDates('2026-01-15', '2026-03-31', 'monthly')).toEqual([
       '2026-01-15',
-      '2026-02-15',
-      '2026-03-15',
+      '2026-02-19',
+      '2026-03-19',
+    ])
+  })
+
+  it('generates monthly dates for the first Monday of each month', () => {
+    expect(generateRecurrenceDates('2026-01-05', '2026-03-15', 'monthly')).toEqual([
+      '2026-01-05',
+      '2026-02-02',
+      '2026-03-02',
     ])
   })
 

@@ -2,6 +2,7 @@ import { CalendarInviteStatus } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { prisma } from '../lib/prisma.js'
 import { buildCalendarUid } from '../lib/icalendar.js'
+import { nextMonthlyRecurrenceDate } from '../lib/recurrence.js'
 import { getActiveGabineteOrThrow, listActiveGabinetes } from './gabinetes.js'
 import { decimalToNumber, resolveSessionFee } from './financialSettings.js'
 import { assertTherapistHasLocation } from './therapistLocations.js'
@@ -79,12 +80,6 @@ function addDays(date: Date, days: number): Date {
   return next
 }
 
-function addMonths(date: Date, months: number): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + months, date.getUTCDate()),
-  )
-}
-
 export function generateRecurrenceDates(
   startDate: string,
   endDate: string,
@@ -110,7 +105,9 @@ export function generateRecurrenceDates(
     } else if (cadence === 'biweekly') {
       current = addDays(current, 14)
     } else {
-      current = addMonths(current, 1)
+      const next = nextMonthlyRecurrenceDate(current)
+      if (!next) break
+      current = next
     }
   }
 
