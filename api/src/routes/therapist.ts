@@ -36,9 +36,16 @@ import {
   listLocationDaySchedule,
   updateTherapistAppointment,
 } from '../services/appointments.js'
+import {
+  BlockedTimeError,
+  createTherapistCalendarBlock,
+  deleteTherapistCalendarBlock,
+  listTherapistCalendarBlocks,
+  updateTherapistCalendarBlock,
+} from '../services/calendarBlocks.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, therapistAppointmentsQuerySchema, therapistAttendanceMatrixQuerySchema, therapistGabinetesQuerySchema, therapistLocationsQuerySchema, shadowTherapistQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, calendarBlockBodySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, therapistAppointmentsQuerySchema, therapistAttendanceMatrixQuerySchema, therapistGabinetesQuerySchema, therapistLocationsQuerySchema, shadowTherapistQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -1126,6 +1133,9 @@ export async function therapistRoutes(app: FastifyInstance) {
       if (error instanceof RoomConflictError) {
         return reply.status(409).send({ error: error.message })
       }
+      if (error instanceof BlockedTimeError) {
+        return reply.status(409).send({ error: error.message, code: 'BLOCKED_TIME' })
+      }
       throw error
     }
   })
@@ -1188,6 +1198,9 @@ export async function therapistRoutes(app: FastifyInstance) {
         if (error instanceof RoomConflictError) {
           return reply.status(409).send({ error: error.message })
         }
+        if (error instanceof BlockedTimeError) {
+          return reply.status(409).send({ error: error.message, code: 'BLOCKED_TIME' })
+        }
         if (error instanceof Error && error.message === 'GABINETE_NOT_FOUND') {
           return reply.status(404).send({ error: 'Gabinete não encontrado ou inativo' })
         }
@@ -1212,6 +1225,90 @@ export async function therapistRoutes(app: FastifyInstance) {
       } catch (error) {
         if (error instanceof Error && error.message === 'APPOINTMENT_NOT_FOUND') {
           return reply.status(404).send({ error: 'Consulta não encontrada' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get('/api/therapist/calendar-blocks', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = appointmentMonthQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const blocks = await listTherapistCalendarBlocks(
+        request.user.sub,
+        parsed.data.year,
+        parsed.data.month,
+      )
+      return {
+        year: parsed.data.year,
+        month: parsed.data.month,
+        blocks,
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_MONTH') {
+        return reply.status(400).send({ error: 'Mês inválido' })
+      }
+      throw error
+    }
+  })
+
+  app.post('/api/therapist/calendar-blocks', { preHandler: therapistWriteOnly }, async (request, reply) => {
+    const parsed = calendarBlockBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const block = await createTherapistCalendarBlock(request.user.sub, parsed.data)
+      return reply.status(201).send({ block })
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_BLOCK_RANGE') {
+        return reply.status(400).send({ error: 'Intervalo de horário inválido' })
+      }
+      throw error
+    }
+  })
+
+  app.patch(
+    '/api/therapist/calendar-blocks/:id',
+    { preHandler: therapistWriteOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = calendarBlockBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const block = await updateTherapistCalendarBlock(request.user.sub, id, parsed.data)
+        return { block }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'BLOCK_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Bloqueio não encontrado' })
+        }
+        if (error instanceof Error && error.message === 'INVALID_BLOCK_RANGE') {
+          return reply.status(400).send({ error: 'Intervalo de horário inválido' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/calendar-blocks/:id',
+    { preHandler: therapistWriteOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+
+      try {
+        return await deleteTherapistCalendarBlock(request.user.sub, id)
+      } catch (error) {
+        if (error instanceof Error && error.message === 'BLOCK_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Bloqueio não encontrado' })
         }
         throw error
       }

@@ -143,6 +143,58 @@ export function occupancyOverlaps(
   return startA < endB && startB < endA
 }
 
+export type CalendarBlockSummary = {
+  id: string
+  date: string
+  startTime: string
+  endTime: string
+  title: string | null
+  notes: string | null
+  label: string
+}
+
+export function formatBlockRange(startTime: string, endTime: string) {
+  return `${startTime} – ${endTime}`
+}
+
+export function blockOverlapsAppointment(
+  block: Pick<CalendarBlockSummary, 'date' | 'startTime' | 'endTime'>,
+  date: string,
+  time: string,
+  durationMinutes: number,
+): boolean {
+  if (block.date !== date) return false
+  return occupancyOverlaps(time, durationMinutes, block.startTime, blockDurationMinutes(block))
+}
+
+function blockDurationMinutes(block: Pick<CalendarBlockSummary, 'startTime' | 'endTime'>) {
+  return parseTimeToMinutes(block.endTime) - parseTimeToMinutes(block.startTime)
+}
+
+export function findBlockConflict(
+  blocks: CalendarBlockSummary[],
+  date: string,
+  time: string,
+  durationMinutes: number,
+): CalendarBlockSummary | null {
+  return (
+    blocks.find((block) => blockOverlapsAppointment(block, date, time, durationMinutes)) ?? null
+  )
+}
+
+export function groupBlocksByDate(blocks: CalendarBlockSummary[]) {
+  const map = new Map<string, CalendarBlockSummary[]>()
+  for (const block of blocks) {
+    const list = map.get(block.date) ?? []
+    list.push(block)
+    map.set(block.date, list)
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => a.startTime.localeCompare(b.startTime))
+  }
+  return map
+}
+
 export function findRoomConflict(
   occupancy: RoomOccupancy[],
   gabineteId: string,

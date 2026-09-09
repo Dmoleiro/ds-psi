@@ -385,6 +385,16 @@ export type AdminDashboard = {
   }
 }
 
+export type CalendarBlockSummary = {
+  id: string
+  date: string
+  startTime: string
+  endTime: string
+  title: string | null
+  notes: string | null
+  label: string
+}
+
 export type AppointmentSummary = {
   id: string
   patientId: string
@@ -896,6 +906,7 @@ export const therapistApi = {
         cadence: 'weekly' | 'biweekly' | 'monthly'
         until: string
       }
+      allowBlockedTime?: boolean
     },
   ) =>
     apiRequest<{
@@ -921,6 +932,7 @@ export const therapistApi = {
       notes?: string | null
       scope?: 'single' | 'following' | 'series'
       sendCalendarUpdate?: boolean
+      allowBlockedTime?: boolean
     },
   ) =>
     apiRequest<{
@@ -931,6 +943,47 @@ export const therapistApi = {
       method: 'PATCH',
       token,
       body,
+    }),
+  listCalendarBlocks: (token: string, year: number, month: number) =>
+    apiRequest<{ year: number; month: number; blocks: CalendarBlockSummary[] }>(
+      `/api/therapist/calendar-blocks?year=${year}&month=${month}`,
+      { token },
+    ),
+  createCalendarBlock: (
+    token: string,
+    body: {
+      date: string
+      startTime: string
+      endTime: string
+      title?: string | null
+      notes?: string | null
+    },
+  ) =>
+    apiRequest<{ block: CalendarBlockSummary }>('/api/therapist/calendar-blocks', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateCalendarBlock: (
+    token: string,
+    id: string,
+    body: {
+      date: string
+      startTime: string
+      endTime: string
+      title?: string | null
+      notes?: string | null
+    },
+  ) =>
+    apiRequest<{ block: CalendarBlockSummary }>(`/api/therapist/calendar-blocks/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  deleteCalendarBlock: (token: string, id: string) =>
+    apiRequest<{ deleted: boolean }>(`/api/therapist/calendar-blocks/${id}`, {
+      method: 'DELETE',
+      token,
     }),
   deleteAppointment: (
     token: string,

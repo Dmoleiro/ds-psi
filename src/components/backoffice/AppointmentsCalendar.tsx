@@ -7,6 +7,7 @@ import {
   type AppointmentInviteSettings,
   type AppointmentSummary,
   type AttendanceStatus,
+  type CalendarBlockSummary,
   type CalendarInviteStatus,
   type InviteRecipients,
   type LocationSummary,
@@ -17,7 +18,10 @@ import {
   addMonthsToIsoDate,
   APPOINTMENT_SERIES_SCOPE_OPTIONS,
   DURATION_OPTIONS,
+  findBlockConflict,
   findRoomConflict,
+  formatBlockRange,
+  groupBlocksByDate,
   RECURRENCE_CADENCE_OPTIONS,
   WEEKDAY_LABELS,
   formatAppointmentRange,
@@ -34,6 +38,7 @@ import {
   type RecurrenceCadence,
   type RoomOccupancy,
 } from '../../lib/appointments'
+import { generateRecurrenceDates } from '../../lib/recurrence'
 import {
   exportAppointmentsCalendarPdf,
   exportAppointmentsListPdf,
@@ -86,6 +91,20 @@ const EMPTY_FORM: FormState = {
   repeatEnabled: false,
   repeatCadence: 'weekly',
   repeatUntil: '',
+}
+
+type BlockFormState = {
+  startTime: string
+  endTime: string
+  title: string
+  notes: string
+}
+
+const EMPTY_BLOCK_FORM: BlockFormState = {
+  startTime: '09:00',
+  endTime: '12:00',
+  title: '',
+  notes: '',
 }
 
 function initialForm(
@@ -176,6 +195,11 @@ export function AppointmentsCalendar({
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth() + 1)
   const [appointments, setAppointments] = useState<AppointmentSummary[]>([])
+  const [calendarBlocks, setCalendarBlocks] = useState<CalendarBlockSummary[]>([])
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null)
+  const [showBlockForm, setShowBlockForm] = useState(false)
+  const [blockForm, setBlockForm] = useState<BlockFormState>(EMPTY_BLOCK_FORM)
+  const [allowBlockedTime, setAllowBlockedTime] = useState(false)
   const [patients, setPatients] = useState<PatientSummary[]>([])
   const [locations, setLocations] = useState<LocationSummary[]>([])
   const [gabinetes, setGabinetes] = useState<GabineteSummary[]>([])
@@ -320,6 +344,43 @@ export function AppointmentsCalendar({
     selectedDate,
   ])
 
+  const blockConflict = useMemo(() => {
+    if (readOnly || !form.time) return null
+
+    const checkDate =
+      editingId && editingAppointment?.recurrenceGroupId && editScope !== 'single'
+        ? null
+        : editingId
+          ? form.appointmentDate
+          : selectedDate
+
+    if (!checkDate) return null
+
+    if (!editingId && form.repeatEnabled && form.repeatUntil) {
+      const dates = generateRecurrenceDates(checkDate, form.repeatUntil, form.repeatCadence)
+      for (const date of dates) {
+        const conflict = findBlockConflict(calendarBlocks, date, form.time, form.durationMinutes)
+        if (conflict) return conflict
+      }
+      return null
+    }
+
+    return findBlockConflict(calendarBlocks, checkDate, form.time, form.durationMinutes)
+  }, [
+    calendarBlocks,
+    editScope,
+    editingAppointment,
+    editingId,
+    form.appointmentDate,
+    form.durationMinutes,
+    form.repeatCadence,
+    form.repeatEnabled,
+    form.repeatUntil,
+    form.time,
+    readOnly,
+    selectedDate,
+  ])
+
   const cells = useMemo(() => getCalendarCells(viewYear, viewMonth), [viewYear, viewMonth])
   const weeks = useMemo(() => {
     const rows: ReturnType<typeof getCalendarCells>[] = []
@@ -329,7 +390,9 @@ export function AppointmentsCalendar({
     return rows
   }, [cells])
   const appointmentsByDate = useMemo(() => groupAppointmentsByDate(appointments), [appointments])
+  const blocksByDate = useMemo(() => groupBlocksByDate(calendarBlocks), [calendarBlocks])
   const selectedDayAppointments = selectedDate ? (appointmentsByDate.get(selectedDate) ?? []) : []
+  const selectedDayBlocks = selectedDate ? (blocksByDate.get(selectedDate) ?? []) : []
 
   useEffect(() => {
     if (!selectedDate) {
@@ -374,6 +437,13 @@ export function AppointmentsCalendar({
               locationFilter || undefined,
             )
       setAppointments(data.appointments)
+
+      if (!readOnly) {
+        const blocksData = await therapistApi.listCalendarBlocks(token, viewYear, viewMonth)
+        setCalendarBlocks(blocksData.blocks)
+      } else {
+        setCalendarBlocks([])
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Erro ao carregar consultas')
     } finally {
@@ -384,6 +454,12 @@ export function AppointmentsCalendar({
   useEffect(() => {
     loadMonth()
   }, [loadMonth])
+
+  useEffect(() => {
+    if (!blockConflict) {
+      setAllowBlockedTime(false)
+    }
+  }, [blockConflict])
 
   useEffect(() => {
     if (!token || readOnly) {
@@ -538,10 +614,18 @@ export function AppointmentsCalendar({
     consumedPrefillRef.current = null
   }, [prefillKey])
 
+  function resetBlockFormState() {
+    setEditingBlockId(null)
+    setShowBlockForm(false)
+    setBlockForm(EMPTY_BLOCK_FORM)
+  }
+
   function openDay(date: string) {
     attendanceEditLock.lock()
     setSelectedDate(date)
     setEditingId(null)
+    setAllowBlockedTime(false)
+    resetBlockFormState()
     const locationId = locationFilter || locations[0]?.id || ''
     const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
     setForm(initialForm(locationId, gabineteId, date, defaultSessionFee))
@@ -558,6 +642,8 @@ export function AppointmentsCalendar({
     setDeleteScope('single')
     setAttendanceByKey(new Map())
     setSavingAttendanceKey(null)
+    setAllowBlockedTime(false)
+    resetBlockFormState()
     const locationId = locationFilter || locations[0]?.id || ''
     const gabineteId = resolveGabineteForLocation(locationId, gabinetes)
     setForm(initialForm(locationId, gabineteId, '', defaultSessionFee))
@@ -602,6 +688,8 @@ export function AppointmentsCalendar({
     setEditingAppointment(appointment)
     setEditScope('single')
     setSendCalendarUpdate(true)
+    setAllowBlockedTime(false)
+    resetBlockFormState()
     setPendingDelete(null)
     setForm({
       patientId: appointment.patientId,
@@ -624,6 +712,7 @@ export function AppointmentsCalendar({
     setEditingAppointment(null)
     setEditScope('single')
     setSendCalendarUpdate(true)
+    setAllowBlockedTime(false)
     setForm(initialForm(
       locationFilter || locations[0]?.id || '',
       resolveGabineteForLocation(locationFilter || locations[0]?.id || '', gabinetes),
@@ -653,6 +742,75 @@ export function AppointmentsCalendar({
     }))
   }
 
+  function startBlockEdit(block: CalendarBlockSummary) {
+    setEditingBlockId(block.id)
+    setShowBlockForm(true)
+    setBlockForm({
+      startTime: block.startTime,
+      endTime: block.endTime,
+      title: block.title ?? '',
+      notes: block.notes ?? '',
+    })
+    setDialogError('')
+  }
+
+  function cancelBlockEdit() {
+    resetBlockFormState()
+    setDialogError('')
+  }
+
+  async function handleBlockSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!selectedDate) return
+    if (blockForm.endTime <= blockForm.startTime) {
+      setDialogError('A hora de fim deve ser posterior à hora de início.')
+      return
+    }
+
+    setSubmitting(true)
+    setDialogError('')
+    try {
+      const body = {
+        date: selectedDate,
+        startTime: blockForm.startTime,
+        endTime: blockForm.endTime,
+        title: blockForm.title.trim() ? blockForm.title.trim() : null,
+        notes: blockForm.notes.trim() ? blockForm.notes.trim() : null,
+      }
+
+      if (editingBlockId) {
+        await therapistApi.updateCalendarBlock(token, editingBlockId, body)
+      } else {
+        await therapistApi.createCalendarBlock(token, body)
+      }
+
+      await loadMonth()
+      resetBlockFormState()
+    } catch (err) {
+      setDialogError(err instanceof ApiError ? err.message : 'Não foi possível guardar o bloqueio')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleBlockDelete(blockId: string) {
+    if (!window.confirm('Remover este bloqueio de horário?')) return
+
+    setSubmitting(true)
+    setDialogError('')
+    try {
+      await therapistApi.deleteCalendarBlock(token, blockId)
+      if (editingBlockId === blockId) {
+        resetBlockFormState()
+      }
+      await loadMonth()
+    } catch (err) {
+      setDialogError(err instanceof ApiError ? err.message : 'Não foi possível remover o bloqueio')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (!token) {
@@ -670,6 +828,12 @@ export function AppointmentsCalendar({
     if (roomConflict) {
       setDialogError(
         `${roomConflict.gabineteName} já está ocupado neste horário (${roomConflict.therapistName}).`,
+      )
+      return
+    }
+    if (blockConflict && !allowBlockedTime) {
+      setDialogError(
+        `Este horário coincide com um bloqueio pessoal (${blockConflict.label}, ${formatBlockRange(blockConflict.startTime, blockConflict.endTime)}). Confirme abaixo se pretende agendar mesmo assim.`,
       )
       return
     }
@@ -707,6 +871,7 @@ export function AppointmentsCalendar({
           scope: editingAppointment?.recurrenceGroupId ? editScope : undefined,
           sendCalendarUpdate:
             inviteSettings?.allowed && inviteSettings.enabled ? sendCalendarUpdate : undefined,
+          allowBlockedTime: allowBlockedTime || undefined,
         })
         await loadMonth()
         if (selectedDate) {
@@ -723,6 +888,7 @@ export function AppointmentsCalendar({
           recurrence: form.repeatEnabled
             ? { cadence: form.repeatCadence, until: form.repeatUntil }
             : undefined,
+          allowBlockedTime: allowBlockedTime || undefined,
         })
         await loadMonth()
         if (result.createdCount > 1) {
@@ -873,8 +1039,14 @@ export function AppointmentsCalendar({
                 }
 
                 const dayAppointments = appointmentsByDate.get(cell.date) ?? []
-                const visible = dayAppointments.slice(0, 3)
-                const hiddenCount = dayAppointments.length - visible.length
+                const dayBlocks = !readOnly ? (blocksByDate.get(cell.date) ?? []) : []
+                const visibleAppointments = dayAppointments.slice(0, 3)
+                const visibleBlocks = dayBlocks.slice(0, Math.max(0, 3 - visibleAppointments.length))
+                const hiddenCount =
+                  dayAppointments.length -
+                  visibleAppointments.length +
+                  dayBlocks.length -
+                  visibleBlocks.length
 
                 return (
                   <div key={cell.date} className={styles.dayCell}>
@@ -885,7 +1057,7 @@ export function AppointmentsCalendar({
                         {cell.day}
                       </span>
                       <span className={styles.appointmentList}>
-                        {visible.map((appointment) => (
+                        {visibleAppointments.map((appointment) => (
                           <span key={appointment.id} className={styles.appointmentChip}>
                             <span>
                               {appointment.time} {appointment.patientName}
@@ -893,6 +1065,14 @@ export function AppointmentsCalendar({
                             <span className={styles.appointmentChipLocation}>
                               {appointment.gabineteName} · {appointment.locationName}
                             </span>
+                          </span>
+                        ))}
+                        {visibleBlocks.map((block) => (
+                          <span key={block.id} className={styles.blockChip}>
+                            <span>
+                              {block.startTime} {block.label}
+                            </span>
+                            <span className={styles.blockChipMeta}>Bloqueado</span>
                           </span>
                         ))}
                         {hiddenCount > 0 && (
@@ -1076,6 +1256,132 @@ export function AppointmentsCalendar({
               )
             ) : (
               <>
+                <div className={styles.blocksSection}>
+                  <div className={styles.blocksSectionHeader}>
+                    <h3 className={styles.blocksSectionTitle}>Horários bloqueados</h3>
+                    {!showBlockForm && (
+                      <button
+                        type="button"
+                        className={styles.textButton}
+                        onClick={() => {
+                          resetBlockFormState()
+                          setShowBlockForm(true)
+                        }}
+                      >
+                        Bloquear horário
+                      </button>
+                    )}
+                  </div>
+                  <p className={layout.muted}>
+                    Marque períodos em que não pretende agendar consultas. Só aparecem no seu calendário e
+                    não reservam gabinetes.
+                  </p>
+
+                  {selectedDayBlocks.length > 0 && (
+                    <div className={styles.existingList}>
+                      {selectedDayBlocks.map((block) => (
+                        <article
+                          key={block.id}
+                          className={`${styles.existingItem} ${editingBlockId === block.id ? styles.existingItemActive : ''}`}
+                        >
+                          <div className={styles.existingItemBody}>
+                            <p className={styles.existingMeta}>
+                              {formatBlockRange(block.startTime, block.endTime)}
+                            </p>
+                            <h3 className={styles.existingTitle}>{block.label}</h3>
+                            {block.notes && <p className={layout.muted}>{block.notes}</p>}
+                            <div className={styles.existingPrimaryActions}>
+                              <button
+                                type="button"
+                                className={styles.textButton}
+                                onClick={() => startBlockEdit(block)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles.textButton} ${styles.textButtonDanger}`}
+                                onClick={() => void handleBlockDelete(block.id)}
+                                disabled={submitting}
+                              >
+                                Remover
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+
+                  {showBlockForm && (
+                    <form className={styles.blockForm} onSubmit={handleBlockSubmit} noValidate>
+                      <h4>{editingBlockId ? 'Editar bloqueio' : 'Novo bloqueio'}</h4>
+                      <div className={styles.field}>
+                        <label htmlFor="block-start-time">Início</label>
+                        <input
+                          id="block-start-time"
+                          type="time"
+                          value={blockForm.startTime}
+                          onChange={(event) =>
+                            setBlockForm((current) => ({ ...current, startTime: event.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="block-end-time">Fim</label>
+                        <input
+                          id="block-end-time"
+                          type="time"
+                          value={blockForm.endTime}
+                          onChange={(event) =>
+                            setBlockForm((current) => ({ ...current, endTime: event.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="block-title">Título (opcional)</label>
+                        <input
+                          id="block-title"
+                          type="text"
+                          value={blockForm.title}
+                          onChange={(event) =>
+                            setBlockForm((current) => ({ ...current, title: event.target.value }))
+                          }
+                          placeholder="Ex.: Foco administrativo"
+                        />
+                      </div>
+                      <div className={styles.field}>
+                        <label htmlFor="block-notes">Notas (opcional)</label>
+                        <textarea
+                          id="block-notes"
+                          value={blockForm.notes}
+                          onChange={(event) =>
+                            setBlockForm((current) => ({ ...current, notes: event.target.value }))
+                          }
+                          placeholder="Observações internas"
+                        />
+                      </div>
+                      <div className={styles.formActionsRow}>
+                        <Button type="submit" disabled={submitting}>
+                          {submitting
+                            ? 'A guardar…'
+                            : editingBlockId
+                              ? 'Guardar bloqueio'
+                              : 'Adicionar bloqueio'}
+                        </Button>
+                        <button
+                          type="button"
+                          className={styles.textButton}
+                          onClick={cancelBlockEdit}
+                          disabled={submitting}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+
                 <hr className={styles.divider} />
 
                 <form ref={formRef} className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -1241,6 +1547,22 @@ export function AppointmentsCalendar({
                       placeholder="Observações internas"
                     />
                   </div>
+                  {blockConflict && (
+                    <div className={styles.blockWarning}>
+                      <p>
+                        Este horário coincide com um bloqueio pessoal ({blockConflict.label},{' '}
+                        {formatBlockRange(blockConflict.startTime, blockConflict.endTime)}).
+                      </p>
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={allowBlockedTime}
+                          onChange={(event) => setAllowBlockedTime(event.target.checked)}
+                        />
+                        Agendar consulta em horário bloqueado
+                      </label>
+                    </div>
+                  )}
                   {!editingId && (
                     <div className={styles.recurrenceSection}>
                       <label className={styles.checkboxLabel}>
@@ -1319,6 +1641,7 @@ export function AppointmentsCalendar({
                         !form.locationId ||
                         !form.gabineteId ||
                         Boolean(roomConflict) ||
+                        Boolean(blockConflict && !allowBlockedTime) ||
                         (form.repeatEnabled && !form.repeatUntil)
                       }
                     >

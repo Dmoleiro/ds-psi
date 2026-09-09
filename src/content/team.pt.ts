@@ -258,6 +258,60 @@ export const teamPage = {
       closing: 'Cada pessoa é única. Cada história importa.',
     },
     {
+      id: 'ines-de-brito',
+      name: 'Inês de Brito',
+      role: 'Psicóloga Clínica',
+      tagline: 'Cuidar de si também é importante.',
+      intro:
+        'Não sabemos sempre o que sentimos ou porquê. Mas saber que algo não está bem já é suficiente para procurar compreensão. Este é um convite para ser a sua versão mais autêntica.',
+      availabilityNote: 'Exclusivo online',
+      portrait: {
+        src: publicAsset('images/team/ines-de-brito.jpg'),
+        alt: 'Inês de Brito — Psicóloga Clínica',
+        align: { scale: 1.15, x: 8, y: -4 },
+      },
+      credentials: [
+        'Psicóloga Clínica, Membro Efetivo da Ordem dos Psicólogos Portugueses (OPP), cédula n.º 21165',
+        'Mestre em Psicologia Clínica pelo ISPA – Instituto Universitário',
+        'Estágio em Terapia Focada nas Emoções para Casais (ICEEFT)',
+        'Curso Avançado em Desenvolvimento de Competências em Relação Terapêutica (Instituto Criap)',
+        'Curso de Psicologia e Psicopatologia do Pós-Parto (Instituto Europeu de Saúde Mental Perinatal)',
+        'Curso de Life Stories (ISPA – Formação Avançada)',
+        'Workshop introdutório sobre o modelo de intervenção em trauma Internal Family Systems (IFS) (SPPC)',
+        'Avaliação e Promoção de Competências Parentais (ISPA – Formação Avançada)',
+      ],
+      practiceAreas: [
+        {
+          title: 'Adultos',
+          description:
+            'Para quem procura um espaço de escuta, compreensão e crescimento pessoal.',
+        },
+        {
+          title: 'Dificuldades emocionais e relacionais',
+          description:
+            'Ansiedade, stress, alterações de humor, autoestima, relações interpessoais e desafios emocionais.',
+        },
+        {
+          title: 'Parentalidade',
+          description:
+            'Apoio na parentalidade, desafios da maternidade e da paternidade, incluindo saúde mental perinatal e pós-parto.',
+        },
+        {
+          title: 'Desafios de vida e processos de mudança',
+          description:
+            'Momentos de transição, luto, trauma, redefinição de objetivos e procura de maior equilíbrio e bem-estar.',
+        },
+      ],
+      approach: [
+        'Acolhimento — um espaço seguro e sem julgamentos',
+        'Confiança — uma relação terapêutica baseada em autenticidade e ética',
+        'Respeito — pela sua história, pelo seu tempo e pelas suas escolhas',
+        'Compromisso — com o seu bem-estar e com um processo terapêutico com significado',
+      ],
+      approachTitle: 'A minha abordagem',
+      closing: 'Cuidar de si também é o primeiro passo para uma vida com mais equilíbrio.',
+    },
+    {
       id: 'vera-cordeiro',
       name: 'Vera Cordeiro',
       role: 'Terapeuta da Fala',

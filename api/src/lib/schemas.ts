@@ -487,9 +487,28 @@ export const appointmentRecurrenceSchema = z.object({
 
 export const appointmentSeriesScopeSchema = z.enum(['single', 'following', 'series'])
 
+export const calendarBlockBodySchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+    title: z.string().max(120).optional().nullable(),
+    notes: z.string().max(2000).optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.endTime <= data.startTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A hora de fim deve ser posterior à hora de início',
+        path: ['endTime'],
+      })
+    }
+  })
+
 export const createAppointmentBodySchema = appointmentBodySchema
   .extend({
     recurrence: appointmentRecurrenceSchema.optional(),
+    allowBlockedTime: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.recurrence && data.recurrence.until < data.date) {
@@ -504,6 +523,7 @@ export const createAppointmentBodySchema = appointmentBodySchema
 export const updateAppointmentBodySchema = appointmentBodySchema.extend({
   scope: appointmentSeriesScopeSchema.optional(),
   sendCalendarUpdate: z.boolean().optional(),
+  allowBlockedTime: z.boolean().optional(),
 })
 
 export const deleteAppointmentQuerySchema = z.object({

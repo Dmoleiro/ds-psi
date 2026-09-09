@@ -112,6 +112,7 @@ model User {
   therapistCoordinators CoordinatorTherapist[] @relation("TherapistCoordinatorAssignments")
   internSupervisors TherapistSupervisor[] @relation("InternSupervisorAssignments")
   supervisedInterns TherapistSupervisor[] @relation("SupervisedInternAssignments")
+  calendarBlocks TherapistCalendarBlock[]
 
   @@map("users")
 }
@@ -382,6 +383,22 @@ model Appointment {
   @@index([recurrenceGroupId])
   @@index([calendarInviteStatus])
   @@map("appointments")
+}
+
+model TherapistCalendarBlock {
+  id          String   @id @default(uuid())
+  therapistId String   @map("therapist_id")
+  startsAt    DateTime @map("starts_at")
+  endsAt      DateTime @map("ends_at")
+  title       String?  @db.VarChar(120)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  therapist User @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@index([therapistId, startsAt])
+  @@map("therapist_calendar_blocks")
 }
 
 model TherapistFinancialSettings {

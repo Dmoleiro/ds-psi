@@ -19,6 +19,7 @@ import {
   queueDeletionCancellationInvites,
   sendSeriesOccurrenceException,
 } from './appointmentCalendarInvites.js'
+import { assertAppointmentsNotBlocked } from './calendarBlocks.js'
 
 export type AppointmentRecurrenceCadence = 'weekly' | 'biweekly' | 'monthly'
 
@@ -43,6 +44,7 @@ export type AppointmentInput = {
   recurrence?: AppointmentRecurrence
   scope?: AppointmentSeriesScope
   sendCalendarUpdate?: boolean
+  allowBlockedTime?: boolean
 }
 
 export class RoomConflictError extends Error {
@@ -479,6 +481,15 @@ export async function createTherapistAppointment(therapistId: string, input: App
     )
   }
 
+  await assertAppointmentsNotBlocked(
+    therapistId,
+    scheduledSlots.map((slot) => ({
+      scheduledAt: slot.scheduledAt,
+      durationMinutes: input.durationMinutes,
+    })),
+    input.allowBlockedTime,
+  )
+
   const appointments = await prisma.$transaction(
     scheduledSlots.map((slot) =>
       prisma.appointment.create({
@@ -583,6 +594,12 @@ export async function updateTherapistAppointment(
       [appointmentId],
     )
 
+    await assertAppointmentsNotBlocked(
+      therapistId,
+      [{ scheduledAt, durationMinutes: input.durationMinutes }],
+      input.allowBlockedTime,
+    )
+
     const appointment = await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
@@ -649,6 +666,15 @@ export async function updateTherapistAppointment(
       excludeIds,
     )
   }
+
+  await assertAppointmentsNotBlocked(
+    therapistId,
+    updateSlots.map((slot) => ({
+      scheduledAt: slot.scheduledAt,
+      durationMinutes: input.durationMinutes,
+    })),
+    input.allowBlockedTime,
+  )
 
   const appointments = await prisma.$transaction(
     updateSlots.map(({ target, scheduledAt }) =>
