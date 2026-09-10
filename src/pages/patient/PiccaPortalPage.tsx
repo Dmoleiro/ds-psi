@@ -135,6 +135,15 @@ export function PiccaPortalPage() {
             {accepting ? 'A registar…' : 'Continuar'}
           </Button>
         </Card>
+      ) : session.emptyForPatient ? (
+        <Card>
+          <h2>Sessão sem módulos para a família</h2>
+          <p>
+            Este link não inclui formulários para preencher. Os módulos desta sessão são preenchidos
+            pela equipa clínica no consultório.
+          </p>
+          <p>Se recebeu este link por engano, contacte a clínica.</p>
+        </Card>
       ) : (
         <>
           <PiccaVolumePortalSections

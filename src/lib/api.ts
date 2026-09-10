@@ -669,7 +669,7 @@ export const therapistApi = {
       }>
     }>('/api/therapist/picca/modules', { token }),
   createPiccaSession: (token: string, patientId: string, moduleIds: string[]) =>
-    apiRequest<{ sessionId: string; url: string }>(
+    apiRequest<{ sessionId: string; url: string | null; hasPatientLink: boolean }>(
       `/api/therapist/patients/${patientId}/picca-sessions`,
       { method: 'POST', token, body: { moduleIds } },
     ),
@@ -1476,6 +1476,7 @@ export type PiccaPatientSession = {
   currentModuleIndex: number
   locked: boolean
   canFinalize: boolean
+  emptyForPatient?: boolean
   modules: PiccaPatientModule[]
 }
 

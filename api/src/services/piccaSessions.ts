@@ -127,8 +127,9 @@ export async function createPiccaSession(
     throw new Error('PATIENT_NOT_FOUND')
   }
 
-  const rawToken = generatePatientToken()
-  const tokenHash = hashPatientToken(rawToken)
+  const hasPatientModules = definitions.some((module) => !module.therapistOnly)
+  const rawToken = hasPatientModules ? generatePatientToken() : null
+  const tokenHash = hashPatientToken(rawToken ?? generatePatientToken())
 
   const session = await prisma.piccaSession.create({
     data: {
@@ -153,8 +154,9 @@ export async function createPiccaSession(
 
   return {
     session,
-    url: buildPiccaPatientUrl(rawToken, config.frontendUrl),
+    url: rawToken ? buildPiccaPatientUrl(rawToken, config.frontendUrl) : null,
     token: rawToken,
+    hasPatientLink: hasPatientModules,
   }
 }
 
@@ -358,6 +360,9 @@ export async function completePiccaPatientSession(sessionId: string) {
   }
 
   const patientModules = session.modules.filter((m) => !m.module.therapistOnly)
+  if (patientModules.length === 0) {
+    throw new Error('NO_PATIENT_MODULES')
+  }
   const allSubmitted = patientModules.every((m) => m.status === FormStatus.submitted)
   if (!allSubmitted) {
     throw new Error('MODULES_INCOMPLETE')

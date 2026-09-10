@@ -47,7 +47,9 @@ export async function piccaPatientRoutes(app: FastifyInstance) {
         ? PiccaSessionStatus.in_progress
         : session.status
     const locked = getPatientModuleReadOnly(sessionStatus)
-    const allSubmitted = patientModules.every((m) => m.status === FormStatus.submitted)
+    const allSubmitted =
+      patientModules.length > 0 &&
+      patientModules.every((m) => m.status === FormStatus.submitted)
 
     return {
       session: {
@@ -60,6 +62,7 @@ export async function piccaPatientRoutes(app: FastifyInstance) {
         currentModuleIndex: currentIndex === -1 ? patientModules.length : currentIndex,
         locked,
         canFinalize: allSubmitted && !locked,
+        emptyForPatient: patientModules.length === 0,
         modules: patientModules.map((m, index) => ({
           moduleId: m.moduleId,
           title: m.module.title,
@@ -248,7 +251,9 @@ export async function piccaPatientRoutes(app: FastifyInstance) {
       })
 
       const refreshedPatientModules = refreshed!.modules.filter((m) => !m.module.therapistOnly)
-      const allSubmitted = refreshedPatientModules.every((m) => m.status === FormStatus.submitted)
+      const allSubmitted =
+        refreshedPatientModules.length > 0 &&
+        refreshedPatientModules.every((m) => m.status === FormStatus.submitted)
 
       return { ok: true, allSubmitted }
     },
@@ -273,6 +278,9 @@ export async function piccaPatientRoutes(app: FastifyInstance) {
       }
       if (error instanceof Error && error.message === 'MODULES_INCOMPLETE') {
         return reply.status(400).send({ error: 'Submeta todos os módulos antes de concluir' })
+      }
+      if (error instanceof Error && error.message === 'NO_PATIENT_MODULES') {
+        return reply.status(400).send({ error: 'Esta sessão não inclui módulos para a família' })
       }
       throw error
     }

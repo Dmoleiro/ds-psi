@@ -53,6 +53,7 @@ export async function piccaTherapistRoutes(app: FastifyInstance) {
         return {
           sessionId: result.session.id,
           url: result.url,
+          hasPatientLink: result.hasPatientLink,
         }
       } catch (error) {
         if (error instanceof Error && error.message === 'PATIENT_NOT_FOUND') {

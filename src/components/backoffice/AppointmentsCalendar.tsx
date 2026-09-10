@@ -44,6 +44,7 @@ import {
   exportAppointmentsListPdf,
 } from '../../lib/exportAppointmentsPdf'
 import { AttendanceStatusTile } from './AttendanceStatusTile'
+import { DayCellOverflowPreview } from './DayCellOverflowPreview'
 import { PatientSearchPicker } from './PatientSearchPicker'
 import { useEditLock } from '../../hooks/useEditLock'
 import { Button } from '../ui/Button'
@@ -1076,7 +1077,11 @@ export function AppointmentsCalendar({
                           </span>
                         ))}
                         {hiddenCount > 0 && (
-                          <span className={styles.moreLabel}>+{hiddenCount} mais</span>
+                          <DayCellOverflowPreview
+                            hiddenCount={hiddenCount}
+                            appointments={dayAppointments}
+                            blocks={dayBlocks}
+                          />
                         )}
                       </span>
                     </button>

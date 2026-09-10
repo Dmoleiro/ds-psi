@@ -51,6 +51,7 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
   >([])
   const [selectedModules, setSelectedModules] = useState<string[]>([])
   const [generatedUrl, setGeneratedUrl] = useState('')
+  const [clinicalSessionCreated, setClinicalSessionCreated] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submissions, setSubmissions] = useState<PiccaSessionSubmissionsView | null>(null)
@@ -76,12 +77,17 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
     setSubmitting(true)
     setError('')
     setGeneratedUrl('')
+    setClinicalSessionCreated(false)
     try {
       const result = await therapistApi.createPiccaSession(token, patientId, selectedModules)
-      setGeneratedUrl(result.url)
+      if (result.url) {
+        setGeneratedUrl(result.url)
+      } else {
+        setClinicalSessionCreated(true)
+      }
       await onRefresh()
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível gerar o link')
+      setError(err instanceof ApiError ? err.message : 'Não foi possível criar a sessão')
     } finally {
       setSubmitting(false)
     }
@@ -149,6 +155,13 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
 
   const patientLinkModules = availableModules.filter((m) => !m.therapistOnly)
   const therapistOnlyModules = availableModules.filter((m) => m.therapistOnly)
+  const selectedPatientModules = selectedModules.filter((moduleId) =>
+    patientLinkModules.some((module) => module.id === moduleId),
+  )
+  const selectedClinicalModules = selectedModules.filter((moduleId) =>
+    therapistOnlyModules.some((module) => module.id === moduleId),
+  )
+  const createsPatientLink = selectedPatientModules.length > 0
 
   function modulePreviewHref(moduleId: string): string | null {
     return hasPiccaModuleRenderer(moduleId) ? piccaModulePreviewHref(moduleId) : null
@@ -159,8 +172,9 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
       <Card as="section" className={styles.sectionSpaced}>
         <h2>Gerar link PICCA</h2>
         <p className={styles.muted}>
-          Selecione os módulos a incluir na sessão. Os módulos para a família aparecem no link;
-          os módulos clínicos são preenchidos por si no backoffice.
+          Selecione os módulos a incluir na sessão. A maioria dos módulos (incluindo Volume VII)
+          pode ser partilhada com a família através do link. Os módulos exclusivos do terapeuta
+          são preenchidos por si no backoffice.
         </p>
         {availableModules.length === 0 ? (
           <p className={styles.muted}>Não existem módulos PICCA disponíveis.</p>
@@ -190,18 +204,37 @@ export function PiccaPatientSection({ token, patientId, sessions, onRefresh }: P
             )}
           </div>
         )}
+        {selectedClinicalModules.length > 0 && selectedPatientModules.length === 0 && (
+          <p className={styles.muted}>
+            Os módulos clínicos selecionados são preenchidos por si no backoffice — não é gerado link
+            para a família. Use «Ver / editar respostas» na sessão criada.
+          </p>
+        )}
         {error && <p className={styles.error}>{error}</p>}
         <Button
           type="button"
           onClick={handleGenerateLink}
           disabled={submitting || selectedModules.length === 0}
         >
-          {submitting ? 'A gerar…' : 'Gerar link PICCA'}
+          {submitting
+            ? 'A criar…'
+            : createsPatientLink
+              ? 'Gerar link PICCA'
+              : 'Iniciar sessão clínica'}
         </Button>
         {generatedUrl && (
           <div className={styles.successBox} style={{ marginTop: 'var(--space-md)' }}>
             <strong>Link gerado</strong>
             <p>{generatedUrl}</p>
+          </div>
+        )}
+        {clinicalSessionCreated && (
+          <div className={styles.successBox} style={{ marginTop: 'var(--space-md)' }}>
+            <strong>Sessão clínica criada</strong>
+            <p>
+              Não foi gerado link para a família. Abra «Ver / editar respostas» na tabela abaixo para
+              preencher os módulos clínicos.
+            </p>
           </div>
         )}
       </Card>
