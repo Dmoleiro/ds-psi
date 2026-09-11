@@ -68,8 +68,9 @@ export function useAuth() {
     clearNotepadSessionState()
     setStoredToken(result.token)
     setToken(result.token)
-    setUser(result.user)
-    return result.user
+    const { user: me } = await authApi.me(result.token)
+    setUser(me)
+    return me
   }, [])
 
   const logout = useCallback(() => {

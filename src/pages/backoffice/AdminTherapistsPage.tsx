@@ -14,6 +14,7 @@ type TherapistRow = {
   name: string
   active: boolean
   readOnly: boolean
+  isIntern: boolean
   financialOverviewEnabled: boolean
   piccaEnabled: boolean
   questionnairesEnabled: boolean
@@ -106,7 +107,8 @@ function TherapistSupervisorsPanel({
     <Card as="section" className={layoutStyles.sectionSpaced}>
       <h2>Supervisores — {therapist.name}</h2>
       <p className={layoutStyles.muted}>
-        Selecione os terapeutas cujo trabalho este utilizador pode consultar (somente leitura).
+        Selecione os terapeutas supervisores a quem este estagiário reporta. Os supervisores podem
+        consultar as horas de estágio registadas.
       </p>
       {error && <p className={layoutStyles.error}>{error}</p>}
       {loading ? (
@@ -272,6 +274,7 @@ export function AdminTherapistsPage() {
       data.therapists.map((therapist) => ({
         ...therapist,
         readOnly: therapist.readOnly ?? false,
+        isIntern: therapist.isIntern ?? false,
         financialOverviewEnabled: therapist.financialOverviewEnabled ?? false,
         piccaEnabled: therapist.piccaEnabled ?? false,
         questionnairesEnabled: therapist.questionnairesEnabled ?? false,
@@ -302,7 +305,7 @@ export function AdminTherapistsPage() {
 
   async function updateTherapistField(
     therapist: TherapistRow,
-    field: PermissionKey | 'active' | 'readOnly',
+    field: PermissionKey | 'active' | 'readOnly' | 'isIntern',
     value: boolean,
   ) {
     if (!token) return
@@ -393,6 +396,11 @@ export function AdminTherapistsPage() {
                         Somente leitura
                       </span>
                     )}
+                    {therapist.isIntern && (
+                      <span className={styles.statusActive} style={{ marginLeft: '0.5rem' }}>
+                        Estagiário
+                      </span>
+                    )}
                   </td>
                   <td>
                     <div className={styles.permissionGroup}>
@@ -418,7 +426,7 @@ export function AdminTherapistsPage() {
                       >
                         Gerir locais
                       </button>
-                      {therapist.readOnly && (
+                      {therapist.isIntern && (
                         <button
                           type="button"
                           className={layoutStyles.linkButton}
@@ -427,6 +435,14 @@ export function AdminTherapistsPage() {
                           Gerir supervisores
                         </button>
                       )}
+                      <button
+                        type="button"
+                        className={layoutStyles.linkButton}
+                        disabled={isUpdating(therapist.id, 'isIntern')}
+                        onClick={() => updateTherapistField(therapist, 'isIntern', !therapist.isIntern)}
+                      >
+                        {therapist.isIntern ? 'Remover estágio' : 'Marcar estagiário'}
+                      </button>
                       <button
                         type="button"
                         className={layoutStyles.linkButton}

@@ -29,10 +29,26 @@ export const createTherapistSchema = z.object({
 
 export const createCoordinatorSchema = createTherapistSchema
 
+export const internWorkLogBodySchema = z.object({
+  workDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  hours: z.coerce.number().min(0.25).max(24),
+  notes: z.string().max(2000).optional().nullable(),
+})
+
+export const internWorkLogMonthQuerySchema = z.object({
+  year: z.coerce.number().int().min(2000).max(2100),
+  month: z.coerce.number().int().min(1).max(12),
+})
+
+export const supervisedInternWorkLogsQuerySchema = internWorkLogMonthQuerySchema.extend({
+  internId: z.string().uuid(),
+})
+
 export const updateTherapistSchema = z.object({
   name: z.string().min(2).optional(),
   active: z.boolean().optional(),
   readOnly: z.boolean().optional(),
+  isIntern: z.boolean().optional(),
   financialOverviewEnabled: z.boolean().optional(),
   piccaEnabled: z.boolean().optional(),
   questionnairesEnabled: z.boolean().optional(),

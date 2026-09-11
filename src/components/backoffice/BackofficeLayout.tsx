@@ -48,6 +48,8 @@ function BackofficeNavLinks({
           {user.financialOverviewEnabled && link('/backoffice/financial', 'Finanças')}
           {user.piccaEnabled && link('/backoffice/picca', 'PICCA')}
           {link('/backoffice/workshops', 'Workshops')}
+          {user.isIntern && link('/backoffice/intern-hours', 'Horas de estágio')}
+          {user.hasSupervisedInterns && link('/backoffice/supervised-interns', 'Estagiários')}
         </>
       )}
       {user.role === 'coordinator' && (

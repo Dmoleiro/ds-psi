@@ -27,6 +27,8 @@ import { PatientDetailPage } from './pages/backoffice/PatientDetailPage'
 import { PatientsListPage } from './pages/backoffice/PatientsListPage'
 import { TherapistProfilePage } from './pages/backoffice/TherapistProfilePage'
 import { WorkshopsPage } from './pages/backoffice/WorkshopsPage'
+import { InternWorkHoursPage } from './pages/backoffice/InternWorkHoursPage'
+import { SupervisedInternsPage } from './pages/backoffice/SupervisedInternsPage'
 import { PatientCompletePage } from './pages/patient/PatientCompletePage'
 import { PatientFormPage } from './pages/patient/PatientFormPage'
 import { PatientPortalPage } from './pages/patient/PatientPortalPage'
@@ -116,6 +118,8 @@ export function App() {
         <Route path="/backoffice/forms/preview/:formId" element={<RequireTherapist><FormPreviewPage /></RequireTherapist>} />
         <Route path="/backoffice/profile" element={<TherapistProfilePage />} />
         <Route path="/backoffice/workshops" element={<WorkshopsPage />} />
+        <Route path="/backoffice/intern-hours" element={<RequireTherapist><InternWorkHoursPage /></RequireTherapist>} />
+        <Route path="/backoffice/supervised-interns" element={<RequireTherapist><SupervisedInternsPage /></RequireTherapist>} />
         <Route path="/backoffice/admin/therapists" element={<AdminTherapistsPage />} />
         <Route path="/backoffice/admin/coordinators" element={<AdminCoordinatorsPage />} />
         <Route path="/backoffice/admin/locations" element={<AdminLocationsPage />} />

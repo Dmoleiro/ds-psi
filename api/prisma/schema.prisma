@@ -85,6 +85,7 @@ model User {
   passwordHash String    @map("password_hash")
   active       Boolean   @default(true)
   readOnly     Boolean   @default(false) @map("read_only")
+  isIntern     Boolean   @default(false) @map("is_intern")
   financialOverviewEnabled Boolean @default(false) @map("financial_overview_enabled")
   piccaEnabled             Boolean @default(false) @map("picca_enabled")
   questionnairesEnabled    Boolean @default(false) @map("questionnaires_enabled")
@@ -113,6 +114,7 @@ model User {
   internSupervisors TherapistSupervisor[] @relation("InternSupervisorAssignments")
   supervisedInterns TherapistSupervisor[] @relation("SupervisedInternAssignments")
   calendarBlocks TherapistCalendarBlock[]
+  internWorkLogs InternWorkLog[]
 
   @@map("users")
 }
@@ -203,6 +205,21 @@ model CoordinatorTherapist {
   @@index([coordinatorId])
   @@index([therapistId])
   @@map("coordinator_therapists")
+}
+
+model InternWorkLog {
+  id        String   @id @default(uuid())
+  internId  String   @map("intern_id")
+  workDate  String   @map("work_date")
+  hours     Decimal  @db.Decimal(4, 2)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  intern User @relation(fields: [internId], references: [id], onDelete: Cascade)
+
+  @@index([internId, workDate])
+  @@map("intern_work_logs")
 }
 
 model TherapistSupervisor {

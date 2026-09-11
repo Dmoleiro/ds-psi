@@ -526,7 +526,7 @@ function buildGriffithsSection(results: GriffithsResults): string {
     <section class="method-block">
       <h2>Ruth Griffiths</h2>
       <p class="muted">Escala de Desenvolvimento de Ruth Griffiths — subescalas A (Locomotora) a F (Raciocínio Prático).</p>
-      ${buildAgeBlock(resolveEvaluationAge(derived), { showEvaluationDate: false })}
+      ${buildAgeBlock(resolveEvaluationAge(derived))}
       <h3>Sumário dos resultados da avaliação</h3>
       <table class="data-table griffiths-table">
         <thead>

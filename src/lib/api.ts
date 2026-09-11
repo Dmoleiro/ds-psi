@@ -181,6 +181,38 @@ export type AppointmentInviteSettings = {
   copyToTherapist: boolean
 }
 
+export type InternWorkLog = {
+  id: string
+  internId: string
+  workDate: string
+  hours: number
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type InternWorkLogMonth = {
+  year: number
+  month: number
+  totalHours: number
+  logs: InternWorkLog[]
+}
+
+export type SupervisedInternHoursSummary = {
+  year: number
+  month: number
+  grandTotal: number
+  interns: Array<{
+    intern: { id: string; name: string; email: string }
+    entryCount: number
+    totalHours: number
+  }>
+}
+
+export type SupervisedInternWorkLogMonth = InternWorkLogMonth & {
+  intern: { id: string; name: string; email: string } | null
+}
+
 export type StaffUser = {
   id: string
   email: string
@@ -188,6 +220,8 @@ export type StaffUser = {
   phone?: string | null
   role: 'admin' | 'therapist' | 'coordinator'
   readOnly?: boolean
+  isIntern?: boolean
+  hasSupervisedInterns?: boolean
   financialOverviewEnabled?: boolean
   piccaEnabled?: boolean
   questionnairesEnabled?: boolean
@@ -1025,6 +1059,55 @@ export const therapistApi = {
       `/api/therapist/financial/charts?year=${year}&period=${period}`,
       { token },
     ),
+  listInternWorkLogs: (token: string, year: number, month: number) =>
+    apiRequest<InternWorkLogMonth>(
+      `/api/therapist/intern-work-logs?year=${year}&month=${month}`,
+      { token },
+    ),
+  createInternWorkLog: (
+    token: string,
+    body: { workDate: string; hours: number; notes?: string | null },
+  ) =>
+    apiRequest<{ log: InternWorkLog }>('/api/therapist/intern-work-logs', {
+      method: 'POST',
+      token,
+      body,
+    }),
+  updateInternWorkLog: (
+    token: string,
+    id: string,
+    body: { workDate: string; hours: number; notes?: string | null },
+  ) =>
+    apiRequest<{ log: InternWorkLog }>(`/api/therapist/intern-work-logs/${id}`, {
+      method: 'PATCH',
+      token,
+      body,
+    }),
+  deleteInternWorkLog: (token: string, id: string) =>
+    apiRequest<{ deleted: boolean }>(`/api/therapist/intern-work-logs/${id}`, {
+      method: 'DELETE',
+      token,
+    }),
+  listSupervisedInterns: (token: string) =>
+    apiRequest<{ interns: Array<{ id: string; name: string; email: string }> }>(
+      '/api/therapist/supervised-interns',
+      { token },
+    ),
+  getSupervisedInternHoursSummary: (token: string, year: number, month: number) =>
+    apiRequest<SupervisedInternHoursSummary>(
+      `/api/therapist/supervised-interns/work-logs/summary?year=${year}&month=${month}`,
+      { token },
+    ),
+  getSupervisedInternWorkLogs: (
+    token: string,
+    internId: string,
+    year: number,
+    month: number,
+  ) =>
+    apiRequest<SupervisedInternWorkLogMonth>(
+      `/api/therapist/supervised-interns/work-logs?internId=${internId}&year=${year}&month=${month}`,
+      { token },
+    ),
 }
 
 export const coordinatorApi = {
@@ -1153,6 +1236,7 @@ export const adminApi = {
       name?: string
       active?: boolean
       readOnly?: boolean
+      isIntern?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
       questionnairesEnabled?: boolean

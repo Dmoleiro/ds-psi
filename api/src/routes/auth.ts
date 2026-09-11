@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { verifyPassword } from '../lib/password.js'
 import { loginSchema } from '../lib/schemas.js'
 import { requireAuth } from '../middleware/auth.js'
+import { countSupervisedInterns } from '../services/internWorkLogs.js'
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/api/auth/login', async (request, reply) => {
@@ -36,6 +37,7 @@ export async function authRoutes(app: FastifyInstance) {
         name: user.name,
         role: user.role,
         readOnly: user.readOnly,
+        isIntern: user.isIntern,
       },
     }
   })
@@ -51,6 +53,7 @@ export async function authRoutes(app: FastifyInstance) {
         role: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -60,6 +63,12 @@ export async function authRoutes(app: FastifyInstance) {
     if (!user || !user.active) {
       return reply.status(401).send({ error: 'Não autorizado' })
     }
-    return { user }
+
+    const hasSupervisedInterns =
+      user.role === 'therapist'
+        ? (await countSupervisedInterns(user.id)) > 0
+        : false
+
+    return { user: { ...user, hasSupervisedInterns } }
   })
 }

@@ -33,6 +33,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -70,6 +71,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -100,6 +102,7 @@ export async function adminRoutes(app: FastifyInstance) {
       name?: string
       active?: boolean
       readOnly?: boolean
+      isIntern?: boolean
       financialOverviewEnabled?: boolean
       piccaEnabled?: boolean
       questionnairesEnabled?: boolean
@@ -111,6 +114,7 @@ export async function adminRoutes(app: FastifyInstance) {
     if (parsed.data.name !== undefined) data.name = parsed.data.name
     if (parsed.data.active !== undefined) data.active = parsed.data.active
     if (parsed.data.readOnly !== undefined) data.readOnly = parsed.data.readOnly
+    if (parsed.data.isIntern !== undefined) data.isIntern = parsed.data.isIntern
     if (parsed.data.financialOverviewEnabled !== undefined) {
       data.financialOverviewEnabled = parsed.data.financialOverviewEnabled
     }
@@ -140,6 +144,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -261,6 +266,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         appointmentInvitesAllowed: true,
@@ -296,6 +302,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,
@@ -336,6 +343,7 @@ export async function adminRoutes(app: FastifyInstance) {
         name: true,
         active: true,
         readOnly: true,
+        isIntern: true,
         financialOverviewEnabled: true,
         piccaEnabled: true,
         questionnairesEnabled: true,

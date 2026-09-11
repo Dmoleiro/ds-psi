@@ -184,7 +184,6 @@ export function GriffithsResultsTables({
               value={resolveEvaluationAge(rawResults)}
               readOnly={readOnly}
               defaultBirthDate={defaultBirthDate}
-              showEvaluationDate={false}
               onChange={commit}
             />
             {!readOnly ? (

@@ -43,9 +43,18 @@ import {
   listTherapistCalendarBlocks,
   updateTherapistCalendarBlock,
 } from '../services/calendarBlocks.js'
+import {
+  createInternWorkLog,
+  deleteInternWorkLog,
+  listInternWorkLogs,
+  listSupervisedInternWorkLogs,
+  listSupervisedInterns,
+  summarizeSupervisedInternHours,
+  updateInternWorkLog,
+} from '../services/internWorkLogs.js'
 import { listActiveGabinetesForTherapist } from '../services/gabinetes.js'
 import { listTherapistLocations, assertTherapistHasLocation } from '../services/therapistLocations.js'
-import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, calendarBlockBodySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, therapistNotepadSchema, therapistAppointmentsQuerySchema, therapistAttendanceMatrixQuerySchema, therapistGabinetesQuerySchema, therapistLocationsQuerySchema, shadowTherapistQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
+import { attendanceMatrixQuerySchema, attendanceMonthQuerySchema, attendanceUpsertSchema, appointmentBodySchema, appointmentDayQuerySchema, appointmentMonthQuerySchema, appointmentInviteSettingsSchema, calendarBlockBodySchema, createAppointmentBodySchema, deleteAppointmentQuerySchema, createLocationSchema, financialMonthQuerySchema, financialSettingsSchema, financialYearQuerySchema, gabineteListQuerySchema, internWorkLogBodySchema, internWorkLogMonthQuerySchema, locationDayScheduleQuerySchema, patientAppointmentNotesSchema, patientEvaluationsSchema, supervisedInternWorkLogsQuerySchema, therapistNotepadSchema, therapistAppointmentsQuerySchema, therapistAttendanceMatrixQuerySchema, therapistGabinetesQuerySchema, therapistLocationsQuerySchema, shadowTherapistQuerySchema, updateAppointmentBodySchema, updateLocationSchema, updatePatientFormDeliverySchema, updateTherapistProfileSchema } from '../lib/schemas.js'
 import { formatFormAnswers } from '../lib/formPresentation.js'
 import { formatSmtpError, sendTestEmail } from '../lib/mail.js'
 import { getTherapistDashboard } from '../services/dashboard.js'
@@ -1475,6 +1484,134 @@ export async function therapistRoutes(app: FastifyInstance) {
         }
         if (error instanceof Error && error.message === 'DOCUMENT_NOT_FOUND') {
           return reply.status(404).send({ error: 'Documento não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get('/api/therapist/intern-work-logs', { preHandler: therapistOnly }, async (request, reply) => {
+    const parsed = internWorkLogMonthQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      return await listInternWorkLogs(request.user.sub, parsed.data.year, parsed.data.month)
+    } catch (error) {
+      if (error instanceof Error && error.message === 'NOT_AN_INTERN') {
+        return reply.status(403).send({ error: 'Apenas estagiários podem registar horas' })
+      }
+      throw error
+    }
+  })
+
+  app.post('/api/therapist/intern-work-logs', { preHandler: therapistWriteOnly }, async (request, reply) => {
+    const parsed = internWorkLogBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+    }
+
+    try {
+      const log = await createInternWorkLog(request.user.sub, parsed.data)
+      return reply.status(201).send({ log })
+    } catch (error) {
+      if (error instanceof Error && error.message === 'NOT_AN_INTERN') {
+        return reply.status(403).send({ error: 'Apenas estagiários podem registar horas' })
+      }
+      throw error
+    }
+  })
+
+  app.patch(
+    '/api/therapist/intern-work-logs/:id',
+    { preHandler: therapistWriteOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+      const parsed = internWorkLogBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        const log = await updateInternWorkLog(request.user.sub, id, parsed.data)
+        return { log }
+      } catch (error) {
+        if (error instanceof Error && error.message === 'NOT_AN_INTERN') {
+          return reply.status(403).send({ error: 'Apenas estagiários podem registar horas' })
+        }
+        if (error instanceof Error && error.message === 'LOG_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Registo não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.delete(
+    '/api/therapist/intern-work-logs/:id',
+    { preHandler: therapistWriteOnly },
+    async (request, reply) => {
+      const { id } = request.params as { id: string }
+
+      try {
+        return await deleteInternWorkLog(request.user.sub, id)
+      } catch (error) {
+        if (error instanceof Error && error.message === 'NOT_AN_INTERN') {
+          return reply.status(403).send({ error: 'Apenas estagiários podem registar horas' })
+        }
+        if (error instanceof Error && error.message === 'LOG_NOT_FOUND') {
+          return reply.status(404).send({ error: 'Registo não encontrado' })
+        }
+        throw error
+      }
+    },
+  )
+
+  app.get('/api/therapist/supervised-interns', { preHandler: therapistOnly }, async (request) => {
+    const interns = await listSupervisedInterns(request.user.sub)
+    return { interns }
+  })
+
+  app.get(
+    '/api/therapist/supervised-interns/work-logs/summary',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const parsed = internWorkLogMonthQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
+      return summarizeSupervisedInternHours(
+        request.user.sub,
+        parsed.data.year,
+        parsed.data.month,
+      )
+    },
+  )
+
+  app.get(
+    '/api/therapist/supervised-interns/work-logs',
+    { preHandler: therapistOnly },
+    async (request, reply) => {
+      const parsed = supervisedInternWorkLogsQuerySchema.safeParse(request.query)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Parâmetros inválidos', details: parsed.error.flatten() })
+      }
+
+      try {
+        return await listSupervisedInternWorkLogs(
+          request.user.sub,
+          parsed.data.internId,
+          parsed.data.year,
+          parsed.data.month,
+        )
+      } catch (error) {
+        if (error instanceof Error && error.message === 'INTERN_ACCESS_DENIED') {
+          return reply.status(403).send({ error: 'Sem acesso a este estagiário' })
+        }
+        if (error instanceof Error && error.message === 'NOT_AN_INTERN') {
+          return reply.status(404).send({ error: 'Estagiário não encontrado' })
         }
         throw error
       }

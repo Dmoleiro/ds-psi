@@ -1,0 +1,119 @@
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.monthTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  min-width: 10rem;
+  text-align: center;
+}
+
+.navButton {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-sm);
+  width: 2.25rem;
+  height: 2.25rem;
+  cursor: pointer;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
+  margin-bottom: var(--space-lg);
+}
+
+.summaryLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.summaryValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-md);
+  align-items: end;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: var(--space-lg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-soft);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-muted);
+}
+
+.internCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.internCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
+  cursor: pointer;
+  text-align: left;
+}
+
+.internCardActive {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.internCardName {
+  font-weight: 600;
+}
+
+.internCardMeta {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
